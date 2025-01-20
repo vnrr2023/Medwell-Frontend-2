@@ -2,24 +2,12 @@
 import React, { useRef } from "react";
 import { useScroll, useTransform, motion, MotionValue } from "framer-motion";
 
-interface User {
-  image: string;
-  name: string;
-  designation: string;
-}
-
 export const ContainerScroll = ({
   titleComponent,
   children,
-  users,
-  direction,
-  speed,
 }: {
-  titleComponent?: React.ReactNode;
+  titleComponent: string | React.ReactNode;
   children: React.ReactNode;
-  users: User[];
-  direction: string;
-  speed: string;
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
@@ -61,21 +49,11 @@ export const ContainerScroll = ({
         <Card rotate={rotate} translate={translate} scale={scale}>
           {children}
         </Card>
-        <div className={`scroll-container ${direction} ${speed}`}>
-          {users.map((user, index) => (
-            <div key={index} className="user-card">
-              <img src={user.image} alt={user.name} />
-              <h3>{user.name}</h3>
-              <p>{user.designation}</p>
-            </div>
-          ))}
-        </div>
       </div>
     </div>
   );
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const Header = ({ translate, titleComponent }: any) => {
   return (
     <motion.div

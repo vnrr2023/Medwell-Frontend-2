@@ -29,7 +29,7 @@ export default function Testimonials() {
       >
         {testimonials.map((testimonial, index) => (
           <div key={index} className="bg-white p-6 rounded-lg shadow-md min-w-[300px] mr-4">
-            <p className="text-lg mb-4">&quot;{testimonial.comment}&quot;</p>
+            <p className="text-lg mb-4">"{testimonial.comment}"</p>
             <p className="font-bold">- {testimonial.author}</p>
           </div>
         ))}
