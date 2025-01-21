@@ -18,7 +18,7 @@ export default function Hero() {
 
   return (
     <section className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#F4F4F4]/50 to-[#E0F7FA]/50 px-4 md:px-6 pt-20">
-      <div className="max-w-6xl mx-auto flex flex-col lg:flex-row items-center justify-between w-full">
+      <div className="max-w-6xl mx-auto flex flex-col lg:flex-row items-center justify-between w-full gap-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -44,15 +44,15 @@ export default function Hero() {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="lg:w-1/2 flex justify-center lg:justify-end"
         >
-          <div className="relative w-full max-w-md h-[300px] md:h-[400px] lg:h-[500px]">
+            <div className="relative w-full aspect-[3/2] sm:aspect-[3/4] lg:aspect-[3/3] max-w-md mx-auto">
             <Image
               src="/bg-home.png"
               alt="AI-assisted healthcare"
               layout="fill"
               objectFit="contain"
-              // className="rounded-lg"
+              className="rounded-lg"
             />
-          </div>
+            </div>
         </motion.div>
       </div>
     </section>

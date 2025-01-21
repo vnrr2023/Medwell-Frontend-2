@@ -27,7 +27,7 @@ export default function SystemDesign() {
         className="max-w-4xl mx-auto"
       >
         <div className="relative w-full h-[300px] md:h-[400px] lg:h-[500px]">
-          <Image src="/system-design.jpg" alt="System Design" layout="fill" objectFit="contain" className="rounded-lg" />
+          <Image src="/system-design.jpg" alt="System Design" fill objectFit="contain" className="rounded-lg" />
         </div>
       </motion.div>
     </section>
