@@ -1,46 +1,63 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import Image from "next/image"
 import Link from "next/link"
 import { Github, Linkedin } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { BentoGrid, BentoGridItem } from "@/components/ui/bento-grid"
+import { WobbleCard } from "@/components/ui/wobble-card"
+import Loader from "@/components/Loader"
 
 const teamMembers = [
   {
     name: "Vivek Chouhan",
     role: "Backend Developer",
-    image: "/Vivek.jpg",
+    image: "/team/Vivek.jpg",
     github: "https://github.com/vivi",
     linkedin: "https://linkedin.com/in/vivi",
   },
   {
     name: "Nishikant Raut",
     role: "FullStack Developer",
-    image: "/Nishi.jpg",
+    image: "/team/Nishi.jpg",
     github: "https://github.com/Nishikant00",
     linkedin: "https://linkedin.com/in/nishi",
   },
   {
     name: "Rehan Sayyed",
     role: "FullStack Developer",
-    image: "/Rehan.jpg",
+    image: "/team/Rehan.jpg",
     github: "https://github.com/rsayyed591",
     linkedin: "https://linkedin.com/in/rehan42",
   },
   {
     name: "Rohit Deshmukh",
     role: "Full stack Developer",
-    image: "/Rohit.jpg",
+    image: "/team/Rohit.jpg",
     github: "https://github.com/ardie",
     linkedin: "https://linkedin.com/in/rohit",
   },
 ]
 
 export default function AboutPage() {
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    // Simulate data loading
+    const timer = setTimeout(() => {
+      setLoading(false)
+    }, 2000)
+
+    return () => clearTimeout(timer)
+  }, [])
+
+  if (loading) {
+    return <Loader onLoadingComplete={() => setLoading(false)} />
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#F4F4F4] to-[#E0F7FA] py-12 px-4 sm:px-6 lg:px-8 mt-20">
+    <div className="min-h-screen py-20 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -69,32 +86,27 @@ export default function AboutPage() {
 
         <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Meet Our Team</h2>
 
-        <BentoGrid className="max-w-4xl mx-auto mb-12">
-          {teamMembers.map((member, index) => (
-            <BentoGridItem
-              key={member.name}
-              title={member.name}
-              description={member.role}
-              header={
-                <div className="flex justify-center items-center w-full h-full">
-                  <Image
-                    src={member.image || "/placeholder.svg"}
-                    alt={member.name}
-                    width={200}
-                    height={200}
-                    className="w-full h-full object-cover rounded-lg"
-                  />
-                </div>
-              }
-              icon={
-                <div className="flex space-x-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-12">
+          {teamMembers.map((member) => (
+            <WobbleCard key={member.name} className="bg-white rounded-lg shadow-lg p-6">
+              <div className="flex flex-col items-center">
+                <Image
+                  src={member.image || "/placeholder.svg"}
+                  alt={member.name}
+                  width={200}
+                  height={200}
+                  className="w-32 h-32 rounded-full object-cover mb-4"
+                />
+                <h3 className="text-xl font-semibold mb-2">{member.name}</h3>
+                <p className="text-gray-600 mb-4">{member.role}</p>
+                <div className="flex space-x-4">
                   <Link
                     href={member.github}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-gray-400 hover:text-gray-500"
                   >
-                    <Github className="h-5 w-5" />
+                    <Github className="h-6 w-6" />
                   </Link>
                   <Link
                     href={member.linkedin}
@@ -102,14 +114,13 @@ export default function AboutPage() {
                     rel="noopener noreferrer"
                     className="text-gray-400 hover:text-gray-500"
                   >
-                    <Linkedin className="h-5 w-5" />
+                    <Linkedin className="h-6 w-6" />
                   </Link>
                 </div>
-              }
-              className={index === 3 ? "md:col-span-2" : ""}
-            />
+              </div>
+            </WobbleCard>
           ))}
-        </BentoGrid>
+        </div>
 
         <Card>
           <CardHeader>
@@ -117,9 +128,9 @@ export default function AboutPage() {
           </CardHeader>
           <CardContent>
             <p className="text-gray-700">
-              We&apos;re always looking for passionate individuals to join our team. If you&apos;re excited about using AI to
-              improve healthcare and want to make a real difference in people&apos;s lives, we&apos;d love to hear from you. Check
-              out our careers page or reach out to us directly to learn about current opportunities.
+              We&apos;re always looking for passionate individuals to join our team. If you&apos;re excited about using
+              AI to improve healthcare and want to make a real difference in people&apos;s lives, we&apos;d love to hear
+              from you. Check out our careers page or reach out to us directly to learn about current opportunities.
             </p>
           </CardContent>
         </Card>
