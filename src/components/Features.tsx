@@ -1,34 +1,79 @@
 "use client"
 
-import { DollarSign, Calendar, FileText, Activity, Lock, MessageCircle } from "lucide-react"
-import { DirectionAwareHover } from "@/components/ui/direction-aware-hover"
+import { Brain, Dna, Stethoscope, Lock, Zap, HeartPulse } from "lucide-react"
+import { motion } from "framer-motion"
+import { useInView } from "react-intersection-observer"
 
 const features = [
-  { Icon: DollarSign, title: "Cost Tracking", description: "Monitor and manage your healthcare expenses efficiently" },
-  { Icon: Calendar, title: "Smart Scheduling", description: "Book and manage appointments with ease" },
-  { Icon: FileText, title: "Digital Records", description: "Access your medical history anytime, anywhere" },
-  { Icon: Activity, title: "Health Monitoring", description: "Track your vital signs and health metrics" },
-  { Icon: Lock, title: "Secure Platform", description: "Your data is protected with enterprise-grade security" },
-  { Icon: MessageCircle, title: "24/7 Support", description: "Get help whenever you need it" },
+  {
+    Icon: Brain,
+    title: "AI Diagnosis",
+    description: "Advanced AI algorithms for accurate medical diagnoses",
+    color: "#0078D7",
+  },
+  {
+    Icon: Dna,
+    title: "Genetic Analysis",
+    description: "Comprehensive genetic profiling for personalized treatment",
+    color: "#00C6D7",
+  },
+  {
+    Icon: Stethoscope,
+    title: "Remote Monitoring",
+    description: "24/7 patient monitoring with real-time alerts",
+    color: "#4CAF50",
+  },
+  {
+    Icon: Lock,
+    title: "Secure Platform",
+    description: "Enterprise-grade security for sensitive medical data",
+    color: "#FFD700",
+  },
+  {
+    Icon: Zap,
+    title: "Instant Insights",
+    description: "Real-time data analytics for quick decision making",
+    color: "#D72638",
+  },
+  {
+    Icon: HeartPulse,
+    title: "Predictive Care",
+    description: "AI-powered predictions for preventive healthcare",
+    color: "#0078D7",
+  },
 ]
 
 export default function Features() {
+  const [ref, inView] = useInView({
+    triggerOnce: true,
+    threshold: 0.1,
+  })
+
   return (
-    <section className="py-20 px-4 md:px-6 bg-[#E3F2FD]">
-      <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 font-poppins text-[#1E88E5]">Our Features</h2>
+    <section ref={ref} className="py-20 px-4 md:px-6">
+      <motion.h2
+        initial={{ opacity: 0, y: 20 }}
+        animate={inView ? { opacity: 1, y: 0 } : {}}
+        transition={{ duration: 0.5 }}
+        className="text-3xl md:text-4xl font-bold text-center mb-12 font-poppins text-[#0078D7]"
+      >
+        Our AI-Powered Features
+      </motion.h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
         {features.map((feature, index) => (
-          <DirectionAwareHover
+          <motion.div
             key={index}
-            imageUrl="/placeholder.svg" // Replace with feature-specific images
-            className="bg-white rounded-lg shadow-lg p-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={inView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.5, delay: index * 0.1 }}
+            className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-300"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
-            <div className="flex flex-col items-center text-center">
-              <feature.Icon className="h-12 w-12 text-[#1E88E5] mb-4" />
-              <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
-              <p className="text-[#757575]">{feature.description}</p>
-            </div>
-          </DirectionAwareHover>
+            <feature.Icon className="h-12 w-12 mb-4" style={{ color: feature.color }} />
+            <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
+            <p className="text-[#1A1A1A]">{feature.description}</p>
+          </motion.div>
         ))}
       </div>
     </section>
