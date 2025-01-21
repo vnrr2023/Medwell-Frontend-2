@@ -59,9 +59,9 @@ export default function AboutPage() {
           </CardHeader>
           <CardContent>
             <p className="text-gray-700">
-              At Medwell AI, we're on a mission to transform healthcare using advanced artificial intelligence. Our
+              At Medwell AI, we&apos;re on a mission to transform healthcare using advanced artificial intelligence. Our
               platform combines cutting-edge AI algorithms with comprehensive health records to provide unparalleled
-              insights for both healthcare providers and patients. We're committed to improving patient outcomes,
+              insights for both healthcare providers and patients. We&apos;re committed to improving patient outcomes,
               streamlining medical processes, and making healthcare more accessible and efficient for everyone.
             </p>
           </CardContent>
@@ -117,8 +117,8 @@ export default function AboutPage() {
           </CardHeader>
           <CardContent>
             <p className="text-gray-700">
-              We're always looking for passionate individuals to join our team. If you're excited about using AI to
-              improve healthcare and want to make a real difference in people's lives, we'd love to hear from you. Check
+              We&apos;re always looking for passionate individuals to join our team. If you&apos;re excited about using AI to
+              improve healthcare and want to make a real difference in people&apos;s lives, we&apos;d love to hear from you. Check
               out our careers page or reach out to us directly to learn about current opportunities.
             </p>
           </CardContent>
