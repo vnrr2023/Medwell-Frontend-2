@@ -3,13 +3,18 @@
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
-import { Users } from "lucide-react"
+import { Users } from 'lucide-react'
+import Link from "next/link"
 
 export default function Hero() {
   return (
     <section className="py-20 px-4 md:px-6 max-w-7xl mx-auto">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}>
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5 }}
+        >
           <div className="flex items-center gap-2 text-sm text-green-600 mb-4">
             <Users className="h-4 w-4" />
             <span>Trusted by thousands of patients & healthcare providers</span>
@@ -26,11 +31,8 @@ export default function Hero() {
             providers remotely - all in one place.
           </p>
           <div className="flex flex-wrap gap-4">
-            <Button size="lg" className="bg-primary hover:bg-primary/90">
-              Get Started
-            </Button>
-            <Button size="lg" variant="outline">
-              Book Consultation
+            <Button size="lg" className="bg-primary hover:bg-primary/90" asChild>
+              <Link href="/auth">Get Started</Link>
             </Button>
           </div>
         </motion.div>
@@ -57,4 +59,3 @@ export default function Hero() {
     </section>
   )
 }
-
