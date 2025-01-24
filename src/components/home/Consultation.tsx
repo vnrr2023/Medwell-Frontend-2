@@ -39,7 +39,7 @@ export default function Consultation() {
             className="relative"
           >
             <Image
-              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-0tYkt61APFV8OcGVUBOAc7QvLvza8i.png"
+              src="/hero/img1.jpg"
               alt="Doctor Chat"
               width={500}
               height={500}

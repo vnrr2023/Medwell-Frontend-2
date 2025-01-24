@@ -58,12 +58,13 @@ export default function Navbar() {
                 >
                   <Link
                     href={item.link}
-                    className={`text-[#1A1A1A] hover:text-[#0078D7] px-3 py-2 rounded-md text-sm font-medium transition-colors duration-300 ${
+                    className={`text-[#1A1A1A] hover:text-[#0078D7] px-3 py-2 rounded-md text-sm font-medium transition-colors duration-300 relative group ${
                       scrolled ? "hover:bg-gray-100" : "hover:bg-white/10"
                     }`}
                   >
                     <item.icon className="inline-block w-5 h-5 mr-1" />
                     {item.name}
+                    <span className="absolute bottom-0 left-0 w-full h-0.5 bg-[#0078D7] transform scale-x-0 transition-transform duration-300 group-hover:scale-x-100"></span>
                   </Link>
                 </motion.div>
               ))}
@@ -94,10 +95,11 @@ export default function Navbar() {
                 <Link
                   key={item.name}
                   href={item.link}
-                  className="text-[#1A1A1A] hover:text-[#0078D7] hover:bg-gray-100 block px-3 py-2 rounded-md text-base font-medium transition-colors duration-300"
+                  className="text-[#1A1A1A] hover:text-[#0078D7] hover:bg-gray-100 block px-3 py-2 rounded-md text-base font-medium transition-colors duration-300 relative group"
                 >
                   <item.icon className="inline-block w-5 h-5 mr-2" />
                   {item.name}
+                  <span className="absolute bottom-0 left-0 w-full h-0.5 bg-[#0078D7] transform scale-x-0 transition-transform duration-300 group-hover:scale-x-100"></span>
                 </Link>
               ))}
             </div>

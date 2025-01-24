@@ -5,7 +5,7 @@ import Hero from "@/components/home/Hero"
 import Features from "@/components/home/Features"
 import Consultation from "@/components/home/Consultation"
 import Specialties from "@/components/home/Specialties"
-import Articles from "@/components/home/Articles"
+import Testimonials from "@/components/home/Testimonials"
 import Faqs from "@/components/home/Faqs"
 import Loader from "@/components/Loader"
 
@@ -30,7 +30,7 @@ export default function Home() {
       <Features />
       <Consultation />
       <Specialties />
-      <Articles />
+      <Testimonials />
       <Faqs />
     </main>
   )

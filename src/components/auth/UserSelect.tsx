@@ -1,39 +1,39 @@
-"use client"
+"use client";
 
-import { motion } from "framer-motion"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Building2, UserRound, Users } from "lucide-react"
-import Link from "next/link"
-import Image from "next/image"
+import { motion } from "framer-motion";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Building2, UserRound, Users } from "lucide-react";
+import Link from "next/link";
+import Image from "next/image";
 
 const roles = [
   {
     title: "Patient",
     icon: Users,
     description: "Access your medical records, book appointments, and manage your healthcare journey",
-    image: "/placeholder.svg",
-    link: "/patient/login",
+    image: "/auth/patient.jpg",
+    link: "/auth/patient/login",
   },
   {
     title: "Doctor",
     icon: UserRound,
     description: "Manage your practice, access patient records, and provide remote consultations",
-    image: "/placeholder.svg",
-    link: "/doctor/login",
+    image: "/auth/doctor.jpg",
+    link: "/auth/doctor/login",
   },
   {
     title: "Hospital",
     icon: Building2,
     description: "Streamline hospital operations and enhance patient care with our comprehensive system",
-    image: "/placeholder.svg",
-    link: "/hospital/login",
+    image: "/auth/hospital.jpg",
+    link: "/auth/hospital/login",
   },
-]
+];
 
 export default function UserSelect() {
   return (
-    <div className="min-h-screen pt-24 pb-12 px-4 bg-gradient-to-b from-[#E8F4FE] to-white">
+    <div className="min-h-screen isolate pt-24 pb-12 px-4 bg-gradient-to-b from-[#E8F4FE] to-white">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -45,15 +45,16 @@ export default function UserSelect() {
           <p className="text-xl text-gray-600">Choose your role to continue</p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="flex flex-wrap justify-center gap-8">
           {roles.map((role) => (
             <motion.div
               key={role.title}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
+              className="w-full sm:w-auto"
             >
-              <Card className="relative group overflow-hidden hover:shadow-lg transition-shadow">
+              <Card className="relative group overflow-hidden hover:shadow-lg transition-shadow w-full sm:w-80">
                 <CardHeader className="text-center pb-4">
                   <div className="mx-auto mb-4 p-3 rounded-full bg-[#0078D7]/10">
                     <role.icon className="w-8 h-8 text-[#0078D7]" />
@@ -96,6 +97,5 @@ export default function UserSelect() {
         </div>
       </motion.div>
     </div>
-  )
+  );
 }
-

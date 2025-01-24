@@ -43,7 +43,7 @@ export default function Hero() {
           className="relative"
         >
           <Image
-            src="/doctor-group.jpg"
+            src="/hero/img3.png"
             alt="Doctor"
             width={600}
             height={600}
