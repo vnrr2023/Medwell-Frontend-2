@@ -16,11 +16,11 @@ export default function Consultation() {
   return (
     <section className="py-20 px-4 md:px-6">
       <div className="max-w-7xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          viewport={{ once: true }}
+        <div
+          // initial={{ opacity: 0, y: 20 }}
+          // whileInView={{ opacity: 1, y: 0 }}
+          // transition={{ duration: 0.5 }}
+          // viewport={{ once: true }}
           className="text-center mb-12"
         >
           <h2 className="text-3xl font-bold mb-4">Access Healthcare Anywhere, Anytime</h2>
@@ -28,14 +28,14 @@ export default function Consultation() {
             Upload your medical reports, get AI-powered insights, and consult with healthcare providers through multiple
             channels. Our platform makes healthcare accessible from the comfort of your home.
           </p>
-        </motion.div>
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-            viewport={{ once: true }}
+          <div
+            // initial={{ opacity: 0, x: -20 }}
+            // whileInView={{ opacity: 1, x: 0 }}
+            // transition={{ duration: 0.5 }}
+            // viewport={{ once: true }}
             className="relative"
           >
             <Image
@@ -44,6 +44,9 @@ export default function Consultation() {
               width={500}
               height={500}
               className="rounded-2xl"
+              loading="lazy"
+              placeholder="blur"
+              blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACklEQVR4nGMAAQAABQABDQottAAAAABJRU5ErkJggg=="
             />
             <div className="absolute -right-4 top-1/2 transform -translate-y-1/2 bg-white p-4 rounded-xl shadow-lg">
               <div className="space-y-4">
@@ -55,7 +58,7 @@ export default function Consultation() {
                 ))}
               </div>
             </div>
-          </motion.div>
+          </div>
 
           <motion.div
             initial={{ opacity: 0, x: 20 }}
@@ -93,3 +96,4 @@ export default function Consultation() {
     </section>
   )
 }
+

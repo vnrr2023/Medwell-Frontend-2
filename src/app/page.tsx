@@ -1,38 +1,44 @@
 "use client"
-
-import { useState, useEffect } from "react"
+import { Suspense, lazy } from "react"
+import dynamic from "next/dynamic"
 import Hero from "@/components/home/Hero"
 import Features from "@/components/home/Features"
-import Consultation from "@/components/home/Consultation"
-import Specialties from "@/components/home/Specialties"
-import Testimonials from "@/components/home/Testimonials"
-import Faqs from "@/components/home/Faqs"
 import Loader from "@/components/Loader"
 
+const Consultation = lazy(() => import("@/components/home/Consultation"))
+const Specialties = lazy(() => import("@/components/home/Specialties"))
+const Testimonials = lazy(() => import("@/components/home/Testimonials"))
+const FAQ = dynamic(() => import("@/components/home/Faqs"), { ssr: false })
+
 export default function Home() {
-  const [loading, setLoading] = useState(true)
+  // const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false)
-    }, 2000)
+  // useEffect(() => {
+  //   const timer = setTimeout(() => {
+  //     setLoading(false)
+  //   }, 2000)
 
-    return () => clearTimeout(timer)
-  }, [])
+  //   return () => clearTimeout(timer)
+  // }, [])
 
-  if (loading) {
-    return <Loader onLoadingComplete={() => setLoading(false)} />
-  }
+  // if (loading) {
+  //   return <Loader onLoadingComplete={() => setLoading(false)} />
+  // }
 
   return (
     <main className="relative">
       <Hero />
       <Features />
-      <Consultation />
-      <Specialties />
-      <Testimonials />
-      <Faqs />
+      <Suspense fallback={<Loader onLoadingComplete={() => {}} />}>
+        <Consultation />
+      </Suspense>
+      <Suspense fallback={<Loader onLoadingComplete={() => {}} />}>
+        <Specialties />
+      </Suspense>
+      <Suspense fallback={<Loader onLoadingComplete={() => {}} />}>
+        <Testimonials />
+      </Suspense>
+      <FAQ />
     </main>
   )
 }
-
