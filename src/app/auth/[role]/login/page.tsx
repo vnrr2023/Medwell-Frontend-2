@@ -1,15 +1,14 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { motion } from "framer-motion"
 import Link from "next/link"
-import { useParams, useRouter } from "next/navigation"
+import { useParams} from "next/navigation"
 import { EyeIcon, EyeOffIcon, Mail, Lock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { AuthCard, AuthTitle, AuthDescription, AuthMessage } from "@/components/auth/auth-components"
-// import { useAuth } from "@/hooks/useAuth"
 import { cn } from "@/lib/utils"
 import Image from "next/image"
 import { FcGoogle } from "react-icons/fc"
@@ -36,26 +35,17 @@ export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
-  const { login, user, loading } = useAuth()
   const params = useParams()
   const role = params.role as string
-  const router = useRouter()
+  // const router = useRouter()
 
   const currentRoleInfo = roleInfo[role as keyof typeof roleInfo] || roleInfo.patient
 
-  useEffect(() => {
-    if (user) {
-      router.push("/patient")
-    }
-  }, [user, router])
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    await login(email, password)
-  }
-
-  if (loading) {
-    return <div>Loading...</div>
+    // Handle login logic here
+    console.log("Email:", email)
+    console.log("Password:", password)
   }
 
   return (
@@ -108,7 +98,6 @@ export default function LoginPage() {
             <AuthDescription>{currentRoleInfo.description}</AuthDescription>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              {loading && <div className="text-sm text-red-500 text-center">Loading...</div>}
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <div className="relative">
@@ -154,8 +143,8 @@ export default function LoginPage() {
                   </button>
                 </div>
               </div>
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Logging in..." : "Sign In"}
+              <Button type="submit" className="w-full">
+                Sign In
               </Button>
             </form>
 
@@ -168,7 +157,7 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <Button variant="outline" type="button" className="w-full" disabled={loading}>
+            <Button variant="outline" type="button" className="w-full">
               <FcGoogle className="w-5 h-5 mr-2" />
               Continue with Google
             </Button>
@@ -185,4 +174,3 @@ export default function LoginPage() {
     </div>
   )
 }
-
