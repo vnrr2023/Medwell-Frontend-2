@@ -3,13 +3,13 @@
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import Link from "next/link"
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { EyeIcon, EyeOffIcon, Mail, Lock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { AuthCard, AuthTitle, AuthDescription, AuthMessage } from "@/components/auth/auth-components"
-import { useAuth } from "@/services/useAuth"
+// import { useAuth } from "@/hooks/useAuth"
 import { cn } from "@/lib/utils"
 import Image from "next/image"
 import { FcGoogle } from "react-icons/fc"
@@ -36,36 +36,26 @@ export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const { login, googleLogin, errorMessage, checkAuth } = useAuth()
+  const { login, user, loading } = useAuth()
   const params = useParams()
   const role = params.role as string
+  const router = useRouter()
 
   const currentRoleInfo = roleInfo[role as keyof typeof roleInfo] || roleInfo.patient
 
   useEffect(() => {
-    checkAuth()
-  }, [])
+    if (user) {
+      router.push("/patient")
+    }
+  }, [user, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
-    try {
-      await login(email, password, role)
-    } finally {
-      setIsLoading(false)
-    }
+    await login(email, password)
   }
 
-  const handleGoogleLogin = async () => {
-    setIsLoading(true)
-    try {
-      // Implement Google login logic here
-      // For now, we'll just call the googleLogin function
-      await googleLogin("google_credential", role)
-    } finally {
-      setIsLoading(false)
-    }
+  if (loading) {
+    return <div>Loading...</div>
   }
 
   return (
@@ -118,7 +108,7 @@ export default function LoginPage() {
             <AuthDescription>{currentRoleInfo.description}</AuthDescription>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              {errorMessage && <div className="text-sm text-red-500 text-center">{errorMessage}</div>}
+              {loading && <div className="text-sm text-red-500 text-center">Loading...</div>}
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <div className="relative">
@@ -128,7 +118,7 @@ export default function LoginPage() {
                     placeholder="name@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className={cn("pl-10", errorMessage && "border-red-500")}
+                    className={cn("pl-10")}
                     required
                   />
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -164,8 +154,8 @@ export default function LoginPage() {
                   </button>
                 </div>
               </div>
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Logging in..." : "Sign In"}
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "Logging in..." : "Sign In"}
               </Button>
             </form>
 
@@ -178,7 +168,7 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <Button variant="outline" type="button" className="w-full" onClick={handleGoogleLogin} disabled={isLoading}>
+            <Button variant="outline" type="button" className="w-full" disabled={loading}>
               <FcGoogle className="w-5 h-5 mr-2" />
               Continue with Google
             </Button>

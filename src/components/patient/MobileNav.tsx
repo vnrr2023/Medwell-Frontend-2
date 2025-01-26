@@ -1,10 +1,10 @@
 "use client"
 
-import { useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { MoreHorizontal } from "lucide-react"
+import { useState, useMemo, useCallback } from "react"
+import { motion, AnimatePresence } from "framer-motion"
 
 interface NavItem {
   label: string
@@ -17,82 +17,55 @@ interface MobileNavProps {
 }
 
 export function MobileNav({ navItems }: MobileNavProps) {
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const pathname = usePathname()
+  const [showMore, setShowMore] = useState(false)
+  const mainNavItems = useMemo(() => navItems.slice(0, 4), [navItems])
+  const moreNavItems = useMemo(() => navItems.slice(4), [navItems])
 
-  const mainNavItems = navItems.slice(0, 4)
-  const additionalNavItems = navItems.slice(4)
+  const toggleShowMore = useCallback(() => setShowMore((prev) => !prev), [])
 
   return (
-    <motion.div
-      initial={{ y: 100 }}
-      animate={{ y: 0 }}
-      transition={{ type: "spring", stiffness: 260, damping: 20 }}
-      className="fixed bottom-6 left-0 right-0 mx-auto w-full max-w-screen-sm z-50"
-    >
-      <nav className="bg-white border border-gray-200 rounded-full shadow-lg px-6 py-2">
-        <ul className="flex items-center space-x-6">
-          {mainNavItems.map((item) => {
-            const isActive = pathname === item.href
-            return (
-              <li key={item.href}>
-                <Link href={item.href} className="flex flex-col items-center gap-1">
-                  <motion.div
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    className={`p-2 rounded-full ${isActive ? "bg-blue-100" : "hover:bg-gray-100"}`}
-                  >
-                    <item.icon className={`w-5 h-5 ${isActive ? "text-blue-500" : "text-gray-500"}`} />
-                  </motion.div>
-                  <span className={`text-xs font-medium ${isActive ? "text-blue-500" : "text-gray-500"}`}>
-                    {item.label}
-                  </span>
-                </Link>
-              </li>
-            )
-          })}
-          <li className="relative">
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="flex flex-col items-center gap-1"
-            >
-              <div className="p-2 rounded-full hover:bg-gray-100">
-                <MoreHorizontal className="w-5 h-5 text-gray-500" />
-              </div>
-              <span className="text-xs font-medium text-gray-500">More</span>
-            </motion.button>
-            <AnimatePresence>
-              {isDropdownOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  transition={{ duration: 0.2 }}
-                  className="absolute bottom-full right-0 mb-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200"
-                >
-                  <ul className="py-2">
-                    {additionalNavItems.map((item) => (
-                      <li key={item.href}>
-                        <Link
-                          href={item.href}
-                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                          onClick={() => setIsDropdownOpen(false)}
-                        >
-                          <item.icon className="w-5 h-5 mr-3 text-gray-500" />
-                          {item.label}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </li>
-        </ul>
+    <div className="md:hidden fixed bottom-0 left-0 right-0 border-t bg-white z-50">
+      <nav className="flex items-center justify-around">
+        {mainNavItems.map((item) => {
+          const isActive = pathname === item.href
+          return (
+            <Link key={item.href} href={item.href} className="flex flex-col items-center gap-1 p-2 text-sm">
+              <item.icon className={`w-6 h-6 ${isActive ? "text-primary" : "text-gray-600"}`} />
+              <span className={`text-xs ${isActive ? "text-primary font-medium" : "text-gray-600"}`}>{item.label}</span>
+            </Link>
+          )
+        })}
+        <button onClick={toggleShowMore} className="flex flex-col items-center gap-1 p-2 text-sm">
+          <MoreHorizontal className="w-6 h-6 text-gray-600" />
+          <span className="text-xs text-gray-600">More</span>
+        </button>
       </nav>
-    </motion.div>
+      <AnimatePresence>
+        {showMore && (
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            className="absolute bottom-full left-0 right-0 bg-white border-t shadow-lg"
+          >
+            <nav className="grid grid-cols-4 gap-4 p-4">
+              {moreNavItems.map((item) => {
+                const isActive = pathname === item.href
+                return (
+                  <Link key={item.href} href={item.href} className="flex flex-col items-center gap-1 p-2 text-sm">
+                    <item.icon className={`w-6 h-6 ${isActive ? "text-primary" : "text-gray-600"}`} />
+                    <span className={`text-xs ${isActive ? "text-primary font-medium" : "text-gray-600"}`}>
+                      {item.label}
+                    </span>
+                  </Link>
+                )
+              })}
+            </nav>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   )
 }
 

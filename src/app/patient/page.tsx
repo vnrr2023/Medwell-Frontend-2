@@ -2,7 +2,7 @@
 
 // import { useState } from "react"
 import { motion } from "framer-motion"
-import { AlertTriangle, Calendar, FileText, DollarSign, Bell } from "lucide-react"
+import { AlertTriangle, Calendar, FileText,DollarSign, Bell } from "lucide-react"
 import { Line } from "react-chartjs-2"
 import {
   Chart as ChartJS,
@@ -17,8 +17,10 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 // import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+// import { CircularMetric } from "@/components/CircularMetric"
+
+// Import static data
 import { dashboardData } from "./data"
-// import { CircularMetric } from "@/components/patient/CircularMetric"
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend)
 

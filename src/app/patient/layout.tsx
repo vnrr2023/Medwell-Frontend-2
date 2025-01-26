@@ -16,12 +16,13 @@ const navItems = [
   { label: "Add Report", icon: PlusCircle, href: "/patient/add-report" },
   { label: "Expense Tracker", icon: DollarSign, href: "/patient/expense-tracker" },
   { label: "Appointments", icon: Calendar, href: "/patient/appointments" },
-  { label: "Share with Doctor", icon: Share2, href: "/patient/share-with-doctor" },
+  { label: "Share Doctor", icon: Share2, href: "/patient/share-with-doctor" },
 ]
 
 export default function PatientLayout({ children }: { children: React.ReactNode }) {
   const [isMobile, setIsMobile] = useState(false)
   const pathname = usePathname()
+  // const segment = useSelectedLayoutSegment()
 
   useEffect(() => {
     const checkIfMobile = () => setIsMobile(window.innerWidth < 768)
@@ -35,25 +36,25 @@ export default function PatientLayout({ children }: { children: React.ReactNode 
       {/* Sidebar - Hidden on mobile */}
       <aside className="hidden md:flex bg-white shadow-lg w-64 flex-col h-screen pt-16 sticky top-0">
         <div className="p-4 bg-blue-100">
-          <Link href="/" className="text-2xl font-bold text-center text-gray-800">
+          <Link href="/" className="text-2xl font-bold text-gray-800">
             MedWell
           </Link>
         </div>
         <nav className="flex-grow p-4">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center p-2 rounded-lg mb-2 ${
-                pathname === item.href ? "bg-gray-200 text-blue-600" : "text-gray-700 hover:bg-gray-100"
-              }`}
-            >
-              <item.icon className="mr-2 h-5 w-5" />
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-        <div className="p-4 border-t">
+  {navItems.map((item) => (
+    <Link
+      key={item.href}
+      href={item.href}
+      className={`flex items-center p-2 rounded-lg mb-2 ${
+        item.href === pathname ? "bg-gray-200 text-blue-600" : "text-gray-700 hover:bg-gray-100"
+      }`}
+    >
+      <item.icon className="mr-2 h-5 w-5" />
+      {item.label}
+    </Link>
+  ))}
+</nav>
+<div className="p-4 border-t">
           <div className="flex items-center">
             <Avatar>
               <AvatarImage src="/patient.png" alt="Patient" />

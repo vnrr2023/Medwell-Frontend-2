@@ -6,8 +6,8 @@ module.exports = {
 	  extend: {
 		colors: {
 		  secondaryColor: "#43A047",
+		  accentColor: "#FFC107",
 		  alert: "#E53935",
-		  // background: "#F5F5F5",
 		  text: {
 			dark: "#212121",
 			medium: "#757575",
@@ -47,9 +47,8 @@ module.exports = {
 		  },
 		},
 		fontFamily: {
-		  sans: ["Inter", "sans-serif"],
-		  poppins: ["Poppins", "sans-serif"],
-		  montserrat: ["Montserrat", "sans-serif"],
+		  sans: ["Open Sans", "sans-serif"],
+		  heading: ["Lato", "sans-serif"],
 		},
 		borderRadius: {
 		  lg: "var(--radius)",

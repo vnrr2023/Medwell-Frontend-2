@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Open+Sans:wght@400;600&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -19,7 +20,7 @@
 }
 
 body {
-  font-family: "Inter", sans-serif;
+  font-family: "Open Sans", sans-serif;
   background-color: var(--background);
   color: var(--text-dark);
 }
@@ -30,10 +31,6 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: "Poppins", sans-serif;
-}
-
-.highlight {
-  font-family: "Montserrat", sans-serif;
+  font-family: "Lato", sans-serif;
 }
 
