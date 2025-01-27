@@ -34,7 +34,7 @@ export const useAuth = () => {
         router.push("/patient")
         return true
       }
-    } catch (error) {
+    } catch {
       setErrorMessage("An error occurred. Please try again.")
       return false
     }
@@ -67,7 +67,7 @@ export const useAuth = () => {
         router.push("/patient")
         return true
       }
-    } catch (error) {
+    } catch {
       setErrorMessage("An error occurred during sign-up. Please try again.")
       return false
     }
@@ -91,7 +91,7 @@ export const useAuth = () => {
       notifyAuthStateChange()
       router.push("/patient")
       return true
-    } catch (error) {
+    } catch {
       setErrorMessage("An error occurred during Google login. Please try again.")
       return false
     }

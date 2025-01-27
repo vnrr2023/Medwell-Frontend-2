@@ -3,7 +3,6 @@
 import React, { useState, useCallback, useMemo } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { ArrowLeft, FileText, AlertCircle, ExternalLink, Download, Search } from "lucide-react"
-// import dynamic from "next/dynamic"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,9 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { mockReports } from "./mockData"
-import { type Report } from "./types"
-
-// const DynamicJsPDF = dynamic(() => import("jspdf"), { ssr: false })
+import type { Report } from "./types"
 
 const Reports: React.FC = () => {
   const [selectedReport, setSelectedReport] = useState<Report | null>(null)
@@ -35,8 +32,9 @@ const Reports: React.FC = () => {
   }, [selectedReport])
 
   const handleDownloadPDF = useCallback((report: Report) => {
-    import("jspdf").then((jsPDF) => {
-      const doc = new jsPDF.default()
+    import("jspdf").then((jsPDFModule) => {
+      const jsPDF = jsPDFModule.default
+      const doc = new jsPDF()
 
       doc.setFontSize(20)
       doc.setTextColor(128, 0, 128)
@@ -55,8 +53,8 @@ const Reports: React.FC = () => {
         `${data.min} - ${data.max} ${data.unit}`,
       ])
 
-      import("jspdf-autotable").then((autoTable) => {
-        autoTable.default(doc, {
+      import("jspdf-autotable").then((autoTableModule) => {
+        autoTableModule.default(doc, {
           startY: 70,
           head: [["Test", "Value", "Normal Range"]],
           body: tableData,
@@ -82,9 +80,7 @@ const Reports: React.FC = () => {
             key.toLowerCase().includes(globalSearch.toLowerCase()) ||
             value.value.toString().includes(globalSearch.toLowerCase()),
         ),
-      )
-    
-    ReportCard.displayName = "ReportCard"
+    )
   }, [reports, globalSearch])
 
   const ReportCard: React.FC<{ report: Report; onClick: (report: Report) => void; index: number }> = React.memo(
@@ -109,6 +105,8 @@ const Reports: React.FC = () => {
       </motion.div>
     ),
   )
+
+  ReportCard.displayName = "ReportCard"
 
   const DetailedReport: React.FC<{ report: Report }> = ({ report }) => {
     const [localSearch, setLocalSearch] = useState("")
@@ -263,6 +261,8 @@ const Reports: React.FC = () => {
     )
   }
 
+  DetailedReport.displayName = "DetailedReport"
+
   return (
     <div className="container mx-auto px-4 py-8">
       <AnimatePresence mode="wait">
@@ -312,6 +312,8 @@ const Reports: React.FC = () => {
     </div>
   )
 }
+
+Reports.displayName = "Reports"
 
 export default Reports
 

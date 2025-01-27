@@ -85,7 +85,7 @@ export default function Footer() {
         </div>
         <div className="mt-8 pt-8 border-t border-[#0078D7]/20 text-center">
           <p className="text-sm">&copy; {new Date().getFullYear()} MedWell. All rights reserved.</p>
-          <p className="text-xs mt-2">"My health is Mine." - Rohit</p>
+          <p className="text-xs mt-2">&quot;My health is Mine.&quot; - Rohit</p>
         </div>
       </div>
     </footer>
