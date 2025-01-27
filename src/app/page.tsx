@@ -9,6 +9,7 @@ const Consultation = lazy(() => import("@/components/home/Consultation"))
 const Specialties = lazy(() => import("@/components/home/Specialties"))
 const Testimonials = lazy(() => import("@/components/home/Testimonials"))
 const FAQ = dynamic(() => import("@/components/home/Faqs"), { ssr: false })
+const Footer = lazy(() => import("@/components/Footer"))
 
 export default function Home() {
   // const [loading, setLoading] = useState(true)
@@ -39,6 +40,9 @@ export default function Home() {
         <Testimonials />
       </Suspense>
       <FAQ />
+      <Suspense fallback={<div>Loading...</div>}>
+        <Footer />
+      </Suspense>
     </main>
   )
 }

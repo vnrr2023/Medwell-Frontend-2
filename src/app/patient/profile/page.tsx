@@ -1,45 +1,54 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { useRouter } from "next/navigation"
 import { Edit2, QrCode } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import type { PatientInfo } from "@/types/patient"
+import DaddyAPI from "@/services/api"
 
-// Mock patient data based on the interface
-const patientInfo: PatientInfo = {
-  name: "Natarsha Malana",
-  age: 28,
+type PatientInfo = {
+  id: string
+  name: string
+  age: number | null
+  phone_number: string | null
   user_info: {
-    email: "natarsha@example.com",
-  },
-  phone_number: "+44 123 456 7890",
-  blood_group: "O+",
-  height: "170 cm",
-  weight: "65 kg",
-  allergies: ["Peanuts", "Penicillin", "Dust"],
-  aadhar_card: "XXXX-XXXX-XXXX",
-  chronic_conditions: ["Asthma", "Migraine"],
-  family_history: ["Diabetes", "Heart Disease"],
-  city: "Leeds",
-  state: "West Yorkshire",
-  country: "United Kingdom",
-  pin: "LS1 1QF",
-  health_summary: "Generally healthy, regular exercise routine, maintains balanced diet",
-  diet_plan: "Low-carb diet, high protein intake, regular meals",
-  profile_pic: "/patient/pfp.jpg",
-  profile_qr: "/patient/pfp.jpg",
+    id: number
+    email: string
+  }
+  blood_group: string | null
+  city: string | null
+  country: string | null
+  state: string | null
+  pin: string | null
+  profile_pic: string
+  profile_qr: string
+  adhaar_card: string | null
+  allergies: string[]
+  chronic_conditions: string[]
+  family_history: string[]
+  health_summary: string
+  diet_plan: string
 }
 
 export default function ProfilePage() {
   const router = useRouter()
   const [showQR, setShowQR] = useState(false)
+  const [patientInfo, setPatientInfo] = useState<PatientInfo | null>(null)
+
+  useEffect(() => {
+    const getProfileData = async () => {
+      const response = await DaddyAPI.getPatientInfo()
+      setPatientInfo(response.data)
+    }
+    getProfileData()
+  }, [])
+
+  if (!patientInfo) return null
 
   return (
     <div className="max-w-4xl mx-auto p-4">
-      {/* Profile Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -65,7 +74,7 @@ export default function ProfilePage() {
             <div>
               <h1 className="text-2xl font-semibold text-primary">{patientInfo.name}</h1>
               <p className="text-muted-foreground">
-                {patientInfo.city}, {patientInfo.country}
+                {patientInfo.city && patientInfo.country ? `${patientInfo.city}, ${patientInfo.country}` : "Location not set"}
               </p>
             </div>
           </div>
@@ -76,9 +85,7 @@ export default function ProfilePage() {
         </div>
       </motion.div>
 
-      {/* Main Content Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Personal Information */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -87,17 +94,14 @@ export default function ProfilePage() {
         >
           <h2 className="text-lg font-semibold text-primary mb-4">Personal Information</h2>
           <div className="space-y-3">
-            <InfoItem label="Age" value={`${patientInfo.age} years`} />
+            <InfoItem label="Age" value={patientInfo.age ? `${patientInfo.age} years` : "Not set"} />
             <InfoItem label="Email" value={patientInfo.user_info.email} />
-            <InfoItem label="Phone" value={patientInfo.phone_number} />
-            <InfoItem label="Blood Group" value={patientInfo.blood_group} />
-            <InfoItem label="Height" value={patientInfo.height} />
-            <InfoItem label="Weight" value={patientInfo.weight} />
-            <InfoItem label="Aadhar Card" value={patientInfo.aadhar_card} />
+            <InfoItem label="Phone" value={patientInfo.phone_number || "Not set"} />
+            <InfoItem label="Blood Group" value={patientInfo.blood_group || "Not set"} />
+            <InfoItem label="Aadhar Card" value={patientInfo.adhaar_card || "Not set"} />
           </div>
         </motion.section>
 
-        {/* Location Information */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -106,14 +110,13 @@ export default function ProfilePage() {
         >
           <h2 className="text-lg font-semibold text-primary mb-4">Location</h2>
           <div className="space-y-3">
-            <InfoItem label="City" value={patientInfo.city} />
-            <InfoItem label="State" value={patientInfo.state} />
-            <InfoItem label="Country" value={patientInfo.country} />
-            <InfoItem label="PIN Code" value={patientInfo.pin} />
+            <InfoItem label="City" value={patientInfo.city || "Not set"} />
+            <InfoItem label="State" value={patientInfo.state || "Not set"} />
+            <InfoItem label="Country" value={patientInfo.country || "Not set"} />
+            <InfoItem label="PIN Code" value={patientInfo.pin || "Not set"} />
           </div>
         </motion.section>
 
-        {/* Medical Information */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -125,37 +128,48 @@ export default function ProfilePage() {
             <div>
               <h3 className="text-sm font-medium text-primary mb-2">Allergies</h3>
               <div className="flex flex-wrap gap-2">
-                {patientInfo.allergies.map((allergy) => (
-                  <span key={allergy} className="px-2 py-1 bg-red-50 text-red-700 rounded-full text-sm">
-                    {allergy}
-                  </span>
-                ))}
+                {patientInfo.allergies.length > 0 ? (
+                  patientInfo.allergies.map((allergy) => (
+                    <span key={allergy} className="px-2 py-1 bg-red-50 text-red-700 rounded-full text-sm">
+                      {allergy}
+                    </span>
+                  ))
+                ) : (
+                  <span className="text-gray-500">No allergies recorded</span>
+                )}
               </div>
             </div>
             <div>
               <h3 className="text-sm font-medium text-primary mb-2">Chronic Conditions</h3>
               <div className="flex flex-wrap gap-2">
-                {patientInfo.chronic_conditions.map((condition) => (
-                  <span key={condition} className="px-2 py-1 bg-yellow-50 text-yellow-700 rounded-full text-sm">
-                    {condition}
-                  </span>
-                ))}
+                {patientInfo.chronic_conditions.length > 0 ? (
+                  patientInfo.chronic_conditions.map((condition) => (
+                    <span key={condition} className="px-2 py-1 bg-yellow-50 text-yellow-700 rounded-full text-sm">
+                      {condition}
+                    </span>
+                  ))
+                ) : (
+                  <span className="text-gray-500">No chronic conditions recorded</span>
+                )}
               </div>
             </div>
             <div>
               <h3 className="text-sm font-medium text-primary mb-2">Family History</h3>
               <div className="flex flex-wrap gap-2">
-                {patientInfo.family_history.map((history) => (
-                  <span key={history} className="px-2 py-1 bg-blue-50 text-blue-700 rounded-full text-sm">
-                    {history}
-                  </span>
-                ))}
+                {patientInfo.family_history.length > 0 ? (
+                  patientInfo.family_history.map((history) => (
+                    <span key={history} className="px-2 py-1 bg-blue-50 text-blue-700 rounded-full text-sm">
+                      {history}
+                    </span>
+                  ))
+                ) : (
+                  <span className="text-gray-500">No family history recorded</span>
+                )}
               </div>
             </div>
           </div>
         </motion.section>
 
-        {/* Health Summary */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -163,10 +177,9 @@ export default function ProfilePage() {
           className="bg-white rounded-lg border p-4 md:col-span-2"
         >
           <h2 className="text-lg font-semibold text-primary mb-4">Health Summary</h2>
-          <p className="text-gray-700">{patientInfo.health_summary}</p>
+          <p className="text-gray-700 whitespace-pre-line">{patientInfo.health_summary}</p>
         </motion.section>
 
-        {/* Diet Plan */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -174,17 +187,16 @@ export default function ProfilePage() {
           className="bg-white rounded-lg border p-4 md:col-span-2"
         >
           <h2 className="text-lg font-semibold text-primary mb-4">Diet Plan</h2>
-          <p className="text-gray-700">{patientInfo.diet_plan}</p>
+          <p className="text-gray-700 whitespace-pre-line">{patientInfo.diet_plan}</p>
         </motion.section>
       </div>
 
-      {/* QR Code Modal */}
       {showQR && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg p-6 max-w-sm w-full">
             <h3 className="text-lg font-semibold mb-4">Profile QR Code</h3>
             <div className="aspect-square bg-gray-100 rounded-lg flex items-center justify-center mb-4">
-              <img src={patientInfo.profile_qr || "/placeholder.svg"} alt="QR Code" className="w-full h-full" />
+              <img src={patientInfo.profile_qr} alt="QR Code" className="w-full h-full" />
             </div>
             <Button className="w-full" variant="outline" onClick={() => setShowQR(false)}>
               Close
@@ -196,7 +208,6 @@ export default function ProfilePage() {
   )
 }
 
-// Helper component for consistent info display
 function InfoItem({ label, value }: { label: string; value: string | number }) {
   return (
     <div>
@@ -205,4 +216,3 @@ function InfoItem({ label, value }: { label: string; value: string | number }) {
     </div>
   )
 }
-

@@ -1,6 +1,33 @@
+// types.ts
+export interface ReportElement {
+  max: number
+  min: number
+  unit: string
+  value: number
+}
+
+export interface ReportDetail {
+  report_data: {
+    [key: string]: ReportElement
+  }
+}
+
+export interface Report {
+  id: string
+  report_file: string
+  report_type: string
+  submitted_at: string
+  date_of_collection: string
+  doctor_name: string
+  date_of_report: string
+  summary: string
+  reportdetail: ReportDetail
+}
+
+// Reports.tsx
 "use client"
 
-import React, { useState, useCallback, useMemo } from "react"
+import React, { useState, useCallback, useMemo, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { ArrowLeft, FileText, AlertCircle, ExternalLink, Download, Search } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
@@ -9,13 +36,21 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { mockReports } from "./mockData"
-import type { Report } from "./types"
+import type { Report as MedReport } from "./types"
+import DaddyAPI from "@/services/api"
 
 const Reports: React.FC = () => {
-  const [selectedReport, setSelectedReport] = useState<Report | null>(null)
-  const [reports] = useState<Report[]>(mockReports)
+  const [selectedReport, setSelectedReport] = useState<MedReport | null>(null)
+  const [reports, setReports] = useState<MedReport[]>([])
   const [globalSearch, setGlobalSearch] = useState("")
+
+  useEffect(() => {
+    const getReports = async () => {
+      const response = await DaddyAPI.getReports()
+      setReports(response.data.reports)
+    }
+    getReports()
+  }, [])
 
   const handleReportClick = useCallback((report: Report) => {
     setSelectedReport(report)
@@ -26,8 +61,8 @@ const Reports: React.FC = () => {
   }, [])
 
   const handleViewReport = useCallback(() => {
-    if (selectedReport && selectedReport.reportUrl) {
-      window.open(selectedReport.reportUrl, "_blank")
+    if (selectedReport?.report_file) {
+      window.open(selectedReport.report_file, "_blank")
     }
   }, [selectedReport])
 
@@ -42,14 +77,14 @@ const Reports: React.FC = () => {
 
       doc.setFontSize(12)
       doc.setTextColor(0, 0, 0)
-      doc.text(`Report: ${report.title}`, 20, 30)
-      doc.text(`Date: ${report.date}`, 20, 40)
-      doc.text(`Doctor: ${report.doctorName}`, 20, 50)
+      doc.text(`Report Type: ${report.report_type}`, 20, 30)
+      doc.text(`Date: ${report.date_of_report}`, 20, 40)
+      doc.text(`Doctor: ${report.doctor_name}`, 20, 50)
       doc.text(`Summary: ${report.summary}`, 20, 60)
 
-      const tableData = Object.entries(report.elements).map(([name, data]) => [
-        name,
-        `${data.value} ${data.unit}`,
+      const tableData = Object.entries(report.reportdetail.report_data).map(([name, data]) => [
+        name.replace(/_/g, " ").toUpperCase(),
+        data.value === -1 ? "N/A" : `${data.value} ${data.unit}`,
         `${data.min} - ${data.max} ${data.unit}`,
       ])
 
@@ -60,7 +95,7 @@ const Reports: React.FC = () => {
           body: tableData,
         })
 
-        doc.save(`${report.title.replace(/\s+/g, "_")}_Report.pdf`)
+        doc.save(`${report.report_type}_${report.date_of_report.replace(/\//g, "-")}.pdf`)
       })
     })
   }, [])
@@ -70,17 +105,19 @@ const Reports: React.FC = () => {
   }, [])
 
   const filteredReports = useMemo(() => {
-    return reports.filter(
-      (report) =>
-        report.title.toLowerCase().includes(globalSearch.toLowerCase()) ||
-        report.doctorName.toLowerCase().includes(globalSearch.toLowerCase()) ||
-        report.summary.toLowerCase().includes(globalSearch.toLowerCase()) ||
-        Object.entries(report.elements).some(
+    return reports.filter((report) => {
+      const searchTerm = globalSearch.toLowerCase()
+      return (
+        report.report_type.toLowerCase().includes(searchTerm) ||
+        report.doctor_name.toLowerCase().includes(searchTerm) ||
+        report.summary.toLowerCase().includes(searchTerm) ||
+        Object.entries(report.reportdetail.report_data).some(
           ([key, value]) =>
-            key.toLowerCase().includes(globalSearch.toLowerCase()) ||
-            value.value.toString().includes(globalSearch.toLowerCase()),
-        ),
-    )
+            key.toLowerCase().includes(searchTerm) ||
+            (value.value !== -1 && value.value.toString().includes(searchTerm)),
+        )
+      )
+    })
   }, [reports, globalSearch])
 
   const ReportCard: React.FC<{ report: Report; onClick: (report: Report) => void; index: number }> = React.memo(
@@ -95,11 +132,11 @@ const Reports: React.FC = () => {
       >
         <Card className="cursor-pointer">
           <CardHeader>
-            <CardTitle>{report.title}</CardTitle>
-            <CardDescription>{report.date}</CardDescription>
+            <CardTitle className="capitalize">{report.report_type.replace(/_/g, " ")}</CardTitle>
+            <CardDescription>{report.submitted_at}</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">Dr. {report.doctorName}</p>
+            <p className="text-sm text-muted-foreground">Dr. {report.doctor_name}</p>
           </CardContent>
         </Card>
       </motion.div>
@@ -121,13 +158,13 @@ const Reports: React.FC = () => {
     }
 
     const filteredElements = useMemo(() => {
-      return Object.entries(report.elements).filter(([name, data]) => {
+      return Object.entries(report.reportdetail.report_data).filter(([name, data]) => {
         const isValuePresent = data.value !== -1
         const isInRange = isValuePresent && data.value >= data.min && data.value <= data.max
         const matchesSearch =
           localSearch.toLowerCase() === "" ||
           name.toLowerCase().includes(localSearch.toLowerCase()) ||
-          data.value.toString().includes(localSearch.toLowerCase())
+          (data.value !== -1 && data.value.toString().includes(localSearch.toLowerCase()))
 
         let matchesRangeFilter = true
         switch (localRangeFilter) {
@@ -144,7 +181,7 @@ const Reports: React.FC = () => {
 
         return matchesSearch && matchesRangeFilter
       })
-    }, [report.elements, localSearch, localRangeFilter])
+    }, [report.reportdetail.report_data, localSearch, localRangeFilter])
 
     const sortedElements = useMemo(() => {
       return filteredElements.sort(([, a], [, b]) => {
@@ -157,8 +194,8 @@ const Reports: React.FC = () => {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>{report.title}</CardTitle>
-          <CardDescription>{report.date}</CardDescription>
+          <CardTitle className="capitalize">{report.report_type.replace(/_/g, " ")}</CardTitle>
+          <CardDescription>{report.submitted_at}</CardDescription>
         </CardHeader>
         <CardContent>
           <Button variant="ghost" onClick={handleBackClick} className="mb-4">
@@ -168,11 +205,11 @@ const Reports: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
             <div>
               <p className="text-sm text-muted-foreground">Collection Date</p>
-              <p className="font-medium">{report.collectionDate}</p>
+              <p className="font-medium">{report.date_of_collection}</p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Doctor</p>
-              <p className="font-medium">{report.doctorName}</p>
+              <p className="font-medium">{report.doctor_name}</p>
             </div>
           </div>
           <div className="mb-6">
@@ -214,7 +251,9 @@ const Reports: React.FC = () => {
                     className={isValuePresent ? (isInRange ? "bg-green-50" : "bg-red-50") : "bg-gray-50"}
                   >
                     <CardHeader>
-                      <CardTitle className="text-base capitalize">{name.replace(/([A-Z])/g, " $1").trim()}</CardTitle>
+                      <CardTitle className="text-base capitalize">
+                        {name.replace(/_/g, " ")}
+                      </CardTitle>
                     </CardHeader>
                     <CardContent>
                       {isValuePresent ? (
@@ -250,7 +289,7 @@ const Reports: React.FC = () => {
             <Download className="mr-2 h-4 w-4" />
             Download PDF
           </Button>
-          {report.reportUrl && (
+          {report.report_file && (
             <Button onClick={handleViewReport}>
               <ExternalLink className="mr-2 h-4 w-4" />
               View Full Report
@@ -313,7 +352,4 @@ const Reports: React.FC = () => {
   )
 }
 
-Reports.displayName = "Reports"
-
 export default Reports
-

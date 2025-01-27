@@ -1,8 +1,7 @@
 "use client"
 
-// import { useState } from "react"
 import { motion } from "framer-motion"
-import { AlertTriangle, Calendar, FileText,DollarSign, Bell } from "lucide-react"
+import { AlertTriangle, Calendar, FileText, DollarSign, Bell } from "lucide-react"
 import { Line } from "react-chartjs-2"
 import {
   Chart as ChartJS,
@@ -15,18 +14,22 @@ import {
   Legend,
 } from "chart.js"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-// import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-// import { CircularMetric } from "@/components/CircularMetric"
 
-// Import static data
 import { dashboardData } from "./data"
-
+import DaddyAPI from "@/services/api"
+import { useEffect, useState } from "react"
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend)
 
 export default function PatientDashboard() {
-  // const [selectedMetric, setSelectedMetric] = useState("bp")
-
+  const [dashboardData, setDashboardData] = useState<any>()
+  useEffect(() => {
+    const getPatientDashboardData = async () => {
+      const response = await DaddyAPI.getPatientDashboard()
+      setDashboardData(response.data)
+    }
+    getPatientDashboardData()
+  }, [])
   return (
     <div className="space-y-4 pb-20 md:pb-0">
       <motion.h1
@@ -46,8 +49,8 @@ export default function PatientDashboard() {
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{dashboardData.totalReports}</div>
-              <p className="text-xs text-muted-foreground">+2 from last month</p>
+              <div className="text-2xl font-bold">{dashboardData?.reports?.length || 0}</div>
+              <p className="text-xs text-muted-foreground">Total reports</p>
             </CardContent>
           </Card>
         </motion.div>
@@ -63,8 +66,8 @@ export default function PatientDashboard() {
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">₹{dashboardData.monthlyExpense}</div>
-              <p className="text-xs text-muted-foreground">+12% from last month</p>
+              <div className="text-2xl font-bold">₹{dashboardData?.overall_expense || 0}</div>
+              <p className="text-xs text-muted-foreground">Overall expense</p>
             </CardContent>
           </Card>
         </motion.div>
@@ -80,8 +83,8 @@ export default function PatientDashboard() {
               <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{dashboardData.upcomingAppointment.date}</div>
-              <p className="text-xs text-muted-foreground">{dashboardData.upcomingAppointment.doctor}</p>
+              <div className="text-2xl font-bold">{dashboardData?.appointment?.date || "No appointment"}</div>
+              <p className="text-xs text-muted-foreground">{dashboardData?.appointment?.doctor_name || ""}</p>
             </CardContent>
           </Card>
         </motion.div>
@@ -97,8 +100,8 @@ export default function PatientDashboard() {
               <Bell className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{dashboardData.healthAlerts.length}</div>
-              <p className="text-xs text-muted-foreground">Active alerts</p>
+              <div className="text-2xl font-bold">-</div>
+              <p className="text-xs text-muted-foreground">No active alerts</p>
             </CardContent>
           </Card>
         </motion.div>
@@ -115,12 +118,27 @@ export default function PatientDashboard() {
             <div className="h-[300px]">
               <Line
                 data={{
-                  labels: dashboardData.monthlyHealthTrend.labels,
-                  datasets: dashboardData.monthlyHealthTrend.datasets.map((dataset, index) => ({
-                    ...dataset,
-                    borderColor: index === 0 ? "#ff6b6b" : "#4ecdc4",
-                    tension: 0.4,
-                  })),
+                  labels: dashboardData?.graph_data?.submitted_at || [],
+                  datasets: [
+                    {
+                      label: "Hemoglobin",
+                      data: dashboardData?.graph_data?.hemoglobin || [],
+                      borderColor: "#ff6b6b",
+                      tension: 0.4,
+                    },
+                    {
+                      label: "RBC Count",
+                      data: dashboardData?.graph_data?.rbc_count || [],
+                      borderColor: "#4ecdc4",
+                      tension: 0.4,
+                    },
+                    {
+                      label: "WBC Count",
+                      data: dashboardData?.graph_data?.wbc_count || [],
+                      borderColor: "#45b7d1",
+                      tension: 0.4,
+                    },
+                  ],
                 }}
                 options={{
                   responsive: true,
@@ -148,40 +166,13 @@ export default function PatientDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {dashboardData.recentReports.map((report) => (
+              {dashboardData?.reports?.slice(0, 5).map((report:any) => (
                 <div key={report.id} className="flex items-center justify-between">
                   <div>
-                    <p className="font-medium">{report.type}</p>
-                    <p className="text-sm text-muted-foreground">{report.doctor}</p>
+                    <p className="font-medium">{report.report_type || "Unknown"}</p>
+                    <p className="text-sm text-muted-foreground">{report.doctor_name || "Unknown"}</p>
                   </div>
-                  <Badge variant="secondary">{report.date}</Badge>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Health Alerts */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Health Alerts</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {dashboardData.healthAlerts.map((alert) => (
-                <div
-                  key={alert.id}
-                  className={`flex items-center p-4 rounded-lg ${
-                    alert.severity === "moderate" ? "bg-orange-100" : "bg-yellow-100"
-                  }`}
-                >
-                  <AlertTriangle
-                    className={`h-5 w-5 mr-2 ${alert.severity === "moderate" ? "text-orange-500" : "text-yellow-500"}`}
-                  />
-                  <div>
-                    <p className="font-medium">{alert.type}</p>
-                    <p className="text-sm text-muted-foreground">{alert.date}</p>
-                  </div>
+                  <Badge variant="secondary">{report.report_date}</Badge>
                 </div>
               ))}
             </div>

@@ -1,43 +1,55 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import type { PatientInfo } from "@/types/patient"
+import DaddyAPI from "@/services/api"
 
-// Mock initial data
-const initialData: PatientInfo = {
-  name: "Natarsha Malana",
-  age: 28,
+type PatientInfo = {
+  id: string
+  name: string
+  age: number | null
+  phone_number: string | null
   user_info: {
-    email: "natarsha@example.com",
-  },
-  phone_number: "+44 123 456 7890",
-  blood_group: "O+",
-  height: "170 cm",
-  weight: "65 kg",
-  allergies: ["Peanuts", "Penicillin", "Dust"],
-  aadhar_card: "XXXX-XXXX-XXXX",
-  chronic_conditions: ["Asthma", "Migraine"],
-  family_history: ["Diabetes", "Heart Disease"],
-  city: "Leeds",
-  state: "West Yorkshire",
-  country: "United Kingdom",
-  pin: "LS1 1QF",
-  health_summary: "Generally healthy, regular exercise routine, maintains balanced diet",
-  diet_plan: "Low-carb diet, high protein intake, regular meals",
+    id: number
+    email: string
+  }
+  blood_group: string | null
+  city: string | null
+  country: string | null
+  state: string | null
+  pin: string | null
+  profile_pic: string
+  profile_qr: string
+  adhaar_card: string | null
+  allergies: string[]
+  chronic_conditions: string[]
+  family_history: string[]
+  health_summary: string
+  diet_plan: string
 }
 
 export default function EditProfilePage() {
   const router = useRouter()
-  const [formData, setFormData] = useState(initialData)
+  const [formData, setFormData] = useState<PatientInfo | null>(null)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    const getProfileData = async () => {
+      const response = await DaddyAPI.getPatientInfo()
+      setFormData(response.data)
+    }
+    getProfileData()
+  }, [])
+
+  if (!formData) return null
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    // Add your update API call here
     router.push("/patient/profile")
   }
 
@@ -63,7 +75,6 @@ export default function EditProfilePage() {
           </div>
 
           <div className="space-y-4">
-            {/* Personal Information */}
             <div className="bg-white rounded-lg border p-4">
               <h2 className="text-lg font-semibold text-primary mb-4">Personal Information</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -77,48 +88,52 @@ export default function EditProfilePage() {
                   <Label htmlFor="age" className="text-primary">
                     Age
                   </Label>
-                  <Input id="age" type="number" value={formData.age} onChange={(e) => setFormData({ ...formData, age: Number(e.target.value) })} />
+                  <Input 
+                    id="age" 
+                    type="number" 
+                    value={formData.age || ""} 
+                    onChange={(e) => setFormData({ ...formData, age: e.target.value ? Number(e.target.value) : null })}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-primary">
                     Email
                   </Label>
-                  <Input id="email" defaultValue={formData.user_info.email} disabled />
+                  <Input id="email" value={formData.user_info.email} disabled />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="phone" className="text-primary">
                     Phone Number
                   </Label>
-                  <Input id="phone" value={formData.phone_number} onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })} />
+                  <Input 
+                    id="phone" 
+                    value={formData.phone_number || ""} 
+                    onChange={(e) => setFormData({ ...formData, phone_number: e.target.value || null })} 
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="blood_group" className="text-primary">
                     Blood Group
                   </Label>
-                  <Input id="blood_group" value={formData.blood_group} onChange={(e) => setFormData({ ...formData, blood_group: e.target.value })} />
+                  <Input 
+                    id="blood_group" 
+                    value={formData.blood_group || ""} 
+                    onChange={(e) => setFormData({ ...formData, blood_group: e.target.value || null })} 
+                  />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="aadhar" className="text-primary">
+                  <Label htmlFor="adhaar" className="text-primary">
                     Aadhar Card
                   </Label>
-                  <Input id="aadhar" value={formData.aadhar_card} onChange={(e) => setFormData({ ...formData, aadhar_card: e.target.value })} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="height" className="text-primary">
-                    Height
-                  </Label>
-                  <Input id="height" value={formData.height} onChange={(e) => setFormData({ ...formData, height: e.target.value })} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="weight" className="text-primary">
-                    Weight
-                  </Label>
-                  <Input id="weight" value={formData.weight} onChange={(e) => setFormData({ ...formData, weight: e.target.value })} />
+                  <Input 
+                    id="adhaar" 
+                    value={formData.adhaar_card || ""} 
+                    onChange={(e) => setFormData({ ...formData, adhaar_card: e.target.value || null })} 
+                  />
                 </div>
               </div>
             </div>
 
-            {/* Location */}
             <div className="bg-white rounded-lg border p-4">
               <h2 className="text-lg font-semibold text-primary mb-4">Location</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -126,30 +141,45 @@ export default function EditProfilePage() {
                   <Label htmlFor="city" className="text-primary">
                     City
                   </Label>
-                  <Input id="city" value={formData.city} onChange={(e) => setFormData({ ...formData, city: e.target.value })} />
+                  <Input 
+                    id="city" 
+                    value={formData.city || ""} 
+                    onChange={(e) => setFormData({ ...formData, city: e.target.value || null })} 
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="state" className="text-primary">
                     State
                   </Label>
-                  <Input id="state" value={formData.state} onChange={(e) => setFormData({ ...formData, state: e.target.value })} />
+                  <Input 
+                    id="state" 
+                    value={formData.state || ""} 
+                    onChange={(e) => setFormData({ ...formData, state: e.target.value || null })} 
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="country" className="text-primary">
                     Country
                   </Label>
-                  <Input id="country" value={formData.country} onChange={(e) => setFormData({ ...formData, country: e.target.value })} />
+                  <Input 
+                    id="country" 
+                    value={formData.country || ""} 
+                    onChange={(e) => setFormData({ ...formData, country: e.target.value || null })} 
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="pin" className="text-primary">
                     PIN Code
                   </Label>
-                  <Input id="pin" value={formData.pin} onChange={(e) => setFormData({ ...formData, pin: e.target.value })} />
+                  <Input 
+                    id="pin" 
+                    value={formData.pin || ""} 
+                    onChange={(e) => setFormData({ ...formData, pin: e.target.value || null })} 
+                  />
                 </div>
               </div>
             </div>
 
-            {/* Medical Information */}
             <div className="bg-white rounded-lg border p-4">
               <h2 className="text-lg font-semibold text-primary mb-4">Medical Information</h2>
               <div className="space-y-4">
@@ -157,27 +187,38 @@ export default function EditProfilePage() {
                   <Label htmlFor="allergies" className="text-primary">
                     Allergies
                   </Label>
-                  <Input id="allergies" value={formData.allergies.join(", ")} onChange={(e) => setFormData({ ...formData, allergies: e.target.value.split(", ") })} />
+                  <Input 
+                    id="allergies" 
+                    value={formData.allergies.join(", ")} 
+                    onChange={(e) => setFormData({ ...formData, allergies: e.target.value ? e.target.value.split(", ") : [] })} 
+                  />
                   <p className="text-sm text-muted-foreground">Separate multiple allergies with commas</p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="chronic_conditions" className="text-primary">
                     Chronic Conditions
                   </Label>
-                  <Input id="chronic_conditions" value={formData.chronic_conditions.join(", ")} onChange={(e) => setFormData({ ...formData, chronic_conditions: e.target.value.split(", ") })} />
+                  <Input 
+                    id="chronic_conditions" 
+                    value={formData.chronic_conditions.join(", ")} 
+                    onChange={(e) => setFormData({ ...formData, chronic_conditions: e.target.value ? e.target.value.split(", ") : [] })} 
+                  />
                   <p className="text-sm text-muted-foreground">Separate multiple conditions with commas</p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="family_history" className="text-primary">
                     Family History
                   </Label>
-                  <Input id="family_history" value={formData.family_history.join(", ")} onChange={(e) => setFormData({ ...formData, family_history: e.target.value.split(", ") })} />
+                  <Input 
+                    id="family_history" 
+                    value={formData.family_history.join(", ")} 
+                    onChange={(e) => setFormData({ ...formData, family_history: e.target.value ? e.target.value.split(", ") : [] })} 
+                  />
                   <p className="text-sm text-muted-foreground">Separate multiple conditions with commas</p>
                 </div>
               </div>
             </div>
 
-            {/* Health Summary & Diet Plan */}
             <div className="bg-white rounded-lg border p-4">
               <h2 className="text-lg font-semibold text-primary mb-4">Additional Information</h2>
               <div className="space-y-4">
@@ -185,13 +226,23 @@ export default function EditProfilePage() {
                   <Label htmlFor="health_summary" className="text-primary">
                     Health Summary
                   </Label>
-                  <Textarea id="health_summary" value={formData.health_summary} onChange={(e) => setFormData({ ...formData, health_summary: e.target.value })} rows={4} />
+                  <Textarea 
+                    id="health_summary" 
+                    value={formData.health_summary} 
+                    onChange={(e) => setFormData({ ...formData, health_summary: e.target.value })} 
+                    rows={6}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="diet_plan" className="text-primary">
                     Diet Plan
                   </Label>
-                  <Textarea id="diet_plan" value={formData.diet_plan} onChange={(e) => setFormData({ ...formData, diet_plan: e.target.value })} rows={4} />
+                  <Textarea 
+                    id="diet_plan" 
+                    value={formData.diet_plan} 
+                    onChange={(e) => setFormData({ ...formData, diet_plan: e.target.value })} 
+                    rows={6}
+                  />
                 </div>
               </div>
             </div>
@@ -201,4 +252,3 @@ export default function EditProfilePage() {
     </div>
   )
 }
-

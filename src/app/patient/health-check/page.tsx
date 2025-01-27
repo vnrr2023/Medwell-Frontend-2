@@ -14,13 +14,129 @@ import {
 } from "chart.js"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { CircularMetric } from "@/components/patient/CircularMetric"
-import { healthMetricsData } from "./../data"
+import DaddyAPI from "@/services/api"
+import { useEffect, useState } from "react"
+import { Activity, Heart, Droplet, ThermometerSun, PlusCircle } from "lucide-react"
+import { LucideIcon } from "lucide-react"
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend)
 
-const metrics = Object.values(healthMetricsData)
+interface HealthData {
+  avg_data: {
+    avg_hemoglobin: number;
+    avg_rbc_count: number;
+    avg_wbc_count: number;
+    avg_platelet_count: number;
+    avg_pcv: number;
+    avg_bilirubin: number;
+    avg_proteins: number;
+    avg_calcium: number;
+    avg_blood_urea: number;
+    avg_sr_cholestrol: number;
+  };
+  data: {
+    submitted_at: string[];
+    hemoglobin: string[];
+    rbc_count: string[];
+    wbc_count: string[];
+    platelet_count: string[];
+    pcv: string[];
+    bilirubin: (string | null)[];
+    proteins: (string | null)[];
+    calcium: (string | null)[];
+    blood_urea: (string | null)[];
+    sr_cholestrol: (string | null)[];
+  };
+  status: boolean;
+}
+
+interface MetricConfig {
+  label: string;
+  color: string;
+  icon: LucideIcon;
+  data: number[];
+  avg: number;
+}
+
+const formatNumber = (value: number): string => {
+  if (value >= 1000) {
+    return value.toLocaleString('en-US', { maximumFractionDigits: 0 });
+  }
+  return value.toFixed(1);
+}
+
+const createMetricConfig = (
+  label: string,
+  color: string,
+  icon: LucideIcon,
+  data: (string | null)[],
+  avg: number
+): MetricConfig => ({
+  label,
+  color,
+  icon,
+  data: data.filter((val): val is string => val !== null)
+           .map(val => parseFloat(val)),
+  avg: parseFloat(avg.toFixed(1))
+})
 
 export default function HealthCheck() {
+  const [healthData, setHealthData] = useState<HealthData | null>(null)
+  
+  useEffect(() => {
+    const getHealthCheckData = async () => {
+      try {
+        const response = await DaddyAPI.getHealthCheck()
+        setHealthData(response.data)
+      } catch (error) {
+        console.error("Failed to fetch health check data:", error)
+      }
+    }
+    getHealthCheckData()
+  }, [])
+
+  if (!healthData) {
+    return <div className="flex justify-center items-center min-h-[400px]">Loading...</div>
+  }
+
+  const metrics = [
+    createMetricConfig(
+      "Hemoglobin",
+      "#ff6b6b",
+      Heart,
+      healthData.data.hemoglobin,
+      healthData.avg_data.avg_hemoglobin
+    ),
+    createMetricConfig(
+      "RBC Count",
+      "#4ecdc4",
+      Droplet,
+      healthData.data.rbc_count,
+      healthData.avg_data.avg_rbc_count
+    ),
+    createMetricConfig(
+      "WBC Count",
+      "#45b7d1",
+      Activity,
+      healthData.data.wbc_count,
+      healthData.avg_data.avg_wbc_count
+    ),
+    createMetricConfig(
+      "Platelet Count",
+      "#96ceb4",
+      PlusCircle,
+      healthData.data.platelet_count,
+      healthData.avg_data.avg_platelet_count
+    ),
+    createMetricConfig(
+      "PCV",
+      "#88d8b0",
+      ThermometerSun,
+      healthData.data.pcv,
+      healthData.avg_data.avg_pcv
+    )
+  ]
+
   return (
     <div className="space-y-6 pb-20 md:pb-0">
       {/* Line Charts */}
@@ -35,7 +151,7 @@ export default function HealthCheck() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center text-sm font-medium">
-                  <metric.icon className="w-4 h-4 mr-2" style={{ color: metric.color }} />
+                  <metric.icon className="w-4 h-4 mr-2" />
                   {metric.label} Trend
                 </CardTitle>
               </CardHeader>
@@ -43,7 +159,7 @@ export default function HealthCheck() {
                 <div className="h-[200px]">
                   <Line
                     data={{
-                      labels: Array.from({ length: metric.data.length }, (_, i) => `Day ${i + 1}`),
+                      labels: healthData.data.submitted_at,
                       datasets: [
                         {
                           label: metric.label,
@@ -62,6 +178,14 @@ export default function HealthCheck() {
                         legend: {
                           display: false,
                         },
+                        tooltip: {
+                          callbacks: {
+                            label: (context) => {
+                              const value = context.raw as number;
+                              return `${metric.label}: ${formatNumber(value)}`;
+                            }
+                          }
+                        }
                       },
                       scales: {
                         y: {
@@ -69,6 +193,9 @@ export default function HealthCheck() {
                           grid: {
                             display: false,
                           },
+                          ticks: {
+                            callback: (value) => formatNumber(value as number)
+                          }
                         },
                         x: {
                           grid: {
@@ -108,9 +235,6 @@ export default function HealthCheck() {
           </motion.div>
         ))}
       </div>
-
-      
     </div>
   )
 }
-

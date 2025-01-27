@@ -57,7 +57,7 @@ export default function PatientLayout({ children }: { children: React.ReactNode 
 <div className="p-4 border-t">
           <div className="flex items-center">
             <Avatar>
-              <AvatarImage src="/patient.png" alt="Patient" />
+              <AvatarImage src="/patient/pfp.jpg" alt="Patient" />
               <AvatarFallback>JD</AvatarFallback>
             </Avatar>
             <div className="ml-3">
