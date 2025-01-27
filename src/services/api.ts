@@ -1,6 +1,6 @@
 import axios from "axios"
 
-const ngrok_url = "http://localhost:3000/api"
+const ngrok_url = "https://medwell2.vercel.app/api"
 const api = axios.create({
   baseURL: `${ngrok_url}/`,
 })
