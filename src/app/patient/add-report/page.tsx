@@ -12,15 +12,17 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-// import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import DaddyAPI from "@/services/api";
+import CombinedChat from "@/components/chatbots/ChatCombined";
 
 export default function AddReport() {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -64,6 +66,7 @@ export default function AddReport() {
     setUploadedFile(null);
     setPreviewUrl(null);
     setUploadStatus(null);
+    setIsProcessing(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -80,13 +83,48 @@ export default function AddReport() {
     }
 
     setIsUploading(true);
+    setIsProcessing(true);
     setUploadStatus("Uploading...");
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    try {
+      const formData = new FormData();
+      formData.append("report", uploadedFile);
+      const response = await DaddyAPI.addReport(formData);
 
-    setIsUploading(false);
-    setUploadStatus("Upload successful");
+      if (response.status === 200) {
+        setIsUploading(false);
+        setUploadStatus("Processing report...");
+
+        const checkStatus = async () => {
+          try {
+            const taskStatusResponse = await DaddyAPI.getReportTaskStatus(response.data.task_id);
+            if (taskStatusResponse.data.status === "SUCCESS") {
+              setIsProcessing(false);
+              setUploadStatus("Upload successful");
+            } else if (taskStatusResponse.data.status === "FAILED") {
+              setIsProcessing(false);
+              setUploadStatus("Processing failed");
+            } else {
+              // Continue checking if still processing
+              setTimeout(checkStatus, 5000);
+            }
+          } catch (error) {
+            setIsProcessing(false);
+            setUploadStatus("Error checking status");
+          }
+        };
+
+        checkStatus();
+      } else {
+        setIsUploading(false);
+        setIsProcessing(false);
+        setUploadStatus("Upload failed");
+      }
+    } catch (error) {
+      setIsUploading(false);
+      setIsProcessing(false);
+      setUploadStatus("Error uploading file");
+    }
   };
 
   return (
@@ -122,11 +160,15 @@ export default function AddReport() {
               </div>
             </CardContent>
             <CardFooter>
-              <Button onClick={handleUpload} disabled={isUploading || !uploadedFile} className="w-full">
-                {isUploading ? (
+              <Button 
+                onClick={handleUpload} 
+                disabled={isUploading || isProcessing || !uploadedFile} 
+                className="w-full"
+              >
+                {(isUploading || isProcessing) ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Uploading...
+                    {isUploading ? 'Uploading...' : 'Processing...'}
                   </>
                 ) : (
                   <>
@@ -207,16 +249,26 @@ export default function AddReport() {
           >
             <Card>
               <CardContent className="pt-6">
-                <p
-                  className={`text-center ${uploadStatus === "Upload successful" ? "text-green-600" : "text-red-600"}`}
-                >
-                  {uploadStatus}
-                </p>
+                <div className="flex items-center justify-center gap-2">
+                  {isProcessing && <Loader2 className="h-4 w-4 animate-spin" />}
+                  <p
+                    className={`text-center ${
+                      uploadStatus === "Upload successful" 
+                        ? "text-green-600" 
+                        : uploadStatus.includes("Processing") 
+                        ? "text-blue-600"
+                        : "text-red-600"
+                    }`}
+                  >
+                    {uploadStatus}
+                  </p>
+                </div>
               </CardContent>
             </Card>
           </motion.div>
         )}
       </motion.div>
+      <CombinedChat/>
     </div>
   );
 }

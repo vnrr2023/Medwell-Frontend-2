@@ -1,4 +1,3 @@
-// types.ts
 export interface ReportElement {
   max: number
   min: number
@@ -24,7 +23,6 @@ export interface Report {
   reportdetail: ReportDetail
 }
 
-// Reports.tsx
 "use client"
 
 import React, { useState, useCallback, useMemo, useEffect } from "react"
@@ -38,6 +36,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { Report as MedReport } from "./types"
 import DaddyAPI from "@/services/api"
+import CombinedChat from "@/components/chatbots/ChatCombined"
 
 const Reports: React.FC = () => {
   const [selectedReport, setSelectedReport] = useState<MedReport | null>(null)
@@ -348,6 +347,7 @@ const Reports: React.FC = () => {
           </motion.div>
         )}
       </AnimatePresence>
+      <CombinedChat/>
     </div>
   )
 }

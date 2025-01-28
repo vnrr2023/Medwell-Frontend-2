@@ -18,6 +18,7 @@ import DaddyAPI from "@/services/api"
 import { useEffect, useState } from "react"
 import { Activity, Heart, Droplet, ThermometerSun, PlusCircle } from "lucide-react"
 import { LucideIcon } from "lucide-react"
+import Chat from "@/components/chatbots/Chat"
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend)
 
@@ -235,6 +236,7 @@ export default function HealthCheck() {
           </motion.div>
         ))}
       </div>
+      <Chat/>
     </div>
   )
 }

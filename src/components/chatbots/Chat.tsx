@@ -1,0 +1,163 @@
+import React, { useState, useEffect, useRef } from 'react'
+import { Bot, X } from 'lucide-react'
+import axios, { AxiosError } from 'axios'
+
+interface ChatMessage {
+  message: string
+  timestamp: Date
+}
+
+interface ChatState {
+  messages: ChatMessage[]
+  loading: boolean
+  error: string | null
+}
+
+export default function Chat() {
+  const [isOpen, setIsOpen] = useState<boolean>(false)
+  const [isExpanded, setIsExpanded] = useState<boolean>(false)
+  const [iframeLoaded, setIframeLoaded] = useState<boolean>(false)
+  const [chatState, setChatState] = useState<ChatState>({
+    messages: [],
+    loading: false,
+    error: null
+  })
+
+  const chatRef = useRef<HTMLDivElement>(null)
+  const cycleRef = useRef<NodeJS.Timeout | null>(null)
+
+  const toggleChat = (): void => {
+    setIsOpen(!isOpen)
+    if (!isOpen) {
+      setIsExpanded(false)
+      fetchInitialMessages()
+    }
+  }
+
+  const fetchInitialMessages = async (): Promise<void> => {
+    try {
+      setChatState(prev => ({ ...prev, loading: true, error: null }))
+      const response = await axios.get<ChatMessage[]>('/api/messages')
+      setChatState(prev => ({
+        ...prev,
+        messages: response.data,
+        loading: false
+      }))
+    } catch (error) {
+      const axiosError = error as AxiosError
+      setChatState(prev => ({
+        ...prev,
+        loading: false,
+        error: axiosError.message || 'Failed to fetch messages'
+      }))
+    }
+  }
+
+  useEffect(() => {
+    if (isOpen) {
+      const timer = setTimeout(() => {
+        setIframeLoaded(true)
+      }, 1000)
+      return () => clearTimeout(timer)
+    } else {
+      setIframeLoaded(false)
+    }
+  }, [isOpen])
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent): void => {
+      if (chatRef.current && !chatRef.current.contains(event.target as Node)) {
+        setIsOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
+
+  useEffect(() => {
+    const expandCycle = (): void => {
+      setIsExpanded(true)
+      setTimeout(() => {
+        setIsExpanded(false)
+      }, 7000)
+    }
+
+    const startCycle = (): void => {
+      expandCycle()
+      cycleRef.current = setInterval(() => {
+        expandCycle()
+      }, 17000)
+    }
+
+    if (!isOpen) {
+      startCycle()
+    }
+
+    return () => {
+      if (cycleRef.current) {
+        clearInterval(cycleRef.current)
+      }
+    }
+  }, [isOpen])
+
+  return (
+    <div className="fixed bottom-4 right-4 z-50" ref={chatRef}>
+      {isOpen ? (
+        <div className="bg-blue-400 rounded-lg shadow-xl w-[350px] h-[430px] flex flex-col overflow-hidden">
+          <div className="bg-blue-500 text-white p-2 flex justify-end items-center">
+            <button 
+              onClick={toggleChat} 
+              className="text-white hover:text-gray-200"
+              aria-label="Close chat"
+            >
+              <X size={20} />
+            </button>
+          </div>
+          <div className="flex-1 relative">
+            {!iframeLoaded && (
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+              </div>
+            )}
+            {chatState.error && (
+              <div className="absolute inset-0 flex items-center justify-center bg-red-50 text-red-500 p-4">
+                {chatState.error}
+              </div>
+            )}
+            <iframe
+              allow="microphone;"
+              width="100%"
+              height="100%"
+              src="https://console.dialogflow.com/api-client/demo/embedded/23f22ced-19cc-4886-832d-3f7ca260a6c6"
+              className={`w-full h-full ${iframeLoaded ? 'opacity-100' : 'opacity-0'}`}
+              onLoad={() => setIframeLoaded(true)}
+              title="Agasthya"
+            ></iframe>
+          </div>
+        </div>
+      ) : (
+        <button
+          onClick={toggleChat}
+          className={`bg-blue-500 text-white rounded-full shadow-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-300 ease-in-out flex items-center justify-center overflow-hidden h-12 ${
+            isExpanded ? 'w-48' : 'w-12'
+          }`}
+          aria-label="Open chat"
+        >
+          {isExpanded ? (
+            <>
+              <Bot size={24} className="mr-2" />
+              <span className="whitespace-nowrap transition-opacity duration-300">
+                Chat with Agasthya
+              </span>
+            </>
+          ) : (
+            <Bot size={24} />
+          )}
+        </button>
+      )}
+    </div>
+  )
+}

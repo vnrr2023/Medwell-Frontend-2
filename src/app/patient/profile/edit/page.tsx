@@ -6,7 +6,6 @@ import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import DaddyAPI from "@/services/api"
 
 type PatientInfo = {
@@ -29,14 +28,13 @@ type PatientInfo = {
   allergies: string[]
   chronic_conditions: string[]
   family_history: string[]
-  health_summary: string
-  diet_plan: string
 }
 
 export default function EditProfilePage() {
   const router = useRouter()
   const [formData, setFormData] = useState<PatientInfo | null>(null)
-
+  const [exchgData, setExchgData] = useState<any>({})  
+  
   useEffect(() => {
     const getProfileData = async () => {
       const response = await DaddyAPI.getPatientInfo()
@@ -49,7 +47,7 @@ export default function EditProfilePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Add your update API call here
+    const response = await DaddyAPI.savePatientInfo(exchgData)
     router.push("/patient/profile")
   }
 
@@ -82,7 +80,10 @@ export default function EditProfilePage() {
                   <Label htmlFor="name" className="text-primary">
                     Full Name
                   </Label>
-                  <Input id="name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
+                  <Input id="name" value={formData.name} onChange={(e) => {
+                    setExchgData({ ...exchgData, name: e.target.value })
+                    setFormData({ ...formData, name: e.target.value })
+                  }} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="age" className="text-primary">
@@ -92,7 +93,10 @@ export default function EditProfilePage() {
                     id="age" 
                     type="number" 
                     value={formData.age || ""} 
-                    onChange={(e) => setFormData({ ...formData, age: e.target.value ? Number(e.target.value) : null })}
+                    onChange={(e) => {
+                      setExchgData({ ...exchgData, age: e.target.value ? Number(e.target.value) : null })
+                      setFormData({ ...formData, age: e.target.value ? Number(e.target.value) : null })
+                    }}
                   />
                 </div>
                 <div className="space-y-2">
@@ -108,7 +112,10 @@ export default function EditProfilePage() {
                   <Input 
                     id="phone" 
                     value={formData.phone_number || ""} 
-                    onChange={(e) => setFormData({ ...formData, phone_number: e.target.value || null })} 
+                    onChange={(e) => {
+                      setExchgData({ ...exchgData, phone_number: e.target.value || null })
+                      setFormData({ ...formData, phone_number: e.target.value || null })
+                    }} 
                   />
                 </div>
                 <div className="space-y-2">
@@ -118,7 +125,10 @@ export default function EditProfilePage() {
                   <Input 
                     id="blood_group" 
                     value={formData.blood_group || ""} 
-                    onChange={(e) => setFormData({ ...formData, blood_group: e.target.value || null })} 
+                    onChange={(e) => {
+                      setExchgData({ ...exchgData, blood_group: e.target.value || null })
+                      setFormData({ ...formData, blood_group: e.target.value || null })
+                    }} 
                   />
                 </div>
                 <div className="space-y-2">
@@ -128,7 +138,10 @@ export default function EditProfilePage() {
                   <Input 
                     id="adhaar" 
                     value={formData.adhaar_card || ""} 
-                    onChange={(e) => setFormData({ ...formData, adhaar_card: e.target.value || null })} 
+                    onChange={(e) => {
+                      setExchgData({ ...exchgData, adhaar_card: e.target.value || null })
+                      setFormData({ ...formData, adhaar_card: e.target.value || null })
+                    }} 
                   />
                 </div>
               </div>
@@ -144,7 +157,10 @@ export default function EditProfilePage() {
                   <Input 
                     id="city" 
                     value={formData.city || ""} 
-                    onChange={(e) => setFormData({ ...formData, city: e.target.value || null })} 
+                    onChange={(e) => {
+                      setExchgData({ ...exchgData, city: e.target.value || null })
+                      setFormData({ ...formData, city: e.target.value || null })
+                    }} 
                   />
                 </div>
                 <div className="space-y-2">
@@ -154,7 +170,10 @@ export default function EditProfilePage() {
                   <Input 
                     id="state" 
                     value={formData.state || ""} 
-                    onChange={(e) => setFormData({ ...formData, state: e.target.value || null })} 
+                    onChange={(e) => {
+                      setExchgData({ ...exchgData, state: e.target.value || null })
+                      setFormData({ ...formData, state: e.target.value || null })
+                    }} 
                   />
                 </div>
                 <div className="space-y-2">
@@ -164,7 +183,10 @@ export default function EditProfilePage() {
                   <Input 
                     id="country" 
                     value={formData.country || ""} 
-                    onChange={(e) => setFormData({ ...formData, country: e.target.value || null })} 
+                    onChange={(e) => {
+                      setExchgData({ ...exchgData, country: e.target.value || null })
+                      setFormData({ ...formData, country: e.target.value || null })
+                    }} 
                   />
                 </div>
                 <div className="space-y-2">
@@ -174,7 +196,10 @@ export default function EditProfilePage() {
                   <Input 
                     id="pin" 
                     value={formData.pin || ""} 
-                    onChange={(e) => setFormData({ ...formData, pin: e.target.value || null })} 
+                    onChange={(e) => {
+                      setExchgData({ ...exchgData, pin: e.target.value || null })
+                      setFormData({ ...formData, pin: e.target.value || null })
+                    }} 
                   />
                 </div>
               </div>
@@ -190,7 +215,11 @@ export default function EditProfilePage() {
                   <Input 
                     id="allergies" 
                     value={formData.allergies.join(", ")} 
-                    onChange={(e) => setFormData({ ...formData, allergies: e.target.value ? e.target.value.split(", ") : [] })} 
+                    onChange={(e) => {
+                      const allergiesArray = e.target.value ? e.target.value.split(", ") : []
+                      setExchgData({ ...exchgData, allergies: allergiesArray })
+                      setFormData({ ...formData, allergies: allergiesArray })
+                    }} 
                   />
                   <p className="text-sm text-muted-foreground">Separate multiple allergies with commas</p>
                 </div>
@@ -201,7 +230,11 @@ export default function EditProfilePage() {
                   <Input 
                     id="chronic_conditions" 
                     value={formData.chronic_conditions.join(", ")} 
-                    onChange={(e) => setFormData({ ...formData, chronic_conditions: e.target.value ? e.target.value.split(", ") : [] })} 
+                    onChange={(e) => {
+                      const conditionsArray = e.target.value ? e.target.value.split(", ") : []
+                      setExchgData({ ...exchgData, chronic_conditions: conditionsArray })
+                      setFormData({ ...formData, chronic_conditions: conditionsArray })
+                    }} 
                   />
                   <p className="text-sm text-muted-foreground">Separate multiple conditions with commas</p>
                 </div>
@@ -212,37 +245,13 @@ export default function EditProfilePage() {
                   <Input 
                     id="family_history" 
                     value={formData.family_history.join(", ")} 
-                    onChange={(e) => setFormData({ ...formData, family_history: e.target.value ? e.target.value.split(", ") : [] })} 
+                    onChange={(e) => {
+                      const historyArray = e.target.value ? e.target.value.split(", ") : []
+                      setExchgData({ ...exchgData, family_history: historyArray })
+                      setFormData({ ...formData, family_history: historyArray })
+                    }} 
                   />
                   <p className="text-sm text-muted-foreground">Separate multiple conditions with commas</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-lg border p-4">
-              <h2 className="text-lg font-semibold text-primary mb-4">Additional Information</h2>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="health_summary" className="text-primary">
-                    Health Summary
-                  </Label>
-                  <Textarea 
-                    id="health_summary" 
-                    value={formData.health_summary} 
-                    onChange={(e) => setFormData({ ...formData, health_summary: e.target.value })} 
-                    rows={6}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="diet_plan" className="text-primary">
-                    Diet Plan
-                  </Label>
-                  <Textarea 
-                    id="diet_plan" 
-                    value={formData.diet_plan} 
-                    onChange={(e) => setFormData({ ...formData, diet_plan: e.target.value })} 
-                    rows={6}
-                  />
                 </div>
               </div>
             </div>

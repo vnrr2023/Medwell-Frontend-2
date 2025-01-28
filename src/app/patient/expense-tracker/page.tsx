@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useMemo, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { ArrowLeft, PlusCircle, MessageSquare, ChevronRight, X } from "lucide-react"
+import { ArrowLeft, PlusCircle, MessageSquare, ChevronRight, X, Trash2 } from "lucide-react"
 import { Pie, Line, Bar } from "react-chartjs-2"
 import { Chart as ChartJS } from "chart.js"
 import {
@@ -16,48 +16,16 @@ import {
   BarElement,
 } from "chart.js"
 import { useRouter } from "next/navigation"
+import DaddyAPI from "@/services/api"
+import Chat from "@/components/chatbots/Chat"
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, PointElement, LineElement, BarElement)
 
-// Update chart.js global defaults
-ChartJS.defaults.color = "#000" // Changed to black
-ChartJS.defaults.borderColor = "rgba(0,0,0,0.1)" // Changed to black
-
-// Mock expense data (replace with actual API call in production)
-const mockExpenseData = {
-  overall_expense: 12500,
-  expenses: [
-    { id: 1, expense_type: "reports", amount: "500", date: "2024-01-20" },
-    { id: 2, expense_type: "doctor", amount: "1200", date: "2024-01-18" },
-    { id: 3, expense_type: "medicines", amount: "350", date: "2024-01-15" },
-    { id: 4, expense_type: "tests", amount: "800", date: "2024-01-10" },
-    { id: 5, expense_type: "reports", amount: "250", date: "2024-01-05" },
-    { id: 6, expense_type: "doctor", amount: "1500", date: "2024-01-02" },
-    { id: 7, expense_type: "medicines", amount: "400", date: "2023-12-28" },
-    { id: 8, expense_type: "tests", amount: "600", date: "2023-12-25" },
-    { id: 9, expense_type: "reports", amount: "700", date: "2023-12-20" },
-    { id: 10, expense_type: "doctor", amount: "1000", date: "2023-12-15" },
-  ],
-  expense_trend: {
-    expenses: [500, 1200, 350, 800, 250, 1500, 400, 600, 700, 1000],
-  },
-  expenses_per_month: {
-    month_name: ["January", "February", "March", "April", "May", "June"],
-    expenses: [4200, 3800, 4500, 3500, 4000, 4800],
-  },
-  expenses_per_type: {
-    expense_type: ["reports", "doctor", "medicines", "tests"],
-    total: [1450, 2700, 750, 1400],
-  },
-  expenses_per_year: {
-    year: [2022, 2023, 2024],
-    expenses: [15000, 18000, 12500],
-  },
-}
+ChartJS.defaults.color = "#000"
+ChartJS.defaults.borderColor = "rgba(0,0,0,0.1)"
 
 const expenseTypes = ["reports", "doctor", "medicines", "tests"]
 
-// Update the color schemes
 const COLORS = [
   "rgb(94, 129, 244)",
   "rgb(255, 123, 137)",
@@ -71,7 +39,11 @@ const AddExpenseView = ({
   onAddExpense,
   onBack,
   inputMethod,
-}: { onAddExpense: (expense: { query_type: string; expense_type?: string; amount?: string; query?: string }) => void; onBack: () => void; inputMethod: string }) => {
+}: {
+  onAddExpense: (expense: { query_type: string; expense_type?: string; amount?: string; query?: string }) => void
+  onBack: () => void
+  inputMethod: string
+}) => {
   const [newExpense, setNewExpense] = useState({ expense_type: "", amount: "" })
   const [naturalLanguageInput, setNaturalLanguageInput] = useState("")
 
@@ -191,7 +163,11 @@ const ExpenseDetailsModal = ({
   expense,
   onClose,
   onDelete,
-}: { expense: { id: number; expense_type: string; amount: string; date: string }; onClose: () => void; onDelete: () => void }) => (
+}: {
+  expense: { id: number; expense_type: string; amount: string; date: string }
+  onClose: () => void
+  onDelete: () => void
+}) => (
   <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
     <motion.div
       initial={{ scale: 0.9 }}
@@ -232,90 +208,94 @@ const ExpenseDetailsModal = ({
 )
 
 export default function ExpenseTracker() {
-  const [expenseData, setExpenseData] = useState(mockExpenseData)
-  const [chartData] = useState(mockExpenseData)
+  const [expenseData, setExpenseData] = useState<any>(null)
   const [showAddExpense, setShowAddExpense] = useState<string | null>(null)
-  interface Expense {
-    id: number;
-    expense_type: string;
-    amount: string;
-    date: string;
-  }
-
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null)
-  const [currentPage] = useState(0)
+  const [currentPage, setCurrentPage] = useState(0)
   const [showMobileModal, setShowMobileModal] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
-    // In a real application, fetch data here.
-    // For this example, we'll use the mock data.
+    const fetchExpenseData = async () => {
+      try {
+        const dashboardResponse = await DaddyAPI.getExpensesDashboard()
+        const expensesResponse = await DaddyAPI.showExpenses()
+        setExpenseData({
+          ...dashboardResponse.data,
+          overall_expense: expensesResponse.data.overall_expense,
+          expenses: expensesResponse.data.expenses,
+        })
+      } catch (error) {
+        console.error("Error fetching expense data:", error)
+      }
+    }
+
+    fetchExpenseData()
   }, [])
 
-  interface NewExpense {
-    expense_type: string;
-    amount: string;
-  }
-
-  interface ExpenseItem extends NewExpense {
-    id: number;
-    date: string;
+  interface Expense {
+    id: number
+    expense_type: string
+    amount: string
+    date: string
   }
 
   const handleAddExpense = useCallback(
     async (newExpense: { query_type: string; expense_type?: string; amount?: string; query?: string }) => {
-      // Replace this with actual API call
-      const newId = expenseData.expenses.length > 0 ? Math.max(...expenseData.expenses.map((e) => e.id)) + 1 : 1
-      const newExpenseItem: ExpenseItem = { id: newId, expense_type: newExpense.expense_type || "", amount: newExpense.amount || "", date: new Date().toLocaleDateString() }
-      setExpenseData((prev) => ({
-        ...prev,
-        overall_expense: prev.overall_expense + Number.parseFloat(newExpense.amount || "0"),
-        expenses: [...prev.expenses, newExpenseItem],
-      }))
-      setShowAddExpense(null)
+      try {
+        await DaddyAPI.addExpenses(newExpense)
+        const dashboardResponse = await DaddyAPI.getExpensesDashboard()
+        const expensesResponse = await DaddyAPI.showExpenses()
+        setExpenseData({
+          ...dashboardResponse.data,
+          expenses: expensesResponse.data.expenses,
+        })
+        setShowAddExpense(null)
+      } catch (error) {
+        console.error("Error adding expense:", error)
+      }
     },
-    [expenseData],
+    [],
   )
 
   const handleDeleteExpense = useCallback(async (expenseId: number) => {
-    // Replace this with actual API call
-    setExpenseData((prev) => {
-      const deletedExpense = prev.expenses.find((e) => e.id === expenseId)
-      if (deletedExpense) {
-        return {
-          ...prev,
-          overall_expense: prev.overall_expense - Number.parseFloat(deletedExpense.amount),
-          expenses: prev.expenses.filter((e) => e.id !== expenseId),
-        }
-      }
-      return prev
-    })
-    setSelectedExpense(null)
-    setShowMobileModal(false)
+    try {
+      await DaddyAPI.deleteExpenses(expenseId)
+      const dashboardResponse = await DaddyAPI.getExpensesDashboard()
+      const expensesResponse = await DaddyAPI.showExpenses()
+      setExpenseData({
+        ...dashboardResponse.data,
+        expenses: expensesResponse.data.expenses,
+      })
+      setSelectedExpense(null)
+      setShowMobileModal(false)
+    } catch (error) {
+      console.error("Error deleting expense:", error)
+    }
   }, [])
 
   const paginatedExpenses = useMemo(() => {
-    const startIndex = currentPage * 4
-    return expenseData.expenses.slice(startIndex, startIndex + 4)
-  }, [expenseData.expenses, currentPage])
+    const startIndex = currentPage * 10
+    return expenseData?.expenses.slice(startIndex, startIndex + 10) || []
+  }, [expenseData?.expenses, currentPage])
 
-  const totalPages = Math.ceil(expenseData.expenses.length / 4)
+  const totalPages = Math.ceil((expenseData?.expenses?.length || 0) / 10)
 
   const expenseChartData = useMemo(
     () => ({
-      labels: chartData.expenses_per_type.expense_type,
+      labels: expenseData?.expenses_per_type?.expense_type || [],
       datasets: [
         {
-          data: chartData.expenses_per_type.total,
+          data: expenseData?.expenses_per_type?.total || [],
           backgroundColor: COLORS,
         },
       ],
     }),
-    [chartData.expenses_per_type],
+    [expenseData?.expenses_per_type],
   )
 
   const expenseTrendData = useMemo(() => {
-    const expenses = chartData.expense_trend.expenses
+    const expenses = expenseData?.expense_trend?.expenses || []
     const numberOfDays = expenses.length
 
     return {
@@ -329,39 +309,39 @@ export default function ExpenseTracker() {
         },
       ],
     }
-  }, [chartData.expense_trend])
+  }, [expenseData?.expense_trend])
 
   const monthlyExpenseData = useMemo(
     () => ({
-      labels: chartData.expenses_per_month.month_name,
+      labels: expenseData?.expenses_per_month?.month_name || [],
       datasets: [
         {
           label: "Monthly Expenses",
-          data: chartData.expenses_per_month.expenses,
+          data: expenseData?.expenses_per_month?.expenses || [],
           backgroundColor: "rgba(75, 192, 192, 0.6)",
         },
       ],
     }),
-    [chartData.expenses_per_month],
+    [expenseData?.expenses_per_month],
   )
 
   const yearlyExpenseData = useMemo(
     () => ({
-      labels: chartData.expenses_per_year.year,
+      labels: expenseData?.expenses_per_year?.year || [],
       datasets: [
         {
           label: "Yearly Expenses",
-          data: chartData.expenses_per_year.expenses,
+          data: expenseData?.expenses_per_year?.expenses || [],
           backgroundColor: "rgba(153, 102, 255, 0.6)",
         },
       ],
     }),
-    [chartData.expenses_per_year],
+    [expenseData?.expenses_per_year],
   )
 
   const expenseTypeData = useMemo(() => {
     const data: Record<string, { sum: number; count: number }> = {}
-    expenseData.expenses.forEach((expense) => {
+    expenseData?.expenses.forEach((expense: any) => {
       if (data[expense.expense_type]) {
         data[expense.expense_type].count++
       } else {
@@ -379,11 +359,11 @@ export default function ExpenseTracker() {
         },
       ],
     }
-  }, [expenseData.expenses])
+  }, [expenseData?.expenses])
 
   const averageExpenseData = useMemo(() => {
     const data: { [key: string]: { sum: number; count: number } } = {}
-    expenseData.expenses.forEach((expense) => {
+    expenseData?.expenses.forEach((expense: any) => {
       const amount = Number.parseFloat(expense.amount) || 0
       if (data[expense.expense_type]) {
         data[expense.expense_type].sum += amount
@@ -408,7 +388,7 @@ export default function ExpenseTracker() {
         },
       ],
     }
-  }, [expenseData.expenses])
+  }, [expenseData?.expenses])
 
   const MainView = useMemo(
     () => (
@@ -419,16 +399,13 @@ export default function ExpenseTracker() {
         transition={{ duration: 0.3 }}
         className="space-y-8"
       >
-        <h1 className="text-3xl font-bold text-black mb-8">Expense Tracker</h1> {/* Updated heading color */}
+        <h1 className="text-3xl font-bold text-black mb-8">Expense Tracker</h1>
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {/* Main Balance Card */}
           <div className="md:col-span-2 lg:col-span-3">
             <motion.div className="bg-white p-6 rounded-xl shadow-lg">
-              {" "}
-              {/* Updated bg color */}
               <h2 className="text-2xl font-semibold mb-4">Available Balance</h2>
               <p className="text-4xl font-bold text-green-400">
-                ₹{Number.parseFloat(expenseData.overall_expense.toString()).toFixed(2)}
+                ₹{Number(expenseData?.overall_expense).toLocaleString("en-IN", { maximumFractionDigits: 2 })}
               </p>
               <div className="mt-4 h-[200px]">
                 <Line
@@ -437,8 +414,8 @@ export default function ExpenseTracker() {
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: {
-                      x: { grid: { color: "rgba(0,0,0,0.1)" } }, // Updated grid color
-                      y: { grid: { color: "rgba(0,0,0,0.1)" } }, // Updated grid color
+                      x: { grid: { color: "rgba(0,0,0,0.1)" } },
+                      y: { grid: { color: "rgba(0,0,0,0.1)" } },
                     },
                   }}
                 />
@@ -446,13 +423,12 @@ export default function ExpenseTracker() {
             </motion.div>
           </div>
 
-          {/* Quick Actions */}
           <div className="space-y-4">
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setShowAddExpense("normal")}
-              className="w-full flex items-center justify-between p-4 bg-white rounded-xl hover:bg-gray-100 transition-all" // Updated bg color
+              className="w-full flex items-center justify-between p-4 bg-white rounded-xl hover:bg-gray-100 transition-all shadow-md"
             >
               <span className="flex items-center">
                 <PlusCircle className="w-5 h-5 mr-2" />
@@ -464,7 +440,7 @@ export default function ExpenseTracker() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setShowAddExpense("natural")}
-              className="w-full flex items-center justify-between p-4 bg-white rounded-xl hover:bg-gray-100 transition-all" // Updated bg color
+              className="w-full flex items-center justify-between p-4 bg-white rounded-xl hover:bg-gray-100 transition-all shadow-md"
             >
               <span className="flex items-center">
                 <MessageSquare className="w-5 h-5 mr-2" />
@@ -476,23 +452,19 @@ export default function ExpenseTracker() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
           <div className="bg-white p-6 rounded-xl shadow-lg">
-            {" "}
-            {/* Updated bg color */}
             <h3 className="text-lg font-semibold mb-4">Expense Distribution</h3>
             <div className="h-[300px]">
               <Pie
                 data={expenseChartData}
                 options={{
                   maintainAspectRatio: false,
-                  plugins: { legend: { position: "bottom", labels: { color: "black" } } }, // Updated text color
+                  plugins: { legend: { position: "bottom", labels: { color: "black" } } },
                 }}
               />
             </div>
           </div>
 
           <div className="bg-white p-6 rounded-xl shadow-lg">
-            {" "}
-            {/* Updated bg color */}
             <h3 className="text-lg font-semibold mb-4">Monthly Trend</h3>
             <div className="h-[300px]">
               <Bar
@@ -500,8 +472,8 @@ export default function ExpenseTracker() {
                 options={{
                   maintainAspectRatio: false,
                   scales: {
-                    x: { grid: { color: "rgba(0,0,0,0.1)" } }, // Updated grid color
-                    y: { grid: { color: "rgba(0,0,0,0.1)" } }, // Updated grid color
+                    x: { grid: { color: "rgba(0,0,0,0.1)" } },
+                    y: { grid: { color: "rgba(0,0,0,0.1)" } },
                   },
                 }}
               />
@@ -509,15 +481,13 @@ export default function ExpenseTracker() {
           </div>
 
           <div className="bg-white p-6 rounded-xl shadow-lg">
-            {" "}
-            {/* Updated bg color */}
             <h3 className="text-lg font-semibold mb-4">Recent Expenses</h3>
             <div className="space-y-4">
-              {paginatedExpenses.slice(0, 5).map((expense) => (
+              {paginatedExpenses.slice(0, 5).map((expense: any) => (
                 <div
                   key={expense.id}
-                  className="flex items-center justify-between p-3 bg-gray-100/50 rounded-lg text-black cursor-pointer" // Updated bg and text color
-                  onClick={() => router.push(`/patient/reports/${expense.id}`)}
+                  className="flex items-center justify-between p-3 bg-gray-100/50 rounded-lg text-black cursor-pointer"
+                  onClick={() => setSelectedExpense(expense)}
                 >
                   <div>
                     <p className="font-medium">{expense.expense_type}</p>
@@ -527,6 +497,58 @@ export default function ExpenseTracker() {
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-xl shadow-lg">
+          <h3 className="text-lg font-semibold mb-4">All Expenses</h3>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="bg-gray-100">
+                  <th className="p-2 text-left">Type</th>
+                  <th className="p-2 text-left">Amount</th>
+                  <th className="p-2 text-left">Date</th>
+                  <th className="p-2 text-left">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {paginatedExpenses.map((expense: any) => (
+                  <tr key={expense.id} className="border-b">
+                    <td className="p-2">{expense.expense_type}</td>
+                    <td className="p-2">₹{Number.parseFloat(expense.amount).toFixed(2)}</td>
+                    <td className="p-2">{expense.date}</td>
+                    <td className="p-2">
+                      <button
+                        onClick={() => handleDeleteExpense(expense.id)}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="mt-4 flex justify-between items-center">
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(0, prev - 1))}
+              disabled={currentPage === 0}
+              className="px-4 py-2 bg-blue-500 text-white rounded-md disabled:bg-gray-300"
+            >
+              Previous
+            </button>
+            <span>
+              Page {currentPage + 1} of {totalPages}
+            </span>
+            <button
+              onClick={() => setCurrentPage((prev) => Math.min(totalPages - 1, prev + 1))}
+              disabled={currentPage === totalPages - 1}
+              className="px-4 py-2 bg-blue-500 text-white rounded-md disabled:bg-gray-300"
+            >
+              Next
+            </button>
           </div>
         </div>
       </motion.div>
@@ -540,17 +562,11 @@ export default function ExpenseTracker() {
       expenseChartData,
       expenseTrendData,
       monthlyExpenseData,
-      yearlyExpenseData,
-      expenseTypeData,
-      averageExpenseData,
-      selectedExpense,
     ],
   )
 
   return (
-    <div className="max-w-[1600px] w-full mx-auto p-2 sm:p-4 md:p-6 lg:p-8 bg-white text-black min-h-screen">
-      {" "}
-      {/* Updated bg and text color */}
+    <div className="max-w-[1600px] w-full mx-auto p-2 sm:p-4 md:p-6 lg:p-8 bg-gray-50 text-black min-h-screen">
       <AnimatePresence mode="wait">
         {showAddExpense ? (
           <AddExpenseView
@@ -563,13 +579,15 @@ export default function ExpenseTracker() {
           <div key="main-view">{MainView}</div>
         )}
       </AnimatePresence>
-      {showMobileModal && selectedExpense && (
+      {selectedExpense && (
         <ExpenseDetailsModal
           expense={selectedExpense}
-          onClose={() => setShowMobileModal(false)}
+          onClose={() => setSelectedExpense(null)}
           onDelete={() => handleDeleteExpense(selectedExpense.id)}
         />
       )}
+      <Chat/>
+      
     </div>
   )
 }

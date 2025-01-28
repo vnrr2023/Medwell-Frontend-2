@@ -38,7 +38,7 @@ const mockExpensesDashboard = {
 
 export async function POST(request: NextRequest) {
   const authHeader = request.headers.get("authorization")
-  if (!authHeader || !authHeader.startsWith("Bearer ")|| authHeader!=="1234") {
+  if (authHeader!=="Bearer 1234") {
     return NextResponse.json({ error: "Missing or invalid token" }, { status: 401 })
   }
 

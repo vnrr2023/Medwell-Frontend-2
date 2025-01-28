@@ -10,6 +10,7 @@ import DatePicker from "react-datepicker"
 import "react-datepicker/dist/react-datepicker.css"
 import { PlusCircle, X, ChevronLeft, ChevronRight, Trash2 } from "lucide-react"
 import type { Appointment } from "./types"
+import Chat from "@/components/chatbots/Chat"
 
 const localizer = momentLocalizer(moment)
 
@@ -374,6 +375,7 @@ export default function Appointments() {
           </motion.div>
         )}
       </AnimatePresence>
+      <Chat/>
     </div>
   )
 }

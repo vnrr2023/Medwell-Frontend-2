@@ -7,6 +7,7 @@ import { Edit2, QrCode } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import DaddyAPI from "@/services/api"
+import Chat from "@/components/chatbots/Chat"
 
 type PatientInfo = {
   id: string
@@ -213,6 +214,7 @@ function InfoItem({ label, value }: { label: string; value: string | number }) {
     <div>
       <p className="text-sm font-medium text-primary">{label}</p>
       <p className="text-gray-700">{value}</p>
+      <Chat/>
     </div>
   )
 }
