@@ -25,7 +25,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <QueryProvider>
           <div className="min-h-screen bg-[#F5F5F5] text-[#212121] relative">
-           /* <BackgroundBeams className="fixed inset-0 z-0 pointer-events-none" /> */
+           {/* <BackgroundBeams className="fixed inset-0 z-0 pointer-events-none" /> */}
             <div className="relative z-10">
               <Suspense fallback={<div>Loading...</div>}>
                 <Navbar />
