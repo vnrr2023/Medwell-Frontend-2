@@ -16,7 +16,7 @@ import {
   PlusCircle,
   X,
 } from "lucide-react"
-import { useDocData } from "@/hooks/useDocData"
+import { useDocData } from "@/services/useDocData"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
