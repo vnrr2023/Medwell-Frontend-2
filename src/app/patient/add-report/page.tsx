@@ -16,7 +16,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import DaddyAPI from "@/services/api";
 import CombinedChat from "@/components/chatbots/ChatCombined";
-
 export default function AddReport() {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);

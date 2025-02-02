@@ -405,7 +405,7 @@ export default function ExpenseTracker() {
             <motion.div className="bg-white p-6 rounded-xl shadow-lg">
               <h2 className="text-2xl font-semibold mb-4">Available Balance</h2>
               <p className="text-4xl font-bold text-green-400">
-                ₹{Number(expenseData?.overall_expense).toLocaleString("en-IN", { maximumFractionDigits: 2 })}
+                ₹{Number(expenseData?.overall_expense)}
               </p>
               <div className="mt-4 h-[200px]">
                 <Line

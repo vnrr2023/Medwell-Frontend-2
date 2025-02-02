@@ -1,9 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import Link from "next/link"
-import { useParams} from "next/navigation"
+import { useParams } from "next/navigation"
 import { EyeIcon, EyeOffIcon, Mail, Lock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,6 +12,35 @@ import { AuthCard, AuthTitle, AuthDescription, AuthMessage } from "@/components/
 import { cn } from "@/lib/utils"
 import Image from "next/image"
 import { FcGoogle } from "react-icons/fc"
+import { useAuth } from "@/services/useAuth"
+
+declare global {
+  interface Window {
+    google?: {
+      accounts: {
+        id: {
+          initialize: (config: GoogleConfig) => void;
+          renderButton: (element: HTMLElement | null, options: any) => void;
+          prompt: (callback: (notification: GoogleNotification) => void) => void;
+        }
+      }
+    }
+  }
+}
+
+interface GoogleConfig {
+  client_id: string;
+  callback: (response: GoogleResponse) => void;
+}
+
+interface GoogleResponse {
+  credential: string;
+}
+
+interface GoogleNotification {
+  isNotDisplayed: () => boolean;
+  isSkippedMoment: () => boolean;
+}
 
 const roleInfo = {
   patient: {
@@ -37,15 +66,67 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const params = useParams()
   const role = params.role as string
-  // const router = useRouter()
-
+  const { login, googleLogin } = useAuth()
+  const [isLoading, setIsLoading] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
   const currentRoleInfo = roleInfo[role as keyof typeof roleInfo] || roleInfo.patient
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    
+    handleResize()
+    
+    window.addEventListener('resize', handleResize)
+    
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  useEffect(() => {
+    const initializeGoogleSignIn = () => {
+      if (window.google && window.google.accounts) {
+        window.google.accounts.id.initialize({
+          client_id: process.env.NEXT_PUBLIC_GOOGLE_URL!,
+          callback: handleCallbackResponse
+        })
+        window.google.accounts.id.renderButton(
+          document.getElementById("signInDiv"),
+          { theme: "outline", size: "large", width: isMobile ? 300 : 400 }
+        )
+      } else {
+        setTimeout(initializeGoogleSignIn, 100)
+      }
+    }
+
+    const loadGoogleScript = () => {
+      if (typeof window !== 'undefined' && !window.google) {
+        const script = document.createElement('script')
+        script.src = 'https://accounts.google.com/gsi/client'
+        script.async = true
+        script.defer = true
+        document.head.appendChild(script)
+        script.onload = initializeGoogleSignIn
+      } else {
+        initializeGoogleSignIn()
+      }
+    }
+
+    loadGoogleScript()
+  }, [isMobile])
+
+  const handleCallbackResponse = async (response: GoogleResponse) => {
+    setIsLoading(true)
+    try {
+      await googleLogin(response.credential, role)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    // Handle login logic here
-    console.log("Email:", email)
-    console.log("Password:", password)
+    login(email, password, role)
   }
 
   return (
@@ -143,7 +224,7 @@ export default function LoginPage() {
                   </button>
                 </div>
               </div>
-              <Button type="submit" className="w-full">
+              <Button type="submit" className="w-full hover:bg-gray-200">
                 Sign In
               </Button>
             </form>
@@ -153,14 +234,11 @@ export default function LoginPage() {
                 <div className="w-full border-t border-muted" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="bg-background px-2 text-muted-foreground">or</span>
+                <span className="bg-background px-2 text-muted-foreground"><span className="bg-gray-100 p-2">or</span></span>
               </div>
             </div>
 
-            <Button variant="outline" type="button" className="w-full">
-              <FcGoogle className="w-5 h-5 mr-2" />
-              Continue with Google
-            </Button>
+            <div id="signInDiv" className="flex justify-center" />
 
             <AuthMessage>
               Don&apos;t have an account?{" "}

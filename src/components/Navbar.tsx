@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Home, User, Briefcase, DollarSign, Info, Search, Menu, X } from "lucide-react"
+import { Home, User, Briefcase, DollarSign, Info, Search, Menu, X, LogOutIcon } from "lucide-react"
 import Link from "next/link"
+import { Button } from "./ui/button"
+import { useAuth } from "@/services/useAuth"
 
 const Links = [
   { name: "Home", link: "/", icon: Home },
@@ -18,15 +20,20 @@ const Links = [
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
-
+  const [token, setToken] =useState<any>("")
+  
+  const {logout} = useAuth()
   useEffect(() => {
+    const updateToken=()=>{
+      setToken(localStorage.getItem("Token"))
+    }
     const handleScroll = () => {
       setScrolled(window.scrollY > 20)
     }
     window.addEventListener("scroll", handleScroll)
+    updateToken()
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
-
   return (
     <motion.nav
       initial={{ y: -100 }}
@@ -68,6 +75,8 @@ export default function Navbar() {
                   </Link>
                 </motion.div>
               ))}
+                  {token && <Button className="hover:bg-gray-200" onClick={logout}><LogOutIcon></LogOutIcon></Button>}
+
             </div>
           </div>
           <div className="md:hidden">

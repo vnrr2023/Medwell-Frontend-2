@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { AlertTriangle, Calendar, FileText, DollarSign, Bell } from "lucide-react"
+import {  Calendar, FileText, DollarSign, Bell} from "lucide-react"
 import { Line } from "react-chartjs-2"
 import {
   Chart as ChartJS,

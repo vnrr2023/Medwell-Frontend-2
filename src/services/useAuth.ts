@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL
+export const API_URL = "https://66d6-43-231-238-206.ngrok-free.app"
 
 export const useAuth = () => {
   const [errorMessage, setErrorMessage] = useState("")
@@ -73,10 +73,10 @@ export const useAuth = () => {
     }
   }
 
-  const googleLogin = async (credential: string, role: string) => {
+  const googleLogin = async (credentials:string, role: string) => {
     setErrorMessage("")
     const formData = new FormData()
-    formData.append("token", credential)
+    formData.append("token", credentials)
     formData.append("role", role)
 
     try {
@@ -102,6 +102,7 @@ export const useAuth = () => {
     localStorage.removeItem("Role")
     notifyAuthStateChange()
     router.push("/auth")
+
   }
 
   const checkAuth = () => {

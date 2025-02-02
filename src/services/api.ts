@@ -1,13 +1,14 @@
 import axios from "axios"
-
+import { LocalStorageAccess } from "./get-token"
 // const ngrok_url = "http://localhost:3000/api"
 const ngrok_url = "https://medwell2.vercel.app/api"
+// const ngrok_url = "https://66d6-43-231-238-206.ngrok-free.app"
 const api = axios.create({
   baseURL: `${ngrok_url}/`,
 })
 
-const Token = "1234"
-
+// const Token = localStorage.getItem("Token");
+const Token="1234"
 
 const DaddyAPI = {
   // All Patient APIs
@@ -31,7 +32,7 @@ const DaddyAPI = {
     }),
   // This api gets the status of a report task every 5 seconds.
   //☑️
-  getReportTaskStatus: (taskId: string) => api.get(`/patient/get_report_task_status/?task_id=${taskId}`),
+  getReportTaskStatus: (taskId: string) => api.get(`/patient/get_report_task_status/?task_id=${taskId}`,{headers:{"ngrok-skip-browser-warning": "69420"},}),
 
   // save the patient info add fields in an object and pass it as a parameter
   

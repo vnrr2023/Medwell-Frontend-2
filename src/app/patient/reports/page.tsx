@@ -107,7 +107,7 @@ const Reports: React.FC = () => {
     return reports.filter((report) => {
       const searchTerm = globalSearch.toLowerCase()
       return (
-        report.report_type.toLowerCase().includes(searchTerm) ||
+        report.report_type?.toLowerCase().includes(searchTerm) ||
         report.doctor_name.toLowerCase().includes(searchTerm) ||
         report.summary.toLowerCase().includes(searchTerm) ||
         Object.entries(report.reportdetail.report_data).some(
@@ -353,3 +353,4 @@ const Reports: React.FC = () => {
 }
 
 export default Reports
+

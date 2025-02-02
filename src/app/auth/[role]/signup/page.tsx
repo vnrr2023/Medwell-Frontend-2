@@ -11,7 +11,13 @@ import { Label } from "@/components/ui/label"
 import { AuthCard, AuthTitle, AuthDescription, AuthMessage } from "@/components/auth/auth-components"
 import { useAuth } from "@/services/useAuth"
 import Image from "next/image"
-import { FcGoogle } from "react-icons/fc"
+
+
+
+
+interface GoogleResponse {
+  credential: string;
+}
 
 export default function SignupPage() {
   const [formData, setFormData] = useState({
@@ -23,13 +29,63 @@ export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
   const { signup, googleLogin, errorMessage, setErrorMessage, checkAuth } = useAuth()
   const params = useParams()
   const role = params.role as string
 
   useEffect(() => {
-    checkAuth()
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    
+    handleResize()
+    
+    window.addEventListener('resize', handleResize)
+    
+    return () => window.removeEventListener('resize', handleResize)
   }, [])
+
+  useEffect(() => {
+    const initializeGoogleSignIn = () => {
+      if (window.google && window.google.accounts) {
+        window.google.accounts.id.initialize({
+          client_id: process.env.NEXT_PUBLIC_GOOGLE_URL!,
+          callback: handleCallbackResponse
+        })
+        window.google.accounts.id.renderButton(
+          document.getElementById("signInDiv"),
+          { theme: "outline", size: "large", width: isMobile ? 300 : 400 }
+        )
+      } else {
+        setTimeout(initializeGoogleSignIn, 100)
+      }
+    }
+
+    const loadGoogleScript = () => {
+      if (typeof window !== 'undefined' && !window.google) {
+        const script = document.createElement('script')
+        script.src = 'https://accounts.google.com/gsi/client'
+        script.async = true
+        script.defer = true
+        document.head.appendChild(script)
+        script.onload = initializeGoogleSignIn
+      } else {
+        initializeGoogleSignIn()
+      }
+    }
+
+    loadGoogleScript()
+  }, [isMobile])
+
+  const handleCallbackResponse = async (response: GoogleResponse) => {
+    setIsLoading(true)
+    try {
+      await googleLogin(response.credential, role)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -61,47 +117,6 @@ export default function SignupPage() {
     return true
   }
 
-  const handleGoogleSignup = async () => {
-    setIsLoading(true)
-    try {
-      // Implement Google signup logic here
-      // For now, we'll just call the googleLogin function
-      await googleLogin("google_credential", role)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  type RoleInfo = {
-    title: string;
-    description: string;
-    image: string;
-  };
-
-  const defaultRoleInfo: RoleInfo = {
-    title: "Create an account",
-    description: "Enter your details to create your patient account",
-    image: "/auth/p_signup.jpg",
-  };
-
-  const roleInfo: RoleInfo =
-    {
-      patient: {
-        title: "Create an account",
-        description: "Enter your details to create your patient account",
-        image: "/auth/p_signup.jpg",
-      },
-      doctor: {
-        title: "Doctor Registration",
-        description: "Create your medical practitioner account",
-        image: "/auth/d_signup.jpg",
-      },
-      hospital: {
-        title: "Hospital Registration",
-        description: "Register your hospital in our network",
-        image: "/auth/h_signup.jpg",
-      },
-    }[role] || defaultRoleInfo;
 
   return (
     <div className="pt-16">
@@ -114,7 +129,7 @@ export default function SignupPage() {
         >
           <div className="absolute inset-0">
             <Image
-              src={roleInfo.image || "/placeholder.svg"}
+              src="/auth/signup.png"
               alt="Authentication"
               fill
               className="object-cover opacity-90"
@@ -148,8 +163,8 @@ export default function SignupPage() {
           className="lg:p-8"
         >
           <AuthCard>
-            <AuthTitle>{roleInfo.title}</AuthTitle>
-            <AuthDescription>{roleInfo.description}</AuthDescription>
+            <AuthTitle>Create an account</AuthTitle>
+            <AuthDescription>Enter your details below to create your account</AuthDescription>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               {errorMessage && <div className="text-sm text-red-500 text-center">{errorMessage}</div>}
@@ -240,7 +255,7 @@ export default function SignupPage() {
                 </div>
               </div>
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button type="submit" className="w-full hover:bg-gray-200" disabled={isLoading}>
                 {isLoading ? "Creating Account..." : "Create Account"}
               </Button>
             </form>
@@ -250,20 +265,13 @@ export default function SignupPage() {
                 <div className="w-full border-t border-muted" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="bg-background px-2 text-muted-foreground">or</span>
+                <span className="bg-background px-2 text-muted-foreground">
+                  <span className="bg-gray-100 p-2">or</span>
+                </span>
               </div>
             </div>
 
-            <Button
-              variant="outline"
-              type="button"
-              className="w-full"
-              onClick={handleGoogleSignup}
-              disabled={isLoading}
-            >
-              <FcGoogle className="w-5 h-5 mr-2" />
-              Continue with Google
-            </Button>
+            <div id="signInDiv" className="flex justify-center" />
 
             <AuthMessage>
               Already have an account?{" "}
@@ -277,4 +285,3 @@ export default function SignupPage() {
     </div>
   )
 }
-
