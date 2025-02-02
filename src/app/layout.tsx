@@ -2,7 +2,6 @@ import type { Metadata } from "next"
 import "./globals.css"
 import { Suspense, lazy } from "react"
 import { Inter } from "next/font/google"
-// import { BackgroundBeams } from "@/components/ui/background-beams"
 import { QueryProvider } from "@/components/QueryProvider"
 
 const Navbar = lazy(() => import("@/components/Navbar"))
