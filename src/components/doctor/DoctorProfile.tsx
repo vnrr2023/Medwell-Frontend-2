@@ -31,7 +31,33 @@ import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
 
-delete L.Icon.Default.prototype._getIconUrl
+// Fix for Leaflet icon issue
+L.Icon.Default.imagePath = "/"
+L.Icon.Default.prototype.options.iconUrl = "marker-icon.png"
+L.Icon.Default.prototype.options.iconRetinaUrl = "marker-icon-2x.png"
+L.Icon.Default.prototype.options.shadowUrl = "marker-shadow.png"
+
+// Add type declaration for Leaflet Routing
+declare module "leaflet" {
+  namespace Routing {
+    function control(options: RoutingControlOptions): any;
+    interface RoutingControlOptions {
+      waypoints: L.LatLng[];
+      routeWhileDragging?: boolean;
+      lineOptions?: {
+        styles?: Array<{
+          color: string;
+          weight: number;
+        }>;
+      };
+      show?: boolean;
+      addWaypoints?: boolean;
+      fitSelectedRoutes?: boolean;
+      showAlternatives?: boolean;
+    }
+  }
+}
+
 
 interface DoctorInfo {
   name: string
@@ -82,7 +108,7 @@ const initialDoctorInfo: DoctorInfo = {
 }
 
 export function DoctorProfile() {
-  const { doctorInfo, addresses, loading, addressesLoading, addNewAddress, updateDoctorInfo, uploadMultimedia } =
+  const { doctorInfo, addresses, loading, addressesLoading, addNewAddress, updateDoctorInfo, uploadMultimedia }:{doctorInfo:any, addresses:any, loading:any, addressesLoading:any, addNewAddress:any, updateDoctorInfo:any, uploadMultimedia:any} =
     useDocData()
 
   const [isEditing, setIsEditing] = useState(false)
@@ -93,7 +119,7 @@ export function DoctorProfile() {
   const [isMapModalOpen, setIsMapModalOpen] = useState(false)
   const [selectedLocation, setSelectedLocation] = useState<Address | null>(null)
   const mapRef = useRef<HTMLDivElement>(null)
-  const routingControlRef = useRef<L.Routing.Control | null>(null)
+  const routingControlRef = useRef<any>(null)
   const [files, setFiles] = useState<{
     profile: File | null
     registration: File | null
@@ -248,7 +274,7 @@ export function DoctorProfile() {
             {addressesLoading ? (
               <div className="text-center py-4">Loading addresses...</div>
             ) : (
-              addresses.map((addr, index) => (
+              addresses.map((addr:any, index:any) => (
                 <div key={index} className="flex items-center space-x-2">
                   <span className="flex-grow px-3 py-2 border border-gray-300 rounded-md bg-gray-50">
                     {addr.address}
@@ -418,7 +444,7 @@ export function DoctorProfile() {
                 <div className="space-y-2">
                   <h1 className="text-xl sm:text-2xl font-semibold">Dr. {doctorInfo.name}</h1>
                   <p className="text-gray-500 text-sm">{doctorInfo.specialization}</p>
-                  {doctorInfo.verified && <Badge variant="success">Verified</Badge>}
+                  {doctorInfo.verified && <Badge variant="default">Verified</Badge>}
                   <p className="text-gray-500 text-sm">Registration Number: {doctorInfo.registrationNumber}</p>
                   <p className="text-gray-500 text-sm">
                     Submitted At: {new Date(doctorInfo.submittedAt).toLocaleString()}
@@ -483,7 +509,7 @@ export function DoctorProfile() {
                     <h2 className="text-lg font-semibold">Services and price list</h2>
                   </div>
                   <div className="space-y-3 text-sm">
-                    {(doctorInfo.services || []).map((service, index) => (
+                    {(doctorInfo.services || []).map((service:any, index:any) => (
                       <div key={index} className="flex justify-between items-center">
                         <span className="text-gray-600">{service.name}</span>
                         <span className="font-medium">{service.price}</span>
@@ -499,7 +525,7 @@ export function DoctorProfile() {
                   <div className="text-center py-4">Loading addresses...</div>
                 ) : (addresses || []).length > 0 ? (
                   <div className="space-y-4">
-                    {addresses.map((addr, index) => (
+                    {addresses.map((addr:any, index:any) => (
                       <Card key={index}>
                         <CardContent className="p-4">
                           <div className="flex justify-between items-start mb-2">
