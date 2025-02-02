@@ -1,3 +1,5 @@
+"use client"
+
 import type React from "react"
 import { useState, useRef, useEffect } from "react"
 import {
@@ -18,6 +20,7 @@ import L from "leaflet"
 import "leaflet/dist/leaflet.css"
 import "leaflet-routing-machine/dist/leaflet-routing-machine.css"
 import "leaflet-routing-machine"
+import "leaflet-routing-machine/dist/leaflet-routing-machine.js"
 import { useDocData } from "@/hooks/useDocData"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -32,32 +35,24 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { cn } from "@/lib/utils"
 
 // Fix for Leaflet icon issue
-L.Icon.Default.imagePath = "/"
-L.Icon.Default.prototype.options.iconUrl = "marker-icon.png"
-L.Icon.Default.prototype.options.iconRetinaUrl = "marker-icon-2x.png"
-L.Icon.Default.prototype.options.shadowUrl = "marker-shadow.png"
-
-// Add type declaration for Leaflet Routing
-declare module "leaflet" {
-  namespace Routing {
-    function control(options: RoutingControlOptions): any;
-    interface RoutingControlOptions {
-      waypoints: L.LatLng[];
-      routeWhileDragging?: boolean;
-      lineOptions?: {
-        styles?: Array<{
-          color: string;
-          weight: number;
-        }>;
-      };
-      show?: boolean;
-      addWaypoints?: boolean;
-      fitSelectedRoutes?: boolean;
-      showAlternatives?: boolean;
-    }
-  }
+if (typeof window !== "undefined") {
+  L.Icon.Default.imagePath = "/"
+  L.Icon.Default.prototype.options.iconUrl = "marker-icon.png"
+  L.Icon.Default.prototype.options.iconRetinaUrl = "marker-icon-2x.png"
+  L.Icon.Default.prototype.options.shadowUrl = "marker-shadow.png"
 }
 
+interface Address {
+  address: string
+  address_type: string
+  lat: string
+  lon: string
+}
+
+interface Service {
+  name: string
+  price: string
+}
 
 interface DoctorInfo {
   name: string
@@ -75,40 +70,8 @@ interface DoctorInfo {
   submittedAt: string
 }
 
-interface Address {
-  address: string
-  address_type: string
-  lat: string
-  lon: string
-}
-
-interface Service {
-  name: string
-  price: string
-}
-
-const initialDoctorInfo: DoctorInfo = {
-  name: "",
-  specialization: "",
-  addresses: [],
-  email: "",
-  phone: "",
-  profilePicture: "./doctorpfp(female).png",
-  rating: 5,
-  services: [
-    { name: "Consultation", price: "Rs. 550" },
-    { name: "Follow-up", price: "Rs. 460" },
-    { name: "Emergency Visit", price: "Rs. 1000" },
-  ],
-  shortBio: "",
-  additionalComments: "",
-  registrationNumber: "",
-  verified: false,
-  submittedAt: "",
-}
-
 export function DoctorProfile() {
-  const { doctorInfo, addresses, loading, addressesLoading, addNewAddress, updateDoctorInfo, uploadMultimedia }:{doctorInfo:any, addresses:any, loading:any, addressesLoading:any, addNewAddress:any, updateDoctorInfo:any, uploadMultimedia:any} =
+  const { doctorInfo, addresses, loading, addressesLoading, addNewAddress, updateDoctorInfo, uploadMultimedia } =
     useDocData()
 
   const [isEditing, setIsEditing] = useState(false)
@@ -119,7 +82,7 @@ export function DoctorProfile() {
   const [isMapModalOpen, setIsMapModalOpen] = useState(false)
   const [selectedLocation, setSelectedLocation] = useState<Address | null>(null)
   const mapRef = useRef<HTMLDivElement>(null)
-  const routingControlRef = useRef<any>(null)
+  const routingControlRef = useRef<L.Routing.Control | null>(null)
   const [files, setFiles] = useState<{
     profile: File | null
     registration: File | null
@@ -131,6 +94,25 @@ export function DoctorProfile() {
     aadhar: null,
     passport: null,
   })
+
+  // Add a default value for doctorInfo to fix the property access errors
+  const defaultDoctorInfo: DoctorInfo = {
+    name: "",
+    specialization: "",
+    addresses: [],
+    email: "",
+    phone: "",
+    profilePicture: "",
+    rating: 0,
+    services: [],
+    shortBio: "",
+    additionalComments: "",
+    registrationNumber: "",
+    verified: false,
+    submittedAt: "",
+  }
+
+  const doctor: DoctorInfo = (doctorInfo as DoctorInfo) || defaultDoctorInfo
 
   useEffect(() => {
     if (isMapModalOpen && selectedLocation && mapRef.current) {
@@ -195,7 +177,7 @@ export function DoctorProfile() {
   }
 
   const initializeMap = () => {
-    if (!mapRef.current || !selectedLocation) return
+    if (typeof window === "undefined" || !mapRef.current || !selectedLocation) return
 
     const map = L.map(mapRef.current).setView(
       [Number.parseFloat(selectedLocation.lat), Number.parseFloat(selectedLocation.lon)],
@@ -231,6 +213,8 @@ export function DoctorProfile() {
             routeWhileDragging: true,
             lineOptions: {
               styles: [{ color: "#6366F1", weight: 4 }],
+              extendToWaypoints: true,
+              missingRouteTolerance: 0,
             },
             show: false,
             addWaypoints: false,
@@ -274,7 +258,7 @@ export function DoctorProfile() {
             {addressesLoading ? (
               <div className="text-center py-4">Loading addresses...</div>
             ) : (
-              addresses.map((addr:any, index:any) => (
+              addresses.map((addr: Address, index: number) => (
                 <div key={index} className="flex items-center space-x-2">
                   <span className="flex-grow px-3 py-2 border border-gray-300 rounded-md bg-gray-50">
                     {addr.address}
@@ -293,27 +277,27 @@ export function DoctorProfile() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="name">Name</Label>
-                <Input id="name" name="name" defaultValue={doctorInfo.name} />
+                <Input id="name" name="name" defaultValue={doctor.name} />
               </div>
               <div>
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" name="email" type="email" defaultValue={doctorInfo.email} />
+                <Input id="email" name="email" type="email" defaultValue={doctor.email} />
               </div>
             </div>
 
             <div>
               <Label htmlFor="phone">Phone</Label>
-              <Input id="phone" name="phone" defaultValue={doctorInfo.phone} />
+              <Input id="phone" name="phone" defaultValue={doctor.phone} />
             </div>
 
             <div>
               <Label htmlFor="registrationNumber">Registration Number</Label>
-              <Input id="registrationNumber" name="registrationNumber" defaultValue={doctorInfo.registrationNumber} />
+              <Input id="registrationNumber" name="registrationNumber" defaultValue={doctor.registrationNumber} />
             </div>
 
             <div>
               <Label htmlFor="specialization">Specialization</Label>
-              <Input id="specialization" name="specialization" defaultValue={doctorInfo.specialization} />
+              <Input id="specialization" name="specialization" defaultValue={doctor.specialization} />
             </div>
 
             <div>
@@ -321,7 +305,7 @@ export function DoctorProfile() {
               <Textarea
                 id="shortBio"
                 name="shortBio"
-                defaultValue={doctorInfo.shortBio}
+                defaultValue={doctor.shortBio}
                 placeholder="Enter your bio or leave empty for auto-generated bio"
               />
             </div>
@@ -335,7 +319,7 @@ export function DoctorProfile() {
                 <Label htmlFor="profilePicture">Profile Picture</Label>
                 <div className="flex items-center gap-4">
                   <Avatar className="w-32 h-32">
-                    <AvatarImage src={tempImage || doctorInfo.profilePicture} alt="Profile" />
+                    <AvatarImage src={tempImage || doctor.profilePicture} alt="Profile" />
                     <AvatarFallback>DR</AvatarFallback>
                   </Avatar>
                   <Label
@@ -431,32 +415,30 @@ export function DoctorProfile() {
   }
 
   return (
-    <div className="w-full max-w-[1200px] mx-auto p-4 sm:p-6 md:p-8 relative">
+    <div className="w-full max-w-[1200px] mx-auto relative">
       {!isEditing ? (
         <Card className="relative z-10">
           <CardContent className="p-6 sm:p-8">
             <div className="flex flex-col sm:flex-row justify-between items-start mb-8 gap-4">
               <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 w-full sm:w-auto">
                 <Avatar className="w-24 h-24">
-                  <AvatarImage src={doctorInfo.profilePicture} alt={`Dr. ${doctorInfo.name}`} />
+                  <AvatarImage src={doctor.profilePicture} alt={`Dr. ${doctor.name}`} />
                   <AvatarFallback>DR</AvatarFallback>
                 </Avatar>
                 <div className="space-y-2">
-                  <h1 className="text-xl sm:text-2xl font-semibold">Dr. {doctorInfo.name}</h1>
-                  <p className="text-gray-500 text-sm">{doctorInfo.specialization}</p>
-                  {doctorInfo.verified && <Badge variant="default">Verified</Badge>}
-                  <p className="text-gray-500 text-sm">Registration Number: {doctorInfo.registrationNumber}</p>
-                  <p className="text-gray-500 text-sm">
-                    Submitted At: {new Date(doctorInfo.submittedAt).toLocaleString()}
-                  </p>
+                  <h1 className="text-xl sm:text-2xl font-semibold">Dr. {doctor.name}</h1>
+                  <p className="text-gray-500 text-sm">{doctor.specialization}</p>
+                  {doctor.verified && <Badge variant="default">Verified</Badge>}
+                  <p className="text-gray-500 text-sm">Registration Number: {doctor.registrationNumber}</p>
+                  <p className="text-gray-500 text-sm">Submitted At: {new Date(doctor.submittedAt).toLocaleString()}</p>
                   <div className="space-y-1 text-xs sm:text-sm text-gray-600">
                     <div className="flex items-center gap-2">
                       <Mail className="w-4 h-4" />
-                      <span>{doctorInfo.email}</span>
+                      <span>{doctor.email}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Phone className="w-4 h-4" />
-                      <span>{doctorInfo.phone}</span>
+                      <span>{doctor.phone}</span>
                     </div>
                   </div>
                 </div>
@@ -496,8 +478,8 @@ export function DoctorProfile() {
                 <h2 className="text-lg font-semibold mb-3">Short Bio</h2>
                 <div className="space-y-3 text-sm">
                   <p className="text-gray-600">
-                    {doctorInfo.shortBio ||
-                      `I am ${doctorInfo.name}, a dedicated ${doctorInfo.specialization.toLowerCase()} with multiple practice locations. My practice combines evidence-based medicine with a patient-centered approach to ensure the best possible outcomes for my patients.`}
+                    {doctor.shortBio ||
+                      `I am ${doctor.name}, a dedicated ${doctor.specialization.toLowerCase()} with multiple practice locations. My practice combines evidence-based medicine with a patient-centered approach to ensure the best possible outcomes for my patients.`}
                   </p>
                 </div>
 
@@ -509,7 +491,7 @@ export function DoctorProfile() {
                     <h2 className="text-lg font-semibold">Services and price list</h2>
                   </div>
                   <div className="space-y-3 text-sm">
-                    {(doctorInfo.services || []).map((service:any, index:any) => (
+                    {(doctor.services || []).map((service: Service, index: number) => (
                       <div key={index} className="flex justify-between items-center">
                         <span className="text-gray-600">{service.name}</span>
                         <span className="font-medium">{service.price}</span>
@@ -525,7 +507,7 @@ export function DoctorProfile() {
                   <div className="text-center py-4">Loading addresses...</div>
                 ) : (addresses || []).length > 0 ? (
                   <div className="space-y-4">
-                    {addresses.map((addr:any, index:any) => (
+                    {addresses.map((addr: Address, index: number) => (
                       <Card key={index}>
                         <CardContent className="p-4">
                           <div className="flex justify-between items-start mb-2">
