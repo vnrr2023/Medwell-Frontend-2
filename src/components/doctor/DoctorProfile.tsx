@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useRef, useEffect } from "react"
+import { useState } from "react"
 import {
   Mail,
   Phone,
@@ -16,11 +16,6 @@ import {
   PlusCircle,
   X,
 } from "lucide-react"
-import L from "leaflet"
-import "leaflet/dist/leaflet.css"
-import "leaflet-routing-machine/dist/leaflet-routing-machine.css"
-import "leaflet-routing-machine"
-import "leaflet-routing-machine/dist/leaflet-routing-machine.js"
 import { useDocData } from "@/hooks/useDocData"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -31,16 +26,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
-
-// Fix for Leaflet icon issue
-if (typeof window !== "undefined") {
-  L.Icon.Default.imagePath = "/"
-  L.Icon.Default.prototype.options.iconUrl = "marker-icon.png"
-  L.Icon.Default.prototype.options.iconRetinaUrl = "marker-icon-2x.png"
-  L.Icon.Default.prototype.options.shadowUrl = "marker-shadow.png"
-}
 
 interface Address {
   address: string
@@ -79,10 +65,7 @@ export function DoctorProfile() {
   const [tempImage, setTempImage] = useState<string | null>(null)
   const [newAddress, setNewAddress] = useState("")
   const [newAddressType, setNewAddressType] = useState("work")
-  const [isMapModalOpen, setIsMapModalOpen] = useState(false)
-  const [selectedLocation, setSelectedLocation] = useState<Address | null>(null)
-  const mapRef = useRef<HTMLDivElement>(null)
-  const routingControlRef = useRef<L.Routing.Control | null>(null)
+
   const [files, setFiles] = useState<{
     profile: File | null
     registration: File | null
@@ -95,7 +78,6 @@ export function DoctorProfile() {
     passport: null,
   })
 
-  // Add a default value for doctorInfo to fix the property access errors
   const defaultDoctorInfo: DoctorInfo = {
     name: "",
     specialization: "",
@@ -113,12 +95,6 @@ export function DoctorProfile() {
   }
 
   const doctor: DoctorInfo = (doctorInfo as DoctorInfo) || defaultDoctorInfo
-
-  useEffect(() => {
-    if (isMapModalOpen && selectedLocation && mapRef.current) {
-      initializeMap()
-    }
-  }, [isMapModalOpen, selectedLocation])
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -168,64 +144,6 @@ export function DoctorProfile() {
       console.log("Profile updated successfully")
     } catch (error) {
       console.error("Error updating doctor info:", error)
-    }
-  }
-
-  const handleLocationClick = (location: Address) => {
-    setSelectedLocation(location)
-    setIsMapModalOpen(true)
-  }
-
-  const initializeMap = () => {
-    if (typeof window === "undefined" || !mapRef.current || !selectedLocation) return
-
-    const map = L.map(mapRef.current).setView(
-      [Number.parseFloat(selectedLocation.lat), Number.parseFloat(selectedLocation.lon)],
-      13,
-    )
-
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-    }).addTo(map)
-
-    const doctorMarker = L.marker([
-      Number.parseFloat(selectedLocation.lat),
-      Number.parseFloat(selectedLocation.lon),
-    ]).addTo(map)
-    doctorMarker.bindPopup("Doctor's Location").openPopup()
-
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords
-          const userMarker = L.marker([latitude, longitude]).addTo(map)
-          userMarker.bindPopup("Your Location").openPopup()
-
-          if (routingControlRef.current) {
-            map.removeControl(routingControlRef.current)
-          }
-
-          routingControlRef.current = L.Routing.control({
-            waypoints: [
-              L.latLng(latitude, longitude),
-              L.latLng(Number.parseFloat(selectedLocation.lat), Number.parseFloat(selectedLocation.lon)),
-            ],
-            routeWhileDragging: true,
-            lineOptions: {
-              styles: [{ color: "#6366F1", weight: 4 }],
-              extendToWaypoints: true,
-              missingRouteTolerance: 0,
-            },
-            show: false,
-            addWaypoints: false,
-            fitSelectedRoutes: true,
-            showAlternatives: false,
-          }).addTo(map)
-        },
-        (error) => {
-          console.error("Error getting user location:", error)
-        },
-      )
     }
   }
 
@@ -415,7 +333,7 @@ export function DoctorProfile() {
   }
 
   return (
-    <div className="w-full max-w-[1200px] mx-auto relative">
+    <div className="w-full max-w-[1200px] mx-auto p-4 sm:p-6 md:p-8 relative">
       {!isEditing ? (
         <Card className="relative z-10">
           <CardContent className="p-6 sm:p-8">
@@ -520,13 +438,6 @@ export function DoctorProfile() {
                             <span>Lat: {addr.lat}, </span>
                             <span>Lon: {addr.lon}</span>
                           </div>
-                          <Button
-                            variant="link"
-                            onClick={() => handleLocationClick(addr)}
-                            className="mt-2 p-0 h-auto text-blue-600 hover:text-blue-800"
-                          >
-                            View on Map
-                          </Button>
                         </CardContent>
                       </Card>
                     ))}
@@ -566,14 +477,6 @@ export function DoctorProfile() {
           </CardContent>
         </Card>
       )}
-      <Dialog open={isMapModalOpen} onOpenChange={setIsMapModalOpen}>
-        <DialogContent className="sm:max-w-[800px] h-[600px]">
-          <DialogHeader>
-            <DialogTitle>Location Map</DialogTitle>
-          </DialogHeader>
-          <div className="flex-grow" ref={mapRef}></div>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }
