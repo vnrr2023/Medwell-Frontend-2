@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL
+const API_URL = "https://19b6-43-231-238-206.ngrok-free.app"
 
 export const useValidate = (token: string) => {
   const [status, setStatus] = useState<boolean | null>(null)

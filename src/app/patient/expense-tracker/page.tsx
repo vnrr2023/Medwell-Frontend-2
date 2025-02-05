@@ -221,9 +221,9 @@ export default function ExpenseTracker() {
         const dashboardResponse = await DaddyAPI.getExpensesDashboard()
         const expensesResponse = await DaddyAPI.showExpenses()
         setExpenseData({
-          ...dashboardResponse.data,
-          overall_expense: expensesResponse.data.overall_expense,
-          expenses: expensesResponse.data.expenses,
+          ...dashboardResponse?.data,
+          overall_expense: expensesResponse?.data?.overall_expense,
+          expenses: expensesResponse?.data?.expenses,
         })
       } catch (error) {
         console.error("Error fetching expense data:", error)
@@ -247,8 +247,8 @@ export default function ExpenseTracker() {
         const dashboardResponse = await DaddyAPI.getExpensesDashboard()
         const expensesResponse = await DaddyAPI.showExpenses()
         setExpenseData({
-          ...dashboardResponse.data,
-          expenses: expensesResponse.data.expenses,
+          ...dashboardResponse?.data,
+          expenses: expensesResponse?.data?.expenses,
         })
         setShowAddExpense(null)
       } catch (error) {
@@ -264,8 +264,8 @@ export default function ExpenseTracker() {
       const dashboardResponse = await DaddyAPI.getExpensesDashboard()
       const expensesResponse = await DaddyAPI.showExpenses()
       setExpenseData({
-        ...dashboardResponse.data,
-        expenses: expensesResponse.data.expenses,
+        ...dashboardResponse?.data,
+        expenses: expensesResponse?.data?.expenses,
       })
       setSelectedExpense(null)
       setShowMobileModal(false)
@@ -276,7 +276,7 @@ export default function ExpenseTracker() {
 
   const paginatedExpenses = useMemo(() => {
     const startIndex = currentPage * 10
-    return expenseData?.expenses.slice(startIndex, startIndex + 10) || []
+    return expenseData?.expenses?.slice(startIndex, startIndex + 10) || []
   }, [expenseData?.expenses, currentPage])
 
   const totalPages = Math.ceil((expenseData?.expenses?.length || 0) / 10)
@@ -341,7 +341,7 @@ export default function ExpenseTracker() {
 
   const expenseTypeData = useMemo(() => {
     const data: Record<string, { sum: number; count: number }> = {}
-    expenseData?.expenses.forEach((expense: any) => {
+    expenseData?.expenses?.forEach((expense: any) => {
       if (data[expense.expense_type]) {
         data[expense.expense_type].count++
       } else {
@@ -363,7 +363,7 @@ export default function ExpenseTracker() {
 
   const averageExpenseData = useMemo(() => {
     const data: { [key: string]: { sum: number; count: number } } = {}
-    expenseData?.expenses.forEach((expense: any) => {
+    expenseData?.expenses?.forEach((expense: any) => {
       const amount = Number.parseFloat(expense.amount) || 0
       if (data[expense.expense_type]) {
         data[expense.expense_type].sum += amount

@@ -11,6 +11,7 @@ import {
   Title,
   Tooltip,
   Legend,
+  Filler
 } from "chart.js"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { CircularMetric } from "@/components/patient/CircularMetric"
@@ -20,35 +21,35 @@ import { Activity, Heart, Droplet, ThermometerSun, PlusCircle } from "lucide-rea
 import { LucideIcon } from "lucide-react"
 import Chat from "@/components/chatbots/Chat"
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend)
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler)
 
 interface HealthData {
   avg_data: {
-    avg_hemoglobin: number;
-    avg_rbc_count: number;
-    avg_wbc_count: number;
-    avg_platelet_count: number;
-    avg_pcv: number;
-    avg_bilirubin: number;
-    avg_proteins: number;
-    avg_calcium: number;
-    avg_blood_urea: number;
-    avg_sr_cholestrol: number;
+    avg_hemoglobin?: number;
+    avg_rbc_count?: number;
+    avg_wbc_count?: number;
+    avg_platelet_count?: number;
+    avg_pcv?: number;
+    avg_bilirubin?: number;
+    avg_proteins?: number;
+    avg_calcium?: number;
+    avg_blood_urea?: number;
+    avg_sr_cholestrol?: number;
   };
   data: {
-    submitted_at: string[];
-    hemoglobin: string[];
-    rbc_count: string[];
-    wbc_count: string[];
-    platelet_count: string[];
-    pcv: string[];
-    bilirubin: (string | null)[];
-    proteins: (string | null)[];
-    calcium: (string | null)[];
-    blood_urea: (string | null)[];
-    sr_cholestrol: (string | null)[];
+    submitted_at?: string[];
+    hemoglobin?: string[];
+    rbc_count?: string[];
+    wbc_count?: string[];
+    platelet_count?: string[];
+    pcv?: string[];
+    bilirubin?: (string | null)[];
+    proteins?: (string | null)[];
+    calcium?: (string | null)[];
+    blood_urea?: (string | null)[];
+    sr_cholestrol?: (string | null)[];
   };
-  status: boolean;
+  status?: boolean;
 }
 
 interface MetricConfig {
@@ -105,36 +106,36 @@ export default function HealthCheck() {
       "Hemoglobin",
       "#ff6b6b",
       Heart,
-      healthData.data.hemoglobin,
-      healthData.avg_data.avg_hemoglobin
+      healthData.data?.hemoglobin || [],
+      healthData.avg_data?.avg_hemoglobin || 0
     ),
     createMetricConfig(
       "RBC Count",
       "#4ecdc4",
       Droplet,
-      healthData.data.rbc_count,
-      healthData.avg_data.avg_rbc_count
+      healthData.data?.rbc_count || [],
+      healthData.avg_data?.avg_rbc_count || 0
     ),
     createMetricConfig(
       "WBC Count",
       "#45b7d1",
       Activity,
-      healthData.data.wbc_count,
-      healthData.avg_data.avg_wbc_count
+      healthData.data?.wbc_count || [],
+      healthData.avg_data?.avg_wbc_count || 0
     ),
     createMetricConfig(
       "Platelet Count",
       "#96ceb4",
       PlusCircle,
-      healthData.data.platelet_count,
-      healthData.avg_data.avg_platelet_count
+      healthData.data?.platelet_count || [],
+      healthData.avg_data?.avg_platelet_count || 0
     ),
     createMetricConfig(
       "PCV",
       "#88d8b0",
       ThermometerSun,
-      healthData.data.pcv,
-      healthData.avg_data.avg_pcv
+      healthData.data?.pcv || [],
+      healthData.avg_data?.avg_pcv || 0
     )
   ]
 
@@ -160,7 +161,7 @@ export default function HealthCheck() {
                 <div className="h-[200px]">
                   <Line
                     data={{
-                      labels: healthData.data.submitted_at,
+                      labels: healthData.data?.submitted_at || [],
                       datasets: [
                         {
                           label: metric.label,

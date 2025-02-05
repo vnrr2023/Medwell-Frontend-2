@@ -1,23 +1,26 @@
 import axios from "axios"
-import { LocalStorageAccess } from "./get-token"
+// import { LocalStorageAccess } from "./get-token.tsx"
 // const ngrok_url = "http://localhost:3000/api"
 const ngrok_url = "https://medwell2.vercel.app/api"
-// const ngrok_url = "https://66d6-43-231-238-206.ngrok-free.app"
+// const ngrok_url = "https://19b6-43-231-238-206.ngrok-free.app"
 const api = axios.create({
   baseURL: `${ngrok_url}/`,
 })
+// const Token = typeof window !== 'undefined' ? localStorage.getItem("Token") : null
 
-// const Token = localStorage.getItem("Token");
 const Token="1234"
+console.log(Token)
+// const Token = LocalStorageAccess()
 
 const DaddyAPI = {
   // All Patient APIs
   // This api gets all the reports of the patients. :D
   //☑️
   getReports: () =>
-    api.post("/patient/get_reports/", "", {
+    api.get("/patient/get_reports/",  {
       headers: {
         Authorization: `Bearer ${Token}`,
+        "ngrok-skip-browser-warning": "69420",
         "Content-Type": "application/json",
       },
     }),
@@ -48,9 +51,10 @@ const DaddyAPI = {
   // This api gets the health check of a particular user
   //☑️
   getHealthCheck: () =>
-    api.post("/patient/health_check/", "", {
+    api.get("/patient/health_check/", {
       headers: {
         Authorization: `Bearer ${Token}`,
+        "ngrok-skip-browser-warning": "69420",
         "Content-Type": "application/json",
       },
     }),
@@ -58,9 +62,10 @@ const DaddyAPI = {
   // This api gets the info of the user
   //☑️
   getPatientInfo: () =>
-    api.post("/patient/get_info/", "", {
+    api.get("/patient/get_info/", {
       headers: {
         Authorization: `Bearer ${Token}`,
+        "ngrok-skip-browser-warning": "69420",
         "Content-Type": "application/json",
       },
     }),
@@ -68,9 +73,10 @@ const DaddyAPI = {
   // This api gives dashboard data about expense
   //☑️
   getExpensesDashboard: () =>
-    api.post("/patient/expenses_dashboard/", "", {
+    api.get("/patient/expenses_dashboard/",  {
       headers: {
         Authorization: `Bearer ${Token}`,
+        "ngrok-skip-browser-warning": "69420",
         "Content-Type": "application/json",
       },
     }),
@@ -78,9 +84,10 @@ const DaddyAPI = {
   // This api shows expense info of user
  //☑️
   showExpenses: () =>
-    api.post("/patient/show_expenses/", "", {
+    api.get("/patient/show_expenses/",  {
       headers: {
         Authorization: `Bearer ${Token}`,
+        "ngrok-skip-browser-warning": "69420",
         "Content-Type": "application/json",
       },
     }),
@@ -124,9 +131,10 @@ const DaddyAPI = {
   // This api gives entire info about the patient in short
   //☑️
   getPatientDashboard: () =>
-    api.post("/patient/dashboard/", "", {
+    api.get("/patient/dashboard/",{
       headers: {
         Authorization: `Bearer ${Token}`,
+        "ngrok-skip-browser-warning": "69420",
         "Content-Type": "application/json",
       },
     }),
@@ -162,6 +170,24 @@ provideAccess: (data:any) =>
         "Content-Type": "application/json",
       },
     }),
+
+//DOCTOR SEARCH APIs
+//Get Nearby Doctors and Hospitals by location or/and speciality
+doctorSearchSpecialty: (data:any) =>
+  api.post("/get_nearby_doctor/", data, {
+    headers: {
+      Authorization: `Bearer ${Token}`,
+      "Content-Type": "application/json",
+    },
+  }),
+//QUERY
+doctorSearchQuery: (data:any) =>
+  api.post("/search_doctors_and_hospitals/", data, {
+    headers: {
+      Authorization: `Bearer ${Token}`,
+      "Content-Type": "application/json",
+    },
+  }),
 
 }
 

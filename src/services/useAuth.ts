@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 
-export const API_URL = "https://66d6-43-231-238-206.ngrok-free.app"
+export const API_URL = "https://19b6-43-231-238-206.ngrok-free.app"
 
 export const useAuth = () => {
   const [errorMessage, setErrorMessage] = useState("")

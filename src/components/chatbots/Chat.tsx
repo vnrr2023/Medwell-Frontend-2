@@ -1,55 +1,22 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Bot, X } from 'lucide-react'
-import axios, { AxiosError } from 'axios'
 
-interface ChatMessage {
-  message: string
-  timestamp: Date
+interface ChatProps {
+  // Add any props if needed in the future
 }
 
-interface ChatState {
-  messages: ChatMessage[]
-  loading: boolean
-  error: string | null
-}
-
-export default function Chat() {
+export default function Chat({}: ChatProps) {
   const [isOpen, setIsOpen] = useState<boolean>(false)
   const [isExpanded, setIsExpanded] = useState<boolean>(false)
   const [iframeLoaded, setIframeLoaded] = useState<boolean>(false)
-  const [chatState, setChatState] = useState<ChatState>({
-    messages: [],
-    loading: false,
-    error: null
-  })
-
-  const chatRef = useRef<HTMLDivElement>(null)
+  
+  const chatRef = useRef<HTMLDivElement | null>(null)
   const cycleRef = useRef<NodeJS.Timeout | null>(null)
 
   const toggleChat = (): void => {
     setIsOpen(!isOpen)
     if (!isOpen) {
       setIsExpanded(false)
-      fetchInitialMessages()
-    }
-  }
-
-  const fetchInitialMessages = async (): Promise<void> => {
-    try {
-      setChatState(prev => ({ ...prev, loading: true, error: null }))
-      const response = await axios.get<ChatMessage[]>('/api/messages')
-      setChatState(prev => ({
-        ...prev,
-        messages: response.data,
-        loading: false
-      }))
-    } catch (error) {
-      const axiosError = error as AxiosError
-      setChatState(prev => ({
-        ...prev,
-        loading: false,
-        error: axiosError.message || 'Failed to fetch messages'
-      }))
     }
   }
 
@@ -120,11 +87,6 @@ export default function Chat() {
             {!iframeLoaded && (
               <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-              </div>
-            )}
-            {chatState.error && (
-              <div className="absolute inset-0 flex items-center justify-center bg-red-50 text-red-500 p-4">
-                {chatState.error}
               </div>
             )}
             <iframe

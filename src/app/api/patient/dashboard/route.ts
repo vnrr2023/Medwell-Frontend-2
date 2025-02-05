@@ -67,7 +67,7 @@ const mockDashboardData = {
   },
 }
 
-export async function POST(request: NextRequest) {
+export async function GET(request: NextRequest) {
   const authHeader = request.headers.get("authorization")
   if (authHeader!=="Bearer 1234") {
     return NextResponse.json({ error: "Missing or invalid token" }, { status: 401 })

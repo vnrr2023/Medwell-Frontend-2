@@ -46,7 +46,7 @@ const Reports: React.FC = () => {
   useEffect(() => {
     const getReports = async () => {
       const response = await DaddyAPI.getReports()
-      setReports(response.data.reports)
+      setReports(response.data?.reports || [])
     }
     getReports()
   }, [])
@@ -108,11 +108,11 @@ const Reports: React.FC = () => {
       const searchTerm = globalSearch.toLowerCase()
       return (
         report.report_type?.toLowerCase().includes(searchTerm) ||
-        report.doctor_name.toLowerCase().includes(searchTerm) ||
-        report.summary.toLowerCase().includes(searchTerm) ||
-        Object.entries(report.reportdetail.report_data).some(
+        report.doctor_name?.toLowerCase().includes(searchTerm) ||
+        report.summary?.toLowerCase()?.includes(searchTerm) ||
+        Object?.entries(report.reportdetail?.report_data||{}).some(
           ([key, value]) =>
-            key.toLowerCase().includes(searchTerm) ||
+            key?.toLowerCase().includes(searchTerm) ||
             (value.value !== -1 && value.value.toString().includes(searchTerm)),
         )
       )
@@ -161,9 +161,9 @@ const Reports: React.FC = () => {
         const isValuePresent = data.value !== -1
         const isInRange = isValuePresent && data.value >= data.min && data.value <= data.max
         const matchesSearch =
-          localSearch.toLowerCase() === "" ||
-          name.toLowerCase().includes(localSearch.toLowerCase()) ||
-          (data.value !== -1 && data.value.toString().includes(localSearch.toLowerCase()))
+          localSearch?.toLowerCase() === "" ||
+          name.toLowerCase()?.includes(localSearch.toLowerCase()) ||
+          (data.value !== -1 && data.value.toString()?.includes(localSearch.toLowerCase()))
 
         let matchesRangeFilter = true
         switch (localRangeFilter) {
@@ -193,8 +193,8 @@ const Reports: React.FC = () => {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="capitalize">{report.report_type.replace(/_/g, " ")}</CardTitle>
-          <CardDescription>{report.submitted_at}</CardDescription>
+          <CardTitle className="capitalize">{report?.report_type.replace(/_/g, " ")}</CardTitle>
+          <CardDescription>{report?.submitted_at}</CardDescription>
         </CardHeader>
         <CardContent>
           <Button variant="ghost" onClick={handleBackClick} className="mb-4">
@@ -204,16 +204,16 @@ const Reports: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
             <div>
               <p className="text-sm text-muted-foreground">Collection Date</p>
-              <p className="font-medium">{report.date_of_collection}</p>
+              <p className="font-medium">{report?.date_of_collection}</p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Doctor</p>
-              <p className="font-medium">{report.doctor_name}</p>
+              <p className="font-medium">{report?.doctor_name}</p>
             </div>
           </div>
           <div className="mb-6">
             <h3 className="text-lg font-semibold mb-2">Summary</h3>
-            <p>{report.summary}</p>
+            <p>{report?.summary}</p>
           </div>
           <h3 className="text-lg font-semibold mb-4">Detailed Results</h3>
           <div className="mb-4 flex flex-col sm:flex-row gap-4">
@@ -241,7 +241,7 @@ const Reports: React.FC = () => {
           </div>
           <ScrollArea className="h-[400px] rounded-md border p-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {sortedElements.map(([name, data]) => {
+              {sortedElements?.map(([name, data]) => {
                 const isValuePresent = data.value !== -1
                 const isInRange = isValuePresent && data.value >= data.min && data.value <= data.max
                 return (
@@ -353,4 +353,3 @@ const Reports: React.FC = () => {
 }
 
 export default Reports
-

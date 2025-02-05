@@ -27,7 +27,7 @@ const mockPatientInfo = {
     "To address the health concerns, a personalized diet and nutrition plan is recommended. This plan should include:\n\n- Iron-rich foods like red meat, poultry, and fish to combat anemia.\n- A balanced diet with plenty of fruits, vegetables, whole grains, and lean proteins to support overall health.\n- Foods rich in vitamin D and calcium, such as dairy products, leafy greens, and fortified cereals, to improve calcium levels.\n- Incorporating healthy fats like avocados, nuts, and olive oil to support heart health.\n- Foods high in fiber and antioxidants, like berries, leafy greens, and other fruits, to combat inflammation.\n- Hydration is essential, and adequate water intake should be maintained.\n\nGeneral advice includes:\n- Maintaining a healthy weight through a balanced diet and regular exercise.\n- Reducing sodium intake to promote heart health.\n- Avoiding excessive sugar consumption to regulate blood sugar levels.\n- Practicing stress-reducing techniques, like meditation or yoga, to manage stress and promote overall well-being.",
 }
 
-export async function POST(request: NextRequest) {
+export async function GET(request: NextRequest) {
   const authHeader = request.headers.get("authorization")
   if (authHeader!=="Bearer 1234") {
     return NextResponse.json({ error: "Missing or invalid token" }, { status: 401 })
