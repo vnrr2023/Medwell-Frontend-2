@@ -1,9 +1,5 @@
 "use client"
-import { useState, useCallback } from "react"
-import { useMediaQuery } from "react-responsive"
-import { MapContainer, TileLayer, Marker, useMap, Tooltip } from "react-leaflet"
-import "leaflet/dist/leaflet.css"
-import L from "leaflet"
+import { useState, useCallback, useEffect } from "react"
 import { MapPin, Search, Stethoscope, Clock } from "lucide-react"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -12,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import DaddyAPI from "@/services/api"
+import DynamicMap from "@/components/DynamicMap"
 
 // Types
 interface Location {
@@ -33,36 +30,10 @@ interface Doctor {
   data: DoctorData
 }
 
-interface MapUpdaterProps {
-  center: [number, number]
-}
-
 interface DummyCoordinates {
   [key: string]: [number, number]
 }
 
-declare module "leaflet" {
-  interface Layer {
-    _leaflet_id?: number
-  }
-}
-
-const DoctorIcon: L.Icon = new L.Icon({
-  iconUrl: "/logo.png",
-  iconAnchor: [40, 60],
-  popupAnchor: [0, -60],
-  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-shadow.png",
-  shadowSize: [41, 41],
-  iconSize: [80, 100],
-})
-
-interface MapContainerProps extends L.MapOptions {
-  center: L.LatLngExpression
-  zoom: number
-  children: React.ReactNode
-  style?: React.CSSProperties
-  className?: string
-}
 const DISTRICTS: string[] = [
   "Mumbai",
   "Delhi",
@@ -100,11 +71,40 @@ const DUMMY_COORDINATES: DummyCoordinates = {
   Lucknow: [26.8467, 80.9462],
 }
 
-function MapUpdater({ center }: MapUpdaterProps) {
-  const map = useMap()
-  map.setView(center, 13)
-  return null
+interface DoctorCardProps {
+  doctor: Doctor
 }
+
+const DoctorCard = ({ doctor }: DoctorCardProps) => (
+  <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-teal-100">
+    <div className="flex justify-between items-start">
+      <div>
+        <h3 className="font-bold text-xl text-teal-800">{doctor.data.name}</h3>
+        <p className="text-teal-600 font-medium mt-1">{doctor.data.speciality || "General Practice"}</p>
+      </div>
+      {doctor.data.rating && (
+        <div className="bg-teal-50 px-3 py-1 rounded-full text-teal-700 font-medium">★ {doctor.data.rating}</div>
+      )}
+    </div>
+
+    <div className="mt-4 space-y-2">
+      <p className="text-gray-600 flex items-center gap-2">
+        <MapPin className="h-4 w-4 text-teal-500" />
+        {doctor.data.address}
+      </p>
+      {doctor.data.availability && (
+        <p className="text-gray-600 flex items-center gap-2">
+          <Clock className="h-4 w-4 text-teal-500" />
+          {doctor.data.availability}
+        </p>
+      )}
+    </div>
+
+    <Link href="/doctorsearch/appointment" className="block mt-6">
+      <Button className="w-full bg-teal-500 hover:bg-teal-600 text-white">Book Appointment</Button>
+    </Link>
+  </div>
+)
 
 export default function DoctorSearch() {
   const [loading, setLoading] = useState<boolean>(false)
@@ -114,8 +114,18 @@ export default function DoctorSearch() {
   const [searchQuery, setSearchQuery] = useState<string>("")
   const [locationOption, setLocationOption] = useState<string>("")
   const [selectedSpecialty, setSelectedSpecialty] = useState<string>("No Specialty")
+  const [isMobile, setIsMobile] = useState(false)
 
-  const isMobile = useMediaQuery({ maxWidth: 767 })
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 767)
+    }
+
+    checkMobile()
+    window.addEventListener("resize", checkMobile)
+
+    return () => window.removeEventListener("resize", checkMobile)
+  }, [])
 
   const searchNearbyDoctors = useCallback(
     async (lat: number, lon: number) => {
@@ -309,55 +319,7 @@ export default function DoctorSearch() {
                   <div className="flex gap-8">
                     <div className="w-1/2">
                       <div className="h-[calc(100vh-300px)] rounded-xl overflow-hidden shadow-xl">
-                        <MapContainer
-                          center={mapCenter}
-                          zoom={13}
-                          style={{ height: "100%", width: "100%" }}
-                          className="z-0"
-                        >
-                          <TileLayer
-                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                          />
-                          <MapUpdater center={mapCenter} />
-                          {doctors.map((doctor) => (
-                            <Marker
-                              key={doctor.id}
-                              position={[doctor.data.location.lat, doctor.data.location.lon]}
-                              icon={DoctorIcon}
-                            >
-                              <Tooltip
-                                direction="top"
-                                offset={[0, -60]}
-                                opacity={1}
-                                permanent={false}
-                                className="custom-tooltip"
-                              >
-                                <div className="p-2 bg-white rounded-lg shadow-md">
-                                  <h3 className="font-bold text-teal-800">{doctor.data.name}</h3>
-                                  <p className="text-sm text-teal-600">{doctor.data.speciality}</p>
-                                  <p className="text-xs text-gray-600">{doctor.data.address}</p>
-                                </div>
-                              </Tooltip>
-                            </Marker>
-                          ))}
-                          {doctors.length === 0 && (
-                            <Marker position={mapCenter} icon={DoctorIcon}>
-                              <Tooltip
-                                direction="top"
-                                offset={[0, -60]}
-                                opacity={1}
-                                permanent={false}
-                                className="custom-tooltip"
-                              >
-                                <div className="p-2 bg-white rounded-lg shadow-md">
-                                  <h3 className="font-bold text-teal-800">No doctors found</h3>
-                                  <p className="text-sm text-teal-600">Try adjusting your search criteria</p>
-                                </div>
-                              </Tooltip>
-                            </Marker>
-                          )}
-                        </MapContainer>
+                        <DynamicMap center={mapCenter} doctors={doctors} />
                       </div>
                     </div>
 
@@ -389,39 +351,4 @@ export default function DoctorSearch() {
     </div>
   )
 }
-
-interface DoctorCardProps {
-  doctor: Doctor
-}
-
-const DoctorCard = ({ doctor }: DoctorCardProps) => (
-  <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-teal-100">
-    <div className="flex justify-between items-start">
-      <div>
-        <h3 className="font-bold text-xl text-teal-800">{doctor.data.name}</h3>
-        <p className="text-teal-600 font-medium mt-1">{doctor.data.speciality || "General Practice"}</p>
-      </div>
-      {doctor.data.rating && (
-        <div className="bg-teal-50 px-3 py-1 rounded-full text-teal-700 font-medium">★ {doctor.data.rating}</div>
-      )}
-    </div>
-
-    <div className="mt-4 space-y-2">
-      <p className="text-gray-600 flex items-center gap-2">
-        <MapPin className="h-4 w-4 text-teal-500" />
-        {doctor.data.address}
-      </p>
-      {doctor.data.availability && (
-        <p className="text-gray-600 flex items-center gap-2">
-          <Clock className="h-4 w-4 text-teal-500" />
-          {doctor.data.availability}
-        </p>
-      )}
-    </div>
-
-    <Link href="/doctorsearch/appointment" className="block mt-6">
-      <Button className="w-full bg-teal-500 hover:bg-teal-600 text-white">Book Appointment</Button>
-    </Link>
-  </div>
-)
 
