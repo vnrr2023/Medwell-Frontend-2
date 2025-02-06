@@ -11,7 +11,7 @@ import React from "react"; // Added import for React
 const navItems = [
   { label: "Dashboard", icon: Home, href: "/hospital" },
   { label: "Profile", icon: User, href: "/hospital/profile" },
-  { label: "Patient Records", icon: FileText, href: "/hospital/patient-records" },
+  { label: "Patient Records", icon: FileText, href: "/hospital/patientrecords" },
   { label: "Doctors", icon: Users, href: "/hospital/doctors" },
   { label: "Appointments", icon: Calendar, href: "/hospital/appointments" },
   { label: "Analytics", icon: BarChart, href: "/hospital/analytics" },
