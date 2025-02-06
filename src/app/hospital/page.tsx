@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -15,6 +14,7 @@ import {
   PointElement,
   LineElement,
   Title,
+  Filler,
   Tooltip,
   Legend,
   ArcElement,
@@ -23,15 +23,17 @@ import { Line, Doughnut } from "react-chartjs-2"
 import { Download, Search, MoreVertical, Bell } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ArcElement)
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Filler, Legend, ArcElement)
 
+// Chart data configurations remain the same...
 const staffData = {
-  labels: ["Doctors", "Nurses", "Dietitians", "Volunteers", "Pharmacists", "Other Staff"],
+  labels: ["Doctor", "Nurse", "Technician"],
   datasets: [
     {
-      data: [30, 25, 15, 10, 10, 10],
-      backgroundColor: ["#0EA5E9", "#22C55E", "#14B8A6", "#F59E0B", "#06B6D4", "#8B5CF6"],
-      borderWidth: 0,
+      label: "Staff",
+      data: [12, 19, 3],
+      backgroundColor: ["#FF6384", "#36A2EB", "#FFCE56"],
+      hoverBackgroundColor: ["#FF6384", "#36A2EB", "#FFCE56"],
     },
   ],
 }
@@ -69,8 +71,6 @@ const inventoryData = [
   { id: "FLUP12132424", name: "Paracetamol", stock: 23456 },
   { id: "ECG12132424", name: "Panadol", stock: 23456 },
   { id: "FLUPEC0312424", name: "Abacavir", stock: 23456 },
-  { id: "FLUPEC0312424", name: "Acarbose", stock: 23456 },
-  { id: "FLUPEC0312424", name: "Acetylcysteine", stock: 23456 },
 ]
 
 export default function HospitalDashboard() {
@@ -78,40 +78,40 @@ export default function HospitalDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50/50">
-      <header className="sticky top-0 z-50 flex h-16 items-center justify-between border-b bg-white px-4 md:px-6">
-      <div className="flex items-center gap-4 md:gap-6">
-  <div className="relative w-[200px] md:w-[300px]">
-    <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-    <Input
-      placeholder="Search anything here"
-      className="w-full pl-8" 
-    />
-  </div>
-</div>
-
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon">
-            <Bell className="h-5 w-5" />
-          </Button>
-          <Avatar>
-            <AvatarImage
-              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-bv6uFX5qhtbTwEEHcM7MiLjOZyB3Xb.png"
-              alt="Alexandro"
-            />
-            <AvatarFallback>AL</AvatarFallback>
-          </Avatar>
+      <header className="sticky top-0 w-full border-b bg-white">
+        <div className="px-4">
+          <div className="flex h-16 items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="relative w-[180px] sm:w-[200px]">
+                <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input placeholder="Search anything here" className="w-full pl-8" />
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <Button variant="ghost" size="icon">
+                <Bell className="h-5 w-5" />
+              </Button>
+              <Avatar>
+                <AvatarImage
+                  src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-bv6uFX5qhtbTwEEHcM7MiLjOZyB3Xb.png"
+                  alt="Alexandro"
+                />
+                <AvatarFallback>AL</AvatarFallback>
+              </Avatar>
+            </div>
+          </div>
         </div>
       </header>
 
-      <main className="container mx-auto p-4 md:p-6 space-y-6">
+      <main className="px-4 py-6 space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Statistics</h1>
             <p className="text-sm text-muted-foreground">This is data statistics for the last 7 days</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             <Select defaultValue={timeRange} onValueChange={setTimeRange}>
-              <SelectTrigger className="w-[120px]">
+              <SelectTrigger className="w-[100px] sm:w-[120px]">
                 <SelectValue placeholder="Select range" />
               </SelectTrigger>
               <SelectContent>
@@ -120,14 +120,14 @@ export default function HospitalDashboard() {
                 <SelectItem value="year">Year</SelectItem>
               </SelectContent>
             </Select>
-            <Button className="bg-teal-600 hover:bg-teal-700">
+            <Button className="bg-teal-600 hover:bg-teal-700 flex-1 sm:flex-none">
               <Download className="mr-2 h-4 w-4" />
               Export
             </Button>
           </div>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="space-y-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Hospital Report</CardTitle>
@@ -136,49 +136,51 @@ export default function HospitalDashboard() {
               </Button>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-3 gap-4 mb-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Assign Doctor</p>
-                  <p className="text-2xl font-bold text-gray-900">210</p>
+                  <p className="text-xl sm:text-2xl font-bold text-gray-900">210</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Admit Patient</p>
-                  <p className="text-2xl font-bold text-gray-900">320</p>
+                  <p className="text-xl sm:text-2xl font-bold text-gray-900">320</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Other Staff</p>
-                  <p className="text-2xl font-bold text-gray-900">90</p>
+                  <p className="text-xl sm:text-2xl font-bold text-gray-900">90</p>
                 </div>
               </div>
-              <div className="h-[300px]">
-              <Line
-  data={lineChartData}
-  options={{
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: "top",
-        align: "end",
-      },
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        grid: {
-          display: true,
-          drawOnChartArea: true,
-          drawTicks: false,
-        },
-      },
-      x: {
-        grid: {
-          display: false,
-        },
-      },      
-    },
-  }}
-/>
+              <div className="h-[300px] w-full">
+                <Line
+                  data={lineChartData}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                      legend: {
+                        position: "top",
+                        align: "end",
+                        labels: {
+                          boxWidth: 10,
+                          padding: 10,
+                        },
+                      },
+                    },
+                    scales: {
+                      y: {
+                        beginAtZero: true,
+                        ticks: {
+                          maxTicksLimit: 5,
+                        },
+                      },
+                      x: {
+                        grid: {
+                          display: false,
+                        },
+                      },
+                    },
+                  }}
+                />
               </div>
             </CardContent>
           </Card>
@@ -199,7 +201,7 @@ export default function HospitalDashboard() {
                         <div className={`w-2 h-8 rounded ${room.color}`} />
                         <div>
                           <p className="font-medium text-sm">{room.name}</p>
-                          <p className="text-xs text-muted-foreground">Average usage of {room.name}</p>
+                          <p className="text-xs text-muted-foreground">Average usage</p>
                         </div>
                       </div>
                       <div className="text-right">
@@ -215,92 +217,82 @@ export default function HospitalDashboard() {
               </div>
             </CardContent>
           </Card>
-        </div>
 
-        <div className="grid gap-6 md:grid-cols-2">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Total Department</CardTitle>
-              <Button variant="ghost" size="icon">
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[300px] flex items-center justify-center relative">
-                <Doughnut
-                  data={staffData}
-                  options={{
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    cutout: "75%",
-                    plugins: {
-                      legend: {
-                        position: "right",
-                        labels: {
-                          boxWidth: 10,
-                          padding: 20,
+          <div className="grid gap-6 md:grid-cols-2">
+            <Card className="md:col-span-1 max-w-[400px]">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>Total Department</CardTitle>
+                <Button variant="ghost" size="icon">
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[300px] relative">
+                  <Doughnut
+                    data={staffData}
+                    options={{
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      cutout: "75%",
+                      plugins: {
+                        legend: {
+                          position: "bottom",
+                          labels: {
+                            boxWidth: 10,
+                            padding: 10,
+                          },
                         },
                       },
-                    },
-                  }}
-                />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center">
-                    <p className="text-5xl font-bold text-gray-900">06</p>
-                    <p className="text-sm text-muted-foreground">Total</p>
+                    }}
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-center">
+                      <p className="text-4xl font-bold text-gray-900">06</p>
+                      <p className="text-sm text-muted-foreground">Total</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Hospital Conference</CardTitle>
-              <div className="relative w-[200px]">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Search" className="pl-9" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="relative overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[60px]">No.</TableHead>
-                      <TableHead>ID Code</TableHead>
-                      <TableHead>Product Name</TableHead>
-                      <TableHead>Total Stock</TableHead>
-                      <TableHead className="text-right">Action</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
+            <Card className="md:col-span-1">
+              <CardHeader className="flex flex-row items-center justify-between space-x-2">
+                <CardTitle>Hospital Conference</CardTitle>
+                <div className="relative w-24 sm:w-32">
+                  <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input placeholder="Search" className="pl-8" />
+                </div>
+              </CardHeader>
+              <CardContent className="overflow-auto">
+                <div className="w-full">
+                  <div className="grid grid-cols-1 gap-4">
                     {inventoryData.map((item, index) => (
-                      <TableRow key={item.id}>
-                        <TableCell>{String(index + 1).padStart(2, "0")}</TableCell>
-                        <TableCell className="font-medium">{item.id}</TableCell>
-                        <TableCell>{item.name}</TableCell>
-                        <TableCell>{item.stock.toLocaleString()}</TableCell>
-                        <TableCell>
-                          <div className="flex justify-end gap-2">
-                            <Badge variant="secondary" className="cursor-pointer hover:bg-secondary/80">
+                      <div key={item.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
+                        <div className="flex items-center gap-4">
+                          <span className="text-sm font-medium">{String(index + 1).padStart(2, "0")}</span>
+                          <div>
+                            <p className="text-sm font-medium">{item.name}</p>
+                            <p className="text-xs text-muted-foreground">{item.id}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm">{item.stock.toLocaleString()}</span>
+                          <div className="flex gap-1">
+                            <Badge variant="secondary" className="cursor-pointer">
                               View
                             </Badge>
-                            <Badge variant="outline" className="cursor-pointer hover:bg-accent">
+                            <Badge variant="outline" className="cursor-pointer">
                               Edit
                             </Badge>
-                            <Badge variant="destructive" className="cursor-pointer hover:bg-destructive/90">
-                              Delete
-                            </Badge>
                           </div>
-                        </TableCell>
-                      </TableRow>
+                        </div>
+                      </div>
                     ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </main>
     </div>
