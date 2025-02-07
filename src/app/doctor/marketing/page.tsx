@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Sparkles, Send } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import DaddyAPI from "@/services/api"
 
 export default function Page() {
   const [heading, setHeading] = useState("Special Offer from Our Clinic")
@@ -42,19 +43,34 @@ export default function Page() {
     </table>
   `
 
-  const handleSendEmail = () => {
+  const handleSendEmail = async () => {
     const recipientList = recipients.split(",").map((email) => email.trim()).filter((email) => email !== "")
-    //API DATA
-    //{
-    //     "html":`${emailHTML}`,
-    //     "subject":subject,
-    //     "emails":recipientList
-    // }
-  }
+    const API_DATA ={
+        "html":`${emailHTML}`,
+        "subject":subject,
+        "emails":recipientList
+    }
 
-  const generateBodyText = async () => {
-    setIsGenerating(true)
+    const response = await DaddyAPI.sendMarketingEmail(API_DATA)
+    console.log(response.data)
   }
+  const generateBodyText = async () => {
+    setIsGenerating(true);
+    setBody("");
+    
+    const response = await DaddyAPI.genEmailBody({ heading, subject });
+    const splitData = response.data.body.split(" ");
+  
+    splitData.forEach((data:any, index:any) => {
+      setTimeout(() => {
+        setBody(prevBody => prevBody + " " + data);
+        
+        if (index === splitData.length - 1) {
+          setIsGenerating(false);
+        }
+      }, index * 100); 
+    });
+  };
   return (
     <div className="flex flex-col md:flex-row gap-8 p-6">
       <div className="w-full md:w-1/2 space-y-4">

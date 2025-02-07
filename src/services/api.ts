@@ -1,14 +1,17 @@
 import axios from "axios"
 // import { LocalStorageAccess } from "./get-token.tsx"
-// const ngrok_url = "http://localhost:3000/api"
-const ngrok_url = "https://medwell2.vercel.app/api"
-// const ngrok_url = "https://19b6-43-231-238-206.ngrok-free.app"
+// export const ngrok_url = "http://localhost:3000/api"
+export const ngrok_url = "https://medwell2.vercel.app/api"
+// export const ngrok_url = "https://19b6-43-231-238-206.ngrok-free.app"
+// export const ngrok_url2 = "https://a010-43-231-238-206.ngrok-free.app"
 const api = axios.create({
   baseURL: `${ngrok_url}/`,
 })
+
+
 // const Token = typeof window !== 'undefined' ? localStorage.getItem("Token") : null
 
-const Token="1234"
+export const Token="1234"
 console.log(Token)
 // const Token = LocalStorageAccess()
 
@@ -188,6 +191,38 @@ doctorSearchQuery: (data:any) =>
       "Content-Type": "application/json",
     },
   }),
+  
+  //doctor apis
+  refreshPatients: () =>
+    api.get("/doctor/refresh_patients/", {
+      headers: {
+        Authorization: `Bearer ${Token}`,
+        "Content-Type": "application/json",
+      },
+    }),
+  patientsReport: (id:any) =>
+    api.post("/doctor/get_patient_reports/",id,{
+      headers: {
+        Authorization: `Bearer ${Token}`,
+        "Content-Type": "application/json",
+      },
+    }),
+
+    //marketing apis
+    sendMarketingEmail: (data:any) =>
+      api.post("/marketing/market_services",data,{
+        headers: {
+          Authorization: `Bearer ${Token}`,
+          "Content-Type": "application/json",
+        },
+      }),
+    genEmailBody: (data:any) =>
+      api.post("/marketing/generate_mail_body",data,{
+        headers: {
+          Authorization: `Bearer ${Token}`,
+          "Content-Type": "application/json",
+        },
+      }),
 
 }
 

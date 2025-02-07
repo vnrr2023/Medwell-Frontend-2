@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useMemo } from "react"
+import { useState, useCallback, useMemo, useEffect } from "react"
 import { motion } from "framer-motion"
 import { FileText, Stethoscope, Search } from "lucide-react"
 import PatientReports from "./PatientReports"
@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-
+import DaddyAPI from "@/services/api"
 interface Patient {
   requested_at: string
   user_info: {
@@ -19,29 +19,6 @@ interface Patient {
   }
 }
 
-const patientData: Patient[] = [
-  {
-    requested_at: "2024-11-05T00:56:46.972218+05:30",
-    user_info: {
-      id: 69,
-      email: "rohit@gmail.com",
-    },
-  },
-  {
-    requested_at: "2024-11-05T00:40:57.816854+05:30",
-    user_info: {
-      id: 70,
-      email: "amit@gmail.com",
-    },
-  },
-  {
-    requested_at: "2024-11-05T00:20:03.314123+05:30",
-    user_info: {
-      id: 71,
-      email: "priya@gmail.com",
-    },
-  },
-]
 
 const PatientCard = ({
   patient,
@@ -89,16 +66,25 @@ const PatientCard = ({
 export const Patients: React.FC = () => {
   const [selectedPatientId, setSelectedPatientId] = useState<number | null>(null)
   const [viewMode, setViewMode] = useState<"reports" | "health" | null>(null)
+  const [patientData,setPatientData]=useState<any>()
   const [searchTerm, setSearchTerm] = useState("")
-
+  useEffect(()=>{
+    const fetchPatients = async()=>{
+      const response= await DaddyAPI.refreshPatients()
+      setPatientData(response.data)
+    }
+    fetchPatients()
+    console.log(patientData)
+    
+  },[])
   const sortedPatients = useMemo(() => {
-    return [...patientData].sort((a, b) => new Date(b.requested_at).getTime() - new Date(a.requested_at).getTime())
-  }, [])
-
+    return patientData ? [...patientData].sort((a, b) => new Date(b.requested_at).getTime() - new Date(a.requested_at).getTime()) : [];
+  }, [patientData]);
+  
   const filteredPatients = useMemo(() => {
     const term = searchTerm.toLowerCase()
     return sortedPatients.filter(
-      (patient) =>
+      (patient:any) =>
         patient.user_info.email.toLowerCase().includes(term) || patient.user_info.id.toString().includes(term),
     )
   }, [sortedPatients, searchTerm])
@@ -152,7 +138,7 @@ export const Patients: React.FC = () => {
             <p className="text-center text-gray-600">No patients found matching your search.</p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredPatients.map((patient) => (
+              {filteredPatients.map((patient:any) => (
                 <PatientCard
                   key={patient.user_info.id}
                   patient={patient}
