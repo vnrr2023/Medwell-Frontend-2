@@ -29,9 +29,9 @@ const DaddyAPI = {
   // This api gets all the reports of the patients. :D
   //☑️
   getReports: () =>
-    api.post("/patient/get_reports/","", {
+    apim.get("/patient/get_reports/", {
       headers: {
-        Authorization: `Bearer ${Token}`,
+        Authorization: `Bearer ${mToken}`,
         "ngrok-skip-browser-warning": "69420",
         "Content-Type": "application/json",
       },
