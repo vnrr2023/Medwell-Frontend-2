@@ -44,39 +44,44 @@ export default function Page() {
   `
 
   const handleSendEmail = async () => {
-    const recipientList = recipients.split(",").map((email) => email.trim()).filter((email) => email !== "")
-    const API_DATA ={
-        "html":`${emailHTML}`,
-        "subject":subject,
-        "emails":recipientList
+    const recipientList = recipients
+      .split(",")
+      .map((email) => email.trim())
+      .filter((email) => email !== "")
+    const API_DATA = {
+      html: `${emailHTML}`,
+      subject: subject,
+      emails: recipientList,
     }
 
     const response = await DaddyAPI.sendMarketingEmail(API_DATA)
     console.log(response.data)
   }
+
   const generateBodyText = async () => {
-    setIsGenerating(true);
-    setBody("");
-    
-    const response = await DaddyAPI.genEmailBody({ heading, subject });
-    const splitData = response.data.body.split(" ");
-  
-    splitData.forEach((data:any, index:any) => {
+    setIsGenerating(true)
+    setBody("")
+
+    const response = await DaddyAPI.genEmailBody({ heading, subject })
+    const splitData = response.data.body.split(" ")
+
+    splitData.forEach((data: any, index: any) => {
       setTimeout(() => {
-        setBody(prevBody => prevBody + " " + data);
-        
+        setBody((prevBody) => prevBody + " " + data)
+
         if (index === splitData.length - 1) {
-          setIsGenerating(false);
+          setIsGenerating(false)
         }
-      }, index * 100); 
-    });
-  };
+      }, index * 100)
+    })
+  }
+
   return (
-    <div className="flex flex-col md:flex-row gap-8 p-6">
-      <div className="w-full md:w-1/2 space-y-4">
+    <div className="flex flex-col lg:flex-row gap-6 p-4 sm:p-6">
+      <div className="w-full lg:w-1/2 space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>Email Editor</CardTitle>
+            <CardTitle className="text-xl sm:text-2xl">Email Editor</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
@@ -88,13 +93,14 @@ export default function Page() {
               <Input id="subject" placeholder="Subject" value={subject} onChange={(e) => setSubject(e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="body" className="flex items-center justify-between">
-                Body
+              <div className="flex items-center justify-between">
+                <Label htmlFor="body">Body</Label>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button variant="outline" size="icon" onClick={generateBodyText} disabled={isGenerating}>
-                        <Sparkles className="h-4 w-4" />
+                      <Button variant="outline" size="sm" onClick={generateBodyText} disabled={isGenerating}>
+                        <Sparkles className="h-4 w-4 mr-2" />
+                        Generate
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
@@ -102,7 +108,7 @@ export default function Page() {
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
-              </Label>
+              </div>
               <Textarea id="body" placeholder="Body" value={body} onChange={(e) => setBody(e.target.value)} rows={5} />
             </div>
             <div className="space-y-2">
@@ -146,14 +152,17 @@ export default function Page() {
                 rows={3}
               />
             </div>
-            <Button onClick={handleSendEmail}><Send/></Button>
+            <Button onClick={handleSendEmail} className="w-full sm:w-auto">
+              <Send className="mr-2 h-4 w-4" />
+              Send Email
+            </Button>
           </CardContent>
         </Card>
       </div>
-      <div className="w-full md:w-1/2">
+      <div className="w-full lg:w-1/2">
         <Card className="h-full">
           <CardHeader>
-            <CardTitle>Email Preview</CardTitle>
+            <CardTitle className="text-xl sm:text-2xl">Email Preview</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="border rounded-lg overflow-hidden shadow-lg">
@@ -163,7 +172,7 @@ export default function Page() {
               <div
                 dangerouslySetInnerHTML={{ __html: emailHTML }}
                 className="w-full overflow-auto"
-                style={{ maxHeight: "calc(100vh - 400px)" }}
+                style={{ maxHeight: "calc(100vh - 400px)", minHeight: "300px" }}
               />
             </div>
           </CardContent>
@@ -172,3 +181,4 @@ export default function Page() {
     </div>
   )
 }
+

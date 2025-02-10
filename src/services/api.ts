@@ -2,7 +2,7 @@ import axios from "axios"
 // export const ngrok_url = "http://localhost:3000/api"
 export const ngrok_url = "https://084f-2402-3a80-166a-df3a-65ad-a0fe-41d4-96ff.ngrok-free.app" //main server
 export const ngrok_url2 = "https://033b-2402-3a80-166a-df3a-65ad-a0fe-41d4-96ff.ngrok-free.app"//chatbot server
-export const ngrok_url3 = "https://033b-2402-3a80-166a-df3a-65ad-a0fe-41d4-96ff.ngrok-free.app"//marketing appointment server
+export const ngrok_url3 = "https://b1ec-2402-3a80-166a-df3a-65ad-a0fe-41d4-96ff.ngrok-free.app"//marketing appointment server
 const api = axios.create({
   baseURL: `${ngrok_url}/`,
 })
@@ -14,9 +14,9 @@ const api3 = axios.create({
 })
 
 
-// const Token = typeof window !== 'undefined' ? localStorage.getItem("Token") : null
+const Token = typeof window !== 'undefined' ? localStorage.getItem("Token") : null
 
-export const Token="1234"
+// export const Token="1234"
 console.log(Token)
 // const Token = LocalStorageAccess()
 
@@ -215,14 +215,14 @@ doctorSearchQuery: (data:any) =>
 
     //marketing apis
     sendMarketingEmail: (data:any) =>
-      api3.post("/marketing/market_services",data,{
+      api3.post("/marketting/market_services",data,{
         headers: {
           Authorization: `Bearer ${Token}`,
           "Content-Type": "application/json",
         },
       }),
     genEmailBody: (data:any) =>
-      api3.post("/marketing/generate_mail_body",data,{
+      api3.post("/marketting/generate_mail_body",data,{
         headers: {
           Authorization: `Bearer ${Token}`,
           "Content-Type": "application/json",
