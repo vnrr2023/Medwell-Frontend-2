@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { ngrok_url } from './api';
-import { Token } from './api';
-const API_URL = ngrok_url+"/"
-const token=Token
+import { ngrok_url_m } from './api';
+import { mToken } from './api';
+const API_URL = ngrok_url_m+"/api/"
+const token=mToken
 export function useDocData() {
   const [doctorInfo, setDoctorInfo] = useState({});
   const [addresses, setAddresses] = useState([]);

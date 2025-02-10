@@ -1,5 +1,5 @@
 import axios from "axios"
-// export const ngrok_url = "http://localhost:3000/api"
+export const ngrok_url_m = "medwell2.vercel.app/api" //main server
 export const ngrok_url = "https://4443-103-220-42-152.ngrok-free.app" //main server
 export const ngrok_url2 = "https://6973-103-220-42-152.ngrok-free.app"//chatbot server
 export const ngrok_url3 = "https://3914-103-220-42-152.ngrok-free.app"//marketing appointment server
@@ -12,10 +12,14 @@ const api2 = axios.create({
 const api3 = axios.create({
   baseURL: `${ngrok_url3}/`,
 })
+const apim = axios.create({
+  baseURL: `${ngrok_url_m}/`,
+})
+
 
 
 const Token = typeof window !== 'undefined' ? localStorage.getItem("Token") : null
-
+export const mToken="1234"
 // export const Token="1234"
 console.log(Token)
 // const Token = LocalStorageAccess()
@@ -25,7 +29,7 @@ const DaddyAPI = {
   // This api gets all the reports of the patients. :D
   //☑️
   getReports: () =>
-    api.get("/patient/get_reports/",  {
+    api.post("/patient/get_reports/","", {
       headers: {
         Authorization: `Bearer ${Token}`,
         "ngrok-skip-browser-warning": "69420",
@@ -59,9 +63,9 @@ const DaddyAPI = {
   // This api gets the health check of a particular user
   //☑️
   getHealthCheck: () =>
-    api.get("/patient/health_check/", {
+    apim.get("/patient/health_check/", {
       headers: {
-        Authorization: `Bearer ${Token}`,
+        Authorization: `Bearer ${mToken}`,
         "ngrok-skip-browser-warning": "69420",
         "Content-Type": "application/json",
       },
@@ -70,7 +74,7 @@ const DaddyAPI = {
   // This api gets the info of the user
   //☑️
   getPatientInfo: () =>
-    api.get("/patient/get_info/", {
+    api.post("/patient/get_info/","", {
       headers: {
         Authorization: `Bearer ${Token}`,
         "ngrok-skip-browser-warning": "69420",
@@ -81,9 +85,9 @@ const DaddyAPI = {
   // This api gives dashboard data about expense
   //☑️
   getExpensesDashboard: () =>
-    api.get("/patient/expenses_dashboard/",  {
+    apim.get("/patient/expenses_dashboard/",  {
       headers: {
-        Authorization: `Bearer ${Token}`,
+        Authorization: `Bearer ${mToken}`,
         "ngrok-skip-browser-warning": "69420",
         "Content-Type": "application/json",
       },
@@ -92,9 +96,9 @@ const DaddyAPI = {
   // This api shows expense info of user
  //☑️
   showExpenses: () =>
-    api.get("/patient/show_expenses/",  {
+    apim.get("/patient/show_expenses/", {
       headers: {
-        Authorization: `Bearer ${Token}`,
+        Authorization: `Bearer ${mToken}`,
         "ngrok-skip-browser-warning": "69420",
         "Content-Type": "application/json",
       },
@@ -115,9 +119,9 @@ const DaddyAPI = {
     // }
 //☑️
     addExpenses: (data:any) =>
-      api.post("/patient/add_expense/", data, {
+      apim.post("/patient/add_expense/", data, {
         headers: {
-          Authorization: `Bearer ${Token}`,
+          Authorization: `Bearer ${mToken}`,
           "Content-Type": "application/json",
         },
       }),
@@ -129,9 +133,9 @@ const DaddyAPI = {
 // }
 //☑️
     deleteExpenses: (id:any) =>
-        api.post("/patient/delete_expense/", id, {
+        apim.post("/patient/delete_expense/", id, {
           headers: {
-            Authorization: `Bearer ${Token}`,
+            Authorization: `Bearer ${mToken}`,
             "Content-Type": "application/json",
           },
         }),
@@ -139,9 +143,9 @@ const DaddyAPI = {
   // This api gives entire info about the patient in short
   //☑️
   getPatientDashboard: () =>
-    api.get("/patient/dashboard/",{
+    apim.get("/patient/dashboard/",{
       headers: {
-        Authorization: `Bearer ${Token}`,
+        Authorization: `Bearer ${mToken}`,
         "ngrok-skip-browser-warning": "69420",
         "Content-Type": "application/json",
       },
@@ -154,9 +158,9 @@ const DaddyAPI = {
 // }
 //☑️
 provideAccess: (data:any) =>
-  api.post("/patient/provide_access/", data, {
+  apim.post("/patient/provide_access/", data, {
     headers: {
-      Authorization: `Bearer ${Token}`,
+      Authorization: `Bearer ${mToken}`,
       "Content-Type": "application/json",
     },
   }),
@@ -164,15 +168,15 @@ provideAccess: (data:any) =>
       // Chat Report APIs
       //☑️
   createChatAgent: () =>
-    api2.post("/patient/create_agent/", "", {
+    api2.get("/create_agent/147", {
       headers: {
+        "ngrok-skip-browser-warning": "69420",
         Authorization: `Bearer ${Token}`,
-        "Content-Type": "application/json",
       },
     }),
 //☑️
   sendChatMessage: (messageData:any) =>
-    api2.post("/patient/chat/", messageData, {
+    api2.post("/chat", messageData, {
       headers: {
         Authorization: `Bearer ${Token}`,
         "Content-Type": "application/json",
@@ -182,33 +186,33 @@ provideAccess: (data:any) =>
 //DOCTOR SEARCH APIs
 //Get Nearby Doctors and Hospitals by location or/and speciality
 doctorSearchSpecialty: (data:any) =>
-  api.post("/get_nearby_doctor/", data, {
+  apim.post("/get_nearby_doctor/", data, {
     headers: {
-      Authorization: `Bearer ${Token}`,
+      Authorization: `Bearer ${mToken}`,
       "Content-Type": "application/json",
     },
   }),
 //QUERY
 doctorSearchQuery: (data:any) =>
-  api.post("/search_doctors_and_hospitals/", data, {
+  apim.post("/search_doctors_and_hospitals/", data, {
     headers: {
-      Authorization: `Bearer ${Token}`,
+      Authorization: `Bearer ${mToken}`,
       "Content-Type": "application/json",
     },
   }),
   
   //doctor apis
   refreshPatients: () =>
-    api.get("/doctor/refresh_patients/", {
+    apim.get("/doctor/refresh_patients/", {
       headers: {
-        Authorization: `Bearer ${Token}`,
+        Authorization: `Bearer ${mToken}`,
         "Content-Type": "application/json",
       },
     }),
   patientsReport: (id:any) =>
-    api.post("/doctor/get_patient_reports/",id,{
+    apim.post("/doctor/get_patient_reports/",id,{
       headers: {
-        Authorization: `Bearer ${Token}`,
+        Authorization: `Bearer ${mToken}`,
         "Content-Type": "application/json",
       },
     }),
