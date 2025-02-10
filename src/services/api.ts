@@ -1,11 +1,16 @@
 import axios from "axios"
-// import { LocalStorageAccess } from "./get-token.tsx"
 // export const ngrok_url = "http://localhost:3000/api"
-export const ngrok_url = "https://medwell2.vercel.app/api"
-// export const ngrok_url = "https://19b6-43-231-238-206.ngrok-free.app"
-// export const ngrok_url2 = "https://a010-43-231-238-206.ngrok-free.app"
+export const ngrok_url = "https://084f-2402-3a80-166a-df3a-65ad-a0fe-41d4-96ff.ngrok-free.app" //main server
+export const ngrok_url2 = "https://033b-2402-3a80-166a-df3a-65ad-a0fe-41d4-96ff.ngrok-free.app"//chatbot server
+export const ngrok_url3 = "https://033b-2402-3a80-166a-df3a-65ad-a0fe-41d4-96ff.ngrok-free.app"//marketing appointment server
 const api = axios.create({
   baseURL: `${ngrok_url}/`,
+})
+const api2 = axios.create({
+  baseURL: `${ngrok_url2}/`,
+})
+const api3 = axios.create({
+  baseURL: `${ngrok_url3}/`,
 })
 
 
@@ -159,7 +164,7 @@ provideAccess: (data:any) =>
       // Chat Report APIs
       //☑️
   createChatAgent: () =>
-    api.post("/patient/create_agent/", "", {
+    api2.post("/patient/create_agent/", "", {
       headers: {
         Authorization: `Bearer ${Token}`,
         "Content-Type": "application/json",
@@ -167,7 +172,7 @@ provideAccess: (data:any) =>
     }),
 //☑️
   sendChatMessage: (messageData:any) =>
-    api.post("/patient/chat/", messageData, {
+    api2.post("/patient/chat/", messageData, {
       headers: {
         Authorization: `Bearer ${Token}`,
         "Content-Type": "application/json",
@@ -210,14 +215,14 @@ doctorSearchQuery: (data:any) =>
 
     //marketing apis
     sendMarketingEmail: (data:any) =>
-      api.post("/marketing/market_services",data,{
+      api3.post("/marketing/market_services",data,{
         headers: {
           Authorization: `Bearer ${Token}`,
           "Content-Type": "application/json",
         },
       }),
     genEmailBody: (data:any) =>
-      api.post("/marketing/generate_mail_body",data,{
+      api3.post("/marketing/generate_mail_body",data,{
         headers: {
           Authorization: `Bearer ${Token}`,
           "Content-Type": "application/json",
