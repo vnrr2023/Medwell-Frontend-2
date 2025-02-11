@@ -1,5 +1,5 @@
 import axios from "axios"
-export const ngrok_url_m = "https://medwell2.vercel.app/api" //main server
+export const ngrok_url_m = "http://localhost:3000/api" //main server
 export const ngrok_url = "https://4443-103-220-42-152.ngrok-free.app" //main server
 export const ngrok_url2 = "https://6973-103-220-42-152.ngrok-free.app"//chatbot server
 export const ngrok_url3 = "https://3914-103-220-42-152.ngrok-free.app"//marketing appointment server
@@ -39,15 +39,15 @@ const DaddyAPI = {
   // This is to send the report to the backend.
   //☑️
   addReport: (formData: FormData) =>
-    api.post("/patient/send_report/", formData, {
+    apim.post("/patient/send_report/", formData, {
       headers: {
-        Authorization: `Bearer ${Token}`,
+        Authorization: `Bearer ${mToken}`,
         "Content-Type": "multipart/form-data",
       },
     }),
   // This api gets the status of a report task every 5 seconds.
   //☑️
-  getReportTaskStatus: (taskId: string) => api.get(`/patient/get_report_task_status/?task_id=${taskId}`,{headers:{"ngrok-skip-browser-warning": "69420"},}),
+  getReportTaskStatus: (taskId: string) => apim.get(`/patient/get_report_task_status/?task_id=${taskId}`,{headers:{"ngrok-skip-browser-warning": "69420"},}),
 
   // save the patient info add fields in an object and pass it as a parameter
   
