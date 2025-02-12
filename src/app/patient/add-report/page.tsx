@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { File, X, Send, FileText } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
@@ -9,65 +9,11 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
 import DaddyAPI from "@/services/api"
 import CombinedChat from "@/components/chatbots/ChatCombined"
+import { Loader } from "@/components/box-loader"
 
 
 
-const BlinkingStarsLoader = () => {
-  return (
-    <div className="relative w-full h-48 mt-4 perspective-[800px]">
-      <div className="absolute left-1/2 top-1/3 w-full h-full transform -translate-x-1/2 -translate-y-1/2 rotate-12 -skew-x-12">
-        {[...Array(5)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute left-1/2 top-1/2"
-            style={{
-              x: -12,
-              y: -12,
-            }}
-            animate={{
-              transform: [
-                `rotateY(${i * 72}deg) translateZ(40px) translateX(40px) translateY(${Math.sin(i * 72 * Math.PI / 180) * 20}px)`,
-                `rotateY(${i * 72 + 360}deg) translateZ(40px) translateX(40px) translateY(${Math.sin(i * 72 * Math.PI / 180) * 20}px)`,
-              ],
-            }}
-            transition={{
-              duration: 6,
-              repeat: Number.POSITIVE_INFINITY,
-              ease: "linear",
-              repeatType: "loop"
-            }}
-          >
-            <motion.div
-              animate={{ 
-                scale: [0.8, 1.2, 0.8],
-                opacity: [0.5, 1, 0.5],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Number.POSITIVE_INFINITY,
-                repeatType: "reverse",
-                ease: "easeInOut",
-                delay: i * 0.4 // Stagger the pulsing effect
-              }}
-            >
-              <svg width="24" height="24" viewBox="0 0 24 24">
-                <path
-                  d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z"
-                  fill="rgba(0, 0, 0, 0.5)"
-                />
-                <path
-                  d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z"
-                  fill="rgba(0, 0, 0, 0.2)"
-                  transform="scale(1.1)"
-                />
-              </svg>
-            </motion.div>
-          </motion.div>
-        ))}
-      </div>
-    </div>
-  );
-};
+
 
 
 
@@ -302,10 +248,10 @@ export default function AddReport() {
                     </>
                   )}
                 </Button>
-                {(isUploading || isProcessing) && <BlinkingStarsLoader />}
                 {!isProcessing && uploadStatus === "Upload successful" && <ProcessingFinishedMessage />}
               </div>
             </CardFooter>
+          {(isUploading || isProcessing) && <Loader></Loader>}
           </Card>
 
           <Card>
@@ -364,24 +310,7 @@ export default function AddReport() {
           </Card>
         </div>
 
-        {uploadStatus && uploadStatus !== "Upload successful" && !isProcessing && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-            className="mt-4"
-          >
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-center gap-2">
-                  <p className={`text-center ${uploadStatus.includes("Processing") ? "text-blue-600" : "text-red-600"}`}>
-                    {uploadStatus}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
+      
       </motion.div>
       <CombinedChat />
     </div>
