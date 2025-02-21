@@ -1,5 +1,5 @@
 "use client"
-import { Suspense, lazy } from "react"
+import { Suspense, lazy, useState, useEffect } from "react"
 import dynamic from "next/dynamic"
 import Hero from "@/components/home/Hero"
 import Features from "@/components/home/Features"
@@ -12,7 +12,7 @@ const FAQ = dynamic(() => import("@/components/home/Faqs"), { ssr: false })
 const Footer = lazy(() => import("@/components/Footer"))
 
 export default function Home() {
-  // const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(true)
 
   // useEffect(() => {
   //   const timer = setTimeout(() => {
@@ -22,9 +22,9 @@ export default function Home() {
   //   return () => clearTimeout(timer)
   // }, [])
 
-  // if (loading) {
-  //   return <Loader onLoadingComplete={() => setLoading(false)} />
-  // }
+  if (loading) {
+    return <Loader onLoadingComplete={() => setLoading(false)} />
+  }
 
   return (
     <main className="relative">
