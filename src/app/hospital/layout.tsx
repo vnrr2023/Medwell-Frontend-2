@@ -7,6 +7,7 @@ import { Home, User, Users, Calendar, FileText, BarChart, CreditCard, Package } 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { MobileNav } from "@/components/doctor/MobileNav"
 import React from "react"; // Added import for React
+import Image from "next/image"
 
 const navItems = [
   { label: "Dashboard", icon: Home, href: "/hospital" },
@@ -34,9 +35,10 @@ export default function DoctorLayout({ children }: { children: React.ReactNode }
     <div className="flex min-h-screen bg-gray-100">
       {/* Sidebar - Hidden on mobile */}
       <aside className="hidden md:flex bg-white shadow-lg w-64 flex-col h-screen pt-16 sticky top-0">
-        <div className="p-4 bg-blue-100">
-          <Link href="/" className="text-2xl font-bold text-gray-800">
-            MedWell
+        <div className="pt-4 pb-2 flex-row items-center flex px-6">
+          <Image src="/logo.png" alt="MedWell" width={40} height={40} />
+          <Link href="/" className="pl-2 bg-gradient-to-r from-red-500 via-red-200 via-blue-200 to-blue-500 bg-clip-text text-transparent text-2xl font-bold">
+            Welcome H.
           </Link>
         </div>
         <nav className="flex-grow p-4">

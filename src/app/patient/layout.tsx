@@ -7,6 +7,7 @@ import { Home, User, Heart, FileText, PlusCircle, DollarSign, Calendar, Share2 }
 // import { motion } from "framer-motion"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { MobileNav } from "@/components/patient/MobileNav"
+import Image from "next/image"
 
 const navItems = [
   { label: "Dashboard", icon: Home, href: "/patient" },
@@ -35,34 +36,35 @@ export default function PatientLayout({ children }: { children: React.ReactNode 
     <div className="flex min-h-screen bg-gray-100">
       {/* Sidebar - Hidden on mobile */}
       <aside className="hidden md:flex bg-white shadow-lg w-64 flex-col h-screen pt-16 sticky top-0">
-        <div className="p-4 bg-blue-100">
-          <Link href="/" className="text-2xl font-bold text-gray-800">
-            MedWell
+        <div className="pt-4 pb-2 flex-row items-center flex px-6">
+          <Image src="/logo.png" alt="MedWell" width={40} height={40} />
+          <Link href="/" className="pl-2 bg-gradient-to-r from-red-500 via-red-200 via-blue-200 to-blue-500 bg-clip-text text-transparent text-2xl font-bold">
+            Welcome P.
           </Link>
         </div>
         <nav className="flex-grow p-4">
-  {navItems.map((item) => (
-    <Link
-      key={item.href}
-      href={item.href}
-      className={`flex items-center p-2 rounded-lg mb-2 ${
-        item.href === pathname ? "bg-gray-200 text-blue-600" : "text-gray-700 hover:bg-gray-100"
-      }`}
-    >
-      <item.icon className="mr-2 h-5 w-5" />
-      {item.label}
-    </Link>
-  ))}
-</nav>
-<div className="p-4 border-t">
+          {navItems.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`flex items-center p-2 rounded-lg mb-2 ${
+                item.href === pathname ? "bg-gray-200 text-blue-600" : "text-gray-700 hover:bg-gray-100"
+              }`}
+            >
+              <item.icon className="mr-2 h-5 w-5" />
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+        <div className="p-4 border-t">
           <div className="flex items-center">
             <Avatar>
-              <AvatarImage src="/patient/pfp.jpg" alt="Patient" />
-              <AvatarFallback>JD</AvatarFallback>
+              <AvatarImage src="/doctor/pfp.jpg" alt="Doctor" />
+              <AvatarFallback>DR</AvatarFallback>
             </Avatar>
             <div className="ml-3">
-              <p className="text-sm font-medium">John Doe</p>
-              <p className="text-xs text-gray-500">ID: P12345</p>
+              <p className="text-sm font-medium">Dr. John Doe</p>
+              <p className="text-xs text-gray-500">ID: D12345</p>
             </div>
           </div>
         </div>
