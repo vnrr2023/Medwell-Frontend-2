@@ -74,7 +74,7 @@ const DaddyAPI = {
   // This api gets the info of the user
   //☑️
   getPatientInfo: () =>
-    api.post("/patient/get_info/","", {
+    apim.get("/patient/get_info/", {
       headers: {
         Authorization: `Bearer ${Token}`,
         "ngrok-skip-browser-warning": "69420",
