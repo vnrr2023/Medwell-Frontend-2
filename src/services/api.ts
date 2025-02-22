@@ -76,7 +76,7 @@ const DaddyAPI = {
   getPatientInfo: () =>
     apim.get("/patient/get_info/", {
       headers: {
-        Authorization: `Bearer ${Token}`,
+        Authorization: `Bearer ${mToken}`,
         "ngrok-skip-browser-warning": "69420",
         "Content-Type": "application/json",
       },
