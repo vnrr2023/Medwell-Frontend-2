@@ -6,17 +6,7 @@ import DaddyAPI from "@/services/api"
 import type { AxiosError } from "axios"
 import { cn } from "@/lib/utils"
 
-const SpeechRecognition: any = window.SpeechRecognition || window.webkitSpeechRecognition
-const SpeechGrammarList: any = window.SpeechGrammarList || window.webkitSpeechGrammarList
-const speechRecognition = SpeechRecognition ? new SpeechRecognition() : null
-const synthesis = window.speechSynthesis
-
-if (speechRecognition) {
-  speechRecognition.continuous = false
-  speechRecognition.interimResults = true
-  speechRecognition.lang = "en-US"
-}
-
+// Move these declarations inside the component
 interface Message {
   text: string
   sender: "user" | "bot"
@@ -28,14 +18,14 @@ interface ChatResponse {
 
 declare global {
   interface Window {
-    SpeechRecognition: typeof SpeechRecognition
-    webkitSpeechRecognition: typeof SpeechRecognition
-    SpeechGrammarList: typeof SpeechGrammarList
-    webkitSpeechGrammarList: typeof SpeechGrammarList
+    SpeechRecognition: any
+    webkitSpeechRecognition: any
+    SpeechGrammarList: any
+    webkitSpeechGrammarList: any
   }
 }
 
-export default function ChatReport() {
+export default function ChatArogya() {
   const [isOpen, setIsOpen] = useState<boolean>(false)
   const [messages, setMessages] = useState<Message[]>([])
   const [inputMessage, setInputMessage] = useState<string>("")
@@ -45,9 +35,31 @@ export default function ChatReport() {
   const [isListening, setIsListening] = useState<boolean>(false)
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false)
 
+  // Add refs for speech APIs
+  const speechRecognitionRef = useRef<any>(null)
+  const synthesisRef = useRef<any>(null)
+
   const chatRef = useRef<HTMLDivElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const cycleRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Initialize browser APIs safely
+  useEffect(() => {
+    // Only run on client side
+    if (typeof window !== 'undefined') {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+      const SpeechGrammarList = window.SpeechGrammarList || window.webkitSpeechGrammarList
+      
+      if (SpeechRecognition) {
+        speechRecognitionRef.current = new SpeechRecognition()
+        speechRecognitionRef.current.continuous = false
+        speechRecognitionRef.current.interimResults = true
+        speechRecognitionRef.current.lang = "en-US"
+      }
+      
+      synthesisRef.current = window.speechSynthesis
+    }
+  }, [])
 
   useEffect(() => {
     const expandCycle = (): void => {
@@ -146,7 +158,7 @@ export default function ChatReport() {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [])
+  }, [messages])
 
   const handleCopyMessage = (text: string) => {
     navigator.clipboard.writeText(text)
@@ -157,21 +169,21 @@ export default function ChatReport() {
   }
 
   const toggleMicInput = () => {
-    if (!speechRecognition) {
+    if (!speechRecognitionRef.current) {
       setError("Speech recognition is not supported in your browser")
       return
     }
 
     if (isListening) {
-      speechRecognition.stop()
+      speechRecognitionRef.current.stop()
       setIsListening(false)
     } else {
       setError("")
       setIsListening(true)
 
-      speechRecognition.start()
+      speechRecognitionRef.current.start()
 
-      speechRecognition.onresult = (event: any) => {
+      speechRecognitionRef.current.onresult = (event: any) => {
         const transcript = Array.from(event.results)
           .map((result: any) => result[0])
           .map((result) => result.transcript)
@@ -180,26 +192,26 @@ export default function ChatReport() {
         setInputMessage(transcript)
       }
 
-      speechRecognition.onerror = (event: any) => {
+      speechRecognitionRef.current.onerror = (event: any) => {
         console.error("Speech recognition error:", event.error)
         setError("Error with speech recognition: " + event.error)
         setIsListening(false)
       }
 
-      speechRecognition.onend = () => {
+      speechRecognitionRef.current.onend = () => {
         setIsListening(false)
       }
     }
   }
 
   const toggleSpeakMessage = (text: string) => {
-    if (!synthesis) {
+    if (!synthesisRef.current) {
       setError("Text-to-speech is not supported in your browser")
       return
     }
 
-    if (synthesis.speaking) {
-      synthesis.cancel()
+    if (synthesisRef.current.speaking) {
+      synthesisRef.current.cancel()
       setIsSpeaking(false)
       return
     }
@@ -213,16 +225,16 @@ export default function ChatReport() {
     }
 
     setIsSpeaking(true)
-    synthesis.speak(utterance)
+    synthesisRef.current.speak(utterance)
   }
 
   useEffect(() => {
     return () => {
-      if (synthesis?.speaking) {
-        synthesis.cancel()
+      if (synthesisRef.current?.speaking) {
+        synthesisRef.current.cancel()
       }
-      if (speechRecognition) {
-        speechRecognition.abort()
+      if (speechRecognitionRef.current) {
+        speechRecognitionRef.current.abort()
       }
     }
   }, [])
@@ -347,4 +359,3 @@ export default function ChatReport() {
     </>
   )
 }
-

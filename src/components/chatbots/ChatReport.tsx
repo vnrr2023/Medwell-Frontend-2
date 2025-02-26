@@ -6,17 +6,6 @@ import DaddyAPI from "@/services/api"
 import type { AxiosError } from "axios"
 import { cn } from "@/lib/utils"
 
-const SpeechRecognition:any = window.SpeechRecognition || window.webkitSpeechRecognition
-const SpeechGrammarList:any = window.SpeechGrammarList || window.webkitSpeechGrammarList
-const speechRecognition = SpeechRecognition ? new SpeechRecognition() : null
-const synthesis = window.speechSynthesis
-
-if (speechRecognition) {
-  speechRecognition.continuous = false
-  speechRecognition.interimResults = true
-  speechRecognition.lang = "en-US"
-}
-
 interface Message {
   text: string
   sender: "user" | "bot"
@@ -32,10 +21,10 @@ interface ChatResponse {
 
 declare global {
   interface Window {
-    SpeechRecognition: typeof SpeechRecognition
-    webkitSpeechRecognition: typeof SpeechRecognition
-    SpeechGrammarList: typeof SpeechGrammarList
-    webkitSpeechGrammarList: typeof SpeechGrammarList
+    SpeechRecognition: any
+    webkitSpeechRecognition: any
+    SpeechGrammarList: any
+    webkitSpeechGrammarList: any
   }
 }
 
@@ -53,6 +42,26 @@ export default function ChatReport() {
   const chatRef = useRef<HTMLDivElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const cycleRef = useRef<NodeJS.Timeout | null>(null)
+  const speechRecognitionRef = useRef<any>(null)
+  const synthesisRef = useRef<SpeechSynthesis | null>(null)
+
+  // Initialize browser APIs in useEffect
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+      const SpeechGrammarList = window.SpeechGrammarList || window.webkitSpeechGrammarList
+      
+      if (SpeechRecognition) {
+        const recognition = new SpeechRecognition()
+        recognition.continuous = false
+        recognition.interimResults = true
+        recognition.lang = "en-US"
+        speechRecognitionRef.current = recognition
+      }
+      
+      synthesisRef.current = window.speechSynthesis
+    }
+  }, [])
 
   useEffect(() => {
     const expandCycle = (): void => {
@@ -185,7 +194,7 @@ export default function ChatReport() {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [])
+  }, [messages])
 
   const handleCopyMessage = (text: string) => {
     navigator.clipboard.writeText(text)
@@ -196,6 +205,8 @@ export default function ChatReport() {
   }
 
   const toggleMicInput = () => {
+    const speechRecognition = speechRecognitionRef.current
+    
     if (!speechRecognition) {
       setError("Speech recognition is not supported in your browser")
       return
@@ -210,16 +221,16 @@ export default function ChatReport() {
 
       speechRecognition.start()
 
-      speechRecognition.onresult = (event:any) => {
+      speechRecognition.onresult = (event: any) => {
         const transcript = Array.from(event.results)
-          .map((result:any) => result[0])
+          .map((result: any) => result[0])
           .map((result) => result.transcript)
           .join("")
 
         setInputMessage(transcript)
       }
 
-      speechRecognition.onerror = (event:any) => {
+      speechRecognition.onerror = (event: any) => {
         console.error("Speech recognition error:", event.error)
         setError("Error with speech recognition: " + event.error)
         setIsListening(false)
@@ -232,6 +243,8 @@ export default function ChatReport() {
   }
 
   const toggleSpeakMessage = (text: string) => {
+    const synthesis = synthesisRef.current
+    
     if (!synthesis) {
       setError("Text-to-speech is not supported in your browser")
       return
@@ -257,6 +270,9 @@ export default function ChatReport() {
 
   useEffect(() => {
     return () => {
+      const synthesis = synthesisRef.current
+      const speechRecognition = speechRecognitionRef.current
+      
       if (synthesis?.speaking) {
         synthesis.cancel()
       }
@@ -386,4 +402,3 @@ export default function ChatReport() {
     </>
   )
 }
-
