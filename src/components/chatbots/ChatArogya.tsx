@@ -1,13 +1,13 @@
 "use client"
 
 import { useState, useEffect, useRef, type FormEvent, type ChangeEvent } from "react"
-import { FileText, X, Send, Mic, Copy, RotateCcw, Circle } from "lucide-react"
+import { X, Send, Mic, Copy, RotateCcw, Heart } from "lucide-react"
 import DaddyAPI from "@/services/api"
 import type { AxiosError } from "axios"
 import { cn } from "@/lib/utils"
 
-const SpeechRecognition:any = window.SpeechRecognition || window.webkitSpeechRecognition
-const SpeechGrammarList:any = window.SpeechGrammarList || window.webkitSpeechGrammarList
+const SpeechRecognition: any = window.SpeechRecognition || window.webkitSpeechRecognition
+const SpeechGrammarList: any = window.SpeechGrammarList || window.webkitSpeechGrammarList
 const speechRecognition = SpeechRecognition ? new SpeechRecognition() : null
 const synthesis = window.speechSynthesis
 
@@ -20,10 +20,6 @@ if (speechRecognition) {
 interface Message {
   text: string
   sender: "user" | "bot"
-}
-
-interface AgentResponse {
-  key: string
 }
 
 interface ChatResponse {
@@ -43,7 +39,6 @@ export default function ChatReport() {
   const [isOpen, setIsOpen] = useState<boolean>(false)
   const [messages, setMessages] = useState<Message[]>([])
   const [inputMessage, setInputMessage] = useState<string>("")
-  const [agentKey, setAgentKey] = useState<string>("")
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [error, setError] = useState<string>("")
   const [isExpanded, setIsExpanded] = useState<boolean>(false)
@@ -80,38 +75,12 @@ export default function ChatReport() {
     }
   }, [isOpen])
 
-  const checkAndCreateAgent = async (): Promise<void> => {
-    console.log("Checking and creating agent if necessary")
-    const storedTimestamp = localStorage.getItem("chatbotTimestamp")
-    const storedKey = localStorage.getItem("chatbotKey")
-    const currentTime = new Date().getTime()
-
-    if (!storedTimestamp || !storedKey || currentTime - Number.parseInt(storedTimestamp) > 15 * 60 * 1000) {
-      try {
-        const response = await DaddyAPI.createChatAgent()
-        localStorage.setItem("chatbotKey", response.data.key)
-        localStorage.setItem("chatbotTimestamp", currentTime.toString())
-        setAgentKey(response.data.key)
-      } catch (error) {
-        const axiosError = error as AxiosError
-        if (axiosError.response?.status === 401) {
-          setError("Unauthorized: Invalid token")
-        } else {
-          setError("Error creating agent")
-        }
-      }
-    } else {
-      setAgentKey(storedKey)
-    }
-  }
-
   const toggleChat = async (): Promise<void> => {
     if (!isOpen) {
-      await checkAndCreateAgent()
       if (messages.length === 0) {
         setMessages([
           {
-            text: "Hello! I'm MedBuddy, your personal health assistant. I can help you understand your medical reports and health trends. For example, I can explain your hemoglobin trends or interpret other lab results. How can I assist you today?",
+            text: "Hello! I'm ArogyaBot, your personal Ayurvedic wellness assistant. I can help you understand holistic health practices and provide guidance on natural remedies. How can I support your wellness journey today?",
             sender: "bot",
           },
         ])
@@ -129,11 +98,10 @@ export default function ChatReport() {
     setError("")
 
     try {
-      const response = await DaddyAPI.sendChatMessage({
-        key: agentKey,
+      const response = await DaddyAPI.sendChatMessage2({
         question: message,
       })
-      return response.data.data
+      return response.data.response
     } catch (error) {
       const axiosError = error as AxiosError
       if (axiosError.response?.status === 401) {
@@ -158,13 +126,6 @@ export default function ChatReport() {
       } catch (error) {
         if (error instanceof Error) {
           setError(error.message)
-          if (error.message === "Unauthorized: Access expired") {
-            await checkAndCreateAgent()
-            if (agentKey) {
-              const botResponse = await sendMessageToBackend(inputMessage)
-              setMessages((prevMessages) => [...prevMessages, { text: botResponse, sender: "bot" }])
-            }
-          }
         }
       }
     }
@@ -210,16 +171,16 @@ export default function ChatReport() {
 
       speechRecognition.start()
 
-      speechRecognition.onresult = (event:any) => {
+      speechRecognition.onresult = (event: any) => {
         const transcript = Array.from(event.results)
-          .map((result:any) => result[0])
+          .map((result: any) => result[0])
           .map((result) => result.transcript)
           .join("")
 
         setInputMessage(transcript)
       }
 
-      speechRecognition.onerror = (event:any) => {
+      speechRecognition.onerror = (event: any) => {
         console.error("Speech recognition error:", event.error)
         setError("Error with speech recognition: " + event.error)
         setIsListening(false)
@@ -268,15 +229,15 @@ export default function ChatReport() {
 
   return (
     <>
-      {isOpen && <div className="fixed inset-0 bg-black bg-opacity-50 z-60" onClick={toggleChat} />}
-      <div className="fixed bottom-20 right-4 z-60">
+      {isOpen && <div className="fixed inset-0 bg-black bg-opacity-50 " onClick={toggleChat} />}
+      <div className="fixed bottom-36 right-4 ">
         {isOpen ? (
           <div
             ref={chatRef}
-            className="bg-white shadow-xl flex flex-col w-full sm:w-[450px] h-[80vh] max-h-[800px] rounded-lg overflow-hidden z-60"
+            className="bg-white shadow-xl flex flex-col w-full sm:w-[450px] h-[70vh] max-h-[760px] rounded-lg overflow-hidden"
           >
-            <div className="bg-green-500 text-white p-4 flex justify-between items-center">
-              <h2 className="text-lg font-semibold">MedBuddy</h2>
+            <div className="bg-teal-400 text-white p-4 flex justify-between items-center">
+              <h2 className="text-lg font-semibold">ArogyaBot</h2>
               <button onClick={toggleChat} className="text-white hover:text-gray-200" aria-label="Close chat">
                 <X size={20} />
               </button>
@@ -288,12 +249,12 @@ export default function ChatReport() {
                   className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"} items-start gap-2`}
                 >
                   {message.sender === "bot" && (
-                    <div className="relative w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
-                      <Circle className="w-4 h-4 text-green-500" />
+                    <div className="relative w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center ">
+                      <Heart className="w-4 h-4 text-teal-500 " />
                     </div>
                   )}
                   <div
-                    className={`max-w-[70%] rounded-lg p-3 ${message.sender === "user" ? "bg-green-500 text-white" : "bg-gray-200 text-gray-800"}`}
+                    className={`max-w-[70%] rounded-lg p-3 ${message.sender === "user" ? "bg-teal-500 text-white" : "bg-gray-200 text-gray-800"}`}
                   >
                     {message.text}
                   </div>
@@ -315,7 +276,7 @@ export default function ChatReport() {
                       onClick={() => toggleSpeakMessage(message.text)}
                       className={cn(
                         "p-1 hover:bg-gray-100 rounded-full transition-colors",
-                        isSpeaking && "text-green-500 animate-pulse",
+                        isSpeaking && "text-teal-500 animate-pulse",
                       )}
                       aria-label="Speak message"
                     >
@@ -327,7 +288,7 @@ export default function ChatReport() {
               {error && <div className="text-red-500 text-center">{error}</div>}
               {isLoading && (
                 <div className="text-center">
-                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-green-500"></div>
+                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-teal-500"></div>
                 </div>
               )}
               <div ref={messagesEndRef} />
@@ -338,7 +299,7 @@ export default function ChatReport() {
                 value={inputMessage}
                 onChange={handleInputChange}
                 placeholder="Type a message..."
-                className="flex-1 border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="flex-1 border rounded-lg px-3 py-2 focus:outline-none focus:ring-teal-500"
                 disabled={isLoading}
               />
               <button
@@ -346,7 +307,7 @@ export default function ChatReport() {
                 onClick={toggleMicInput}
                 className={cn(
                   "p-2 rounded-lg hover:bg-gray-100 transition-colors",
-                  isListening && "text-green-500 animate-pulse",
+                  isListening && "text-teal-500 animate-pulse",
                 )}
                 aria-label="Toggle microphone"
               >
@@ -354,7 +315,7 @@ export default function ChatReport() {
               </button>
               <button
                 type="submit"
-                className="bg-green-500 text-white rounded-lg px-4 py-2 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50"
+                className="bg-teal-500 text-white rounded-lg px-4 py-2 hover:bg-teal-600 focus:outline-none focus:ring-teal-500 disabled:opacity-50"
                 aria-label="Send message"
                 disabled={isLoading}
               >
@@ -365,19 +326,19 @@ export default function ChatReport() {
         ) : (
           <button
             onClick={toggleChat}
-            className={`bg-green-500 text-white rounded-full shadow-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400 transition-all duration-300 ease-in-out ${
+            className={`bg-teal-500 text-white rounded-full shadow-lg hover:bg-teal-600 focus:outline-none focus:ring-teal-500 transition-all duration-300 ease-in-out ${
               isExpanded ? "px-4 py-3" : "p-3"
             }`}
             aria-label="Open chat report"
           >
             <div className="flex items-center z-30">
-              <FileText size={24} className={isExpanded ? "mr-2" : ""} />
+              <Heart size={24} className={isExpanded ? "mr-2" : ""} />
               <span
                 className={`whitespace-nowrap overflow-hidden transition-all duration-300 ease-in-out ${
                   isExpanded ? "max-w-[200px] opacity-100" : "max-w-0 opacity-0"
                 }`}
               >
-                Chat with MedBuddy
+                Chat with ArogyaBot
               </span>
             </div>
           </button>

@@ -1,7 +1,7 @@
 import axios from "axios"
-export const ngrok_url_m = "https://medwell2.vercel.app/api" //main server
+export const ngrok_url_m = "http://localhost:3000/api" //main server
 export const ngrok_url = "https://4443-103-220-42-152.ngrok-free.app" //main server
-export const ngrok_url2 = "https://6973-103-220-42-152.ngrok-free.app"//chatbot server
+export const ngrok_url2 = "https://290a-103-220-42-152.ngrok-free.app"//chatbot server
 export const ngrok_url3 = "https://3914-103-220-42-152.ngrok-free.app"//marketing appointment server
 const api = axios.create({
   baseURL: `${ngrok_url}/`,
@@ -179,6 +179,13 @@ provideAccess: (data:any) =>
     api2.post("/chat", messageData, {
       headers: {
         Authorization: `Bearer ${Token}`,
+        "Content-Type": "application/json",
+      },
+    }),
+  sendChatMessage2: (messageData:any) =>
+    api2.post("/query", messageData, {
+      headers: {
+        Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQ1NTcwNDg3LCJpYXQiOjE3NDAzODY0ODcsImp0aSI6IjQ2YzBmMDYwNzJmZDRkYzg4NDk4NWI3ODc4NWFmNmY2IiwidXNlcl9pZCI6MTQ3fQ.ByycG4-fwd72pUuOC09ZvztBU_kCOovpFW03Z8Sz6Xs`,
         "Content-Type": "application/json",
       },
     }),

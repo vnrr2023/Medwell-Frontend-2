@@ -23,13 +23,9 @@ export const Loader = () => {
 
 const StyledWrapper = styled.div`
   .banter-loader {
-    position: absolute;
-    left: 50%;
-    top: 50%;
     width: 72px;
     height: 72px;
-    margin-left: -36px;
-    margin-top: -36px;
+    margin: 0 auto;
   }
 
   .banter-loader__box {
