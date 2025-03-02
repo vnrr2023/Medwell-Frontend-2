@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import { motion } from "framer-motion"
-import { Button } from "@/components/ui/button"
-import Image from "next/image"
-import { Users } from "lucide-react"
-import Link from "next/link"
-import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button"
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import Image from "next/image";
+import { Users } from "lucide-react";
+import Link from "next/link";
+import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 
 export default function Hero() {
   return (
@@ -35,7 +35,19 @@ export default function Hero() {
             <br />
             Simplified with
             <br />
-            <span className="text-primary underline decoration-2">MEDWELL</span>
+            <motion.span
+  initial={{ clipPath: "inset(0 100% 0 0)" }}
+  animate={{ clipPath: "inset(0 0% 0 0)" }}
+  transition={{
+    duration: 3.5,
+    ease: "easeOut",
+    repeat: Infinity, // Loops the animation
+    repeatType: "reverse", // Makes it type and erase
+  }}
+  className="bg-gradient-to-r from-red-500 to-blue-500 text-transparent bg-clip-text font-extrabold inline-block"
+>
+  MEDWELL...
+</motion.span>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -88,6 +100,5 @@ export default function Hero() {
         </motion.div>
       </div>
     </section>
-  )
+  );
 }
-
