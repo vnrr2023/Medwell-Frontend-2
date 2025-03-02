@@ -1,6 +1,8 @@
 "use client"
 import { useState, useCallback, useEffect } from "react"
-import { MapPin, Search, Stethoscope, Clock } from "lucide-react"
+import type React from "react"
+
+import { MapPin, Search, Stethoscope, Clock, Star } from "lucide-react"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -76,34 +78,39 @@ interface DoctorCardProps {
 }
 
 const DoctorCard = ({ doctor }: DoctorCardProps) => (
-  <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-teal-100">
-    <div className="flex justify-between items-start">
-      <div>
-        <h3 className="font-bold text-xl text-teal-800">{doctor.data.name}</h3>
-        <p className="text-teal-600 font-medium mt-1">{doctor.data.speciality || "General Practice"}</p>
+  <Card className="hover:shadow-lg transition-shadow duration-300 border-blue-100">
+    <CardContent className="p-6">
+      <div className="flex justify-between items-start">
+        <div>
+          <h3 className="font-bold text-xl text-blue-800">{doctor.data.name}</h3>
+          <p className="text-blue-600 font-medium mt-1">{doctor.data.speciality || "General Practice"}</p>
+        </div>
+        {doctor.data.rating && (
+          <div className="bg-blue-50 px-3 py-1 rounded-full text-blue-700 font-medium flex items-center">
+            <Star className="h-4 w-4 mr-1 text-yellow-500 fill-current" />
+            {doctor.data.rating}
+          </div>
+        )}
       </div>
-      {doctor.data.rating && (
-        <div className="bg-teal-50 px-3 py-1 rounded-full text-teal-700 font-medium">★ {doctor.data.rating}</div>
-      )}
-    </div>
 
-    <div className="mt-4 space-y-2">
-      <p className="text-gray-600 flex items-center gap-2">
-        <MapPin className="h-4 w-4 text-teal-500" />
-        {doctor.data.address}
-      </p>
-      {doctor.data.availability && (
+      <div className="mt-4 space-y-2">
         <p className="text-gray-600 flex items-center gap-2">
-          <Clock className="h-4 w-4 text-teal-500" />
-          {doctor.data.availability}
+          <MapPin className="h-4 w-4 text-blue-500" />
+          {doctor.data.address}
         </p>
-      )}
-    </div>
+        {doctor.data.availability && (
+          <p className="text-gray-600 flex items-center gap-2">
+            <Clock className="h-4 w-4 text-blue-500" />
+            {doctor.data.availability}
+          </p>
+        )}
+      </div>
 
-    <Link href="/doctorsearch/appointment" className="block mt-6">
-      <Button className="w-full bg-teal-500 hover:bg-teal-600 text-white">Book Appointment</Button>
-    </Link>
-  </div>
+      <Link href="/doctorsearch/appointment" className="block mt-6">
+        <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white">Book Appointment</Button>
+      </Link>
+    </CardContent>
+  </Card>
 )
 
 export default function DoctorSearch() {
@@ -208,33 +215,35 @@ export default function DoctorSearch() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-teal-50 to-teal-100 pt-20">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pt-20">
       <div className="relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center mb-12">
-            <h1 className="text-5xl font-bold text-teal-800 mb-4">Your Home for Health</h1>
-            <p className="text-xl text-teal-600">Find the right doctor, right now</p>
+            <h1 className="text-5xl font-bold text-blue-800 mb-4">Your Trusted Healthcare Partner</h1>
+            <p className="text-xl text-blue-600">
+              Connecting you with expert medical professionals for personalized care
+            </p>
           </div>
 
-          <Card className="bg-white/90 backdrop-blur-sm shadow-xl mb-8">
+          <Card className="bg-white shadow-xl mb-8 border-blue-100">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-teal-700">
+              <CardTitle className="flex items-center gap-2 text-blue-700">
                 <Search className="h-5 w-5" />
                 Find Doctors and Hospitals
               </CardTitle>
             </CardHeader>
             <CardContent>
               <Tabs defaultValue="search" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 mb-4 rounded-lg pb-4">
+                <TabsList className="grid w-full grid-cols-2 mb-4">
                   <TabsTrigger
                     value="search"
-                    className="py-2 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-teal-700 data-[state=active]:shadow-sm rounded-md data-[state=active]:border-b-2 data-[state=active]:border-teal-500"
+                    className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"
                   >
                     Search
                   </TabsTrigger>
                   <TabsTrigger
                     value="nearby"
-                    className="py-2 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-teal-700 data-[state=active]:shadow-sm rounded-md data-[state=active]:border-b-2 data-[state=active]:border-teal-500"
+                    className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"
                   >
                     Find Nearby
                   </TabsTrigger>
@@ -246,9 +255,9 @@ export default function DoctorSearch() {
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Search doctors, clinics, hospitals, etc."
-                      className="flex-1 border-teal-200 focus:border-teal-400"
+                      className="flex-1"
                     />
-                    <Button type="submit" className="bg-teal-500 hover:bg-teal-600 text-white">
+                    <Button type="submit" className="bg-blue-500 hover:bg-blue-600 text-white">
                       <Search className="h-4 w-4 mr-2" />
                       Search
                     </Button>
@@ -258,11 +267,11 @@ export default function DoctorSearch() {
                   <form onSubmit={handleLocationSearch} className="space-y-4">
                     <div className="flex gap-4">
                       <Select value={locationOption} onValueChange={setLocationOption}>
-                        <SelectTrigger className="flex-1 border-teal-200 focus:border-teal-400">
+                        <SelectTrigger className="flex-1">
                           <SelectValue placeholder="Select location" />
                         </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="current">Use current location</SelectItem>
+                        <SelectContent position="popper" side="bottom" sideOffset={5} className="w-[200px] bg-white">
+                        <SelectItem value="current">Use current location</SelectItem>
                           {DISTRICTS.map((district) => (
                             <SelectItem key={district} value={district}>
                               {district}
@@ -270,7 +279,7 @@ export default function DoctorSearch() {
                           ))}
                         </SelectContent>
                       </Select>
-                      <Button type="submit" variant="secondary" className="bg-teal-100 text-teal-700 hover:bg-teal-200">
+                      <Button type="submit" variant="secondary" className="bg-blue-100 text-blue-700 hover:bg-blue-200">
                         <Search className="h-4 w-4 mr-2" />
                         Find Nearby
                       </Button>
@@ -285,8 +294,8 @@ export default function DoctorSearch() {
                           onClick={() => setSelectedSpecialty(specialty)}
                           className={
                             selectedSpecialty === specialty
-                              ? "bg-teal-500 hover:bg-teal-600 text-white"
-                              : "text-teal-700 border-teal-200 hover:bg-teal-100"
+                              ? "bg-blue-500 hover:bg-blue-600 text-white"
+                              : "text-blue-700 border-blue-200 hover:bg-blue-100"
                           }
                         >
                           {specialty}
@@ -299,12 +308,12 @@ export default function DoctorSearch() {
             </CardContent>
           </Card>
 
-          <Card className="bg-white/90 backdrop-blur-sm shadow-xl">
+          <Card className="bg-white shadow-xl border-blue-100">
             <CardContent className="p-6">
               <div className="relative">
                 {isMobile ? (
                   <div>
-                    <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-teal-700">
+                    <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-blue-700">
                       <Stethoscope className="h-6 w-6" />
                       Available Doctors
                     </h2>
@@ -324,7 +333,7 @@ export default function DoctorSearch() {
                     </div>
 
                     <div className="w-1/2">
-                      <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-teal-700">
+                      <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-blue-700">
                         <Stethoscope className="h-6 w-6" />
                         Available Doctors
                       </h2>
@@ -340,7 +349,7 @@ export default function DoctorSearch() {
 
                 {loading && (
                   <div className="absolute inset-0 flex items-center justify-center z-20 bg-white bg-opacity-75 backdrop-blur-sm rounded-lg">
-                    <div className="animate-spin rounded-full h-12 w-12 border-4 border-teal-500 border-t-transparent"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
                   </div>
                 )}
               </div>
