@@ -2,8 +2,11 @@
 
 import PatientAppointments from "@/components/doctor/PatientAppointments"
 
-
 export default function DoctorAppointmentPage() {
-  return <PatientAppointments />
+  return (
+    <div className="flex min-h-screen flex-col bg-background">
+      <PatientAppointments />
+    </div>
+  )
 }
 
