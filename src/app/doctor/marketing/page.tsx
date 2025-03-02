@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Sparkles, Send, Mail, Loader2 } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Separator } from "@/components/ui/separator"
-import DaddyAPI from "@/services/api"
+// import DaddyAPI from "@/services/api"
 
 export default function Page() {
   const [heading, setHeading] = useState("Special Offer from Our Clinic")
@@ -83,8 +83,9 @@ export default function Page() {
   const generateBodyText = async () => {
     setIsGenerating(true)
     try {
-      const api = new DaddyAPI()
-      const generatedText = await api.generateMarketingEmail()
+      // const api = new DaddyAPI()
+      // const generatedText = await api.generateMarketingEmail()
+      const generatedText = "Dear Valued Patient,\n\nWe hope this email finds you in good health. We are excited to offer you a special health check-up package..."
       setBody(generatedText)
     } catch (error) {
       console.error("Error generating text:", error)
