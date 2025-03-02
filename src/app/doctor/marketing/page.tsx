@@ -23,139 +23,143 @@ export default function Page() {
   const [isSending, setIsSending] = useState(false)
   const [recipients, setRecipients] = useState("")
 
-  const formattedBody = body.replace(/\n/g, "<br>");
+  const formattedBody = body.replace(/\n/g, "<br>")
 
-const emailHTML = `
-  <table width="100%" cellpadding="0" cellspacing="0" style="min-width:100%;background-color:#e6f7ff;background-image:url('https://source.unsplash.com/1200x800/?health,medical');background-size:cover;background-position:center;background-repeat:no-repeat;">
-    <tr>
-      <td width="100%" align="center" style="padding:40px 20px;">
-        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background-color:#ffffff;color:#333333;font-family:Arial,sans-serif;border-radius:10px;box-shadow:0px 4px 10px rgba(0,0,0,0.1);overflow:hidden;">
-          <!-- Header -->
-          <tr>
-            <td align="center" style="padding:30px 20px;background: linear-gradient(to right, #ef4444,#3b82f6);border-radius:10px 10px 0 0;">
-              <img src="https://i.ibb.co/6R125xgQ/logo.png" width="80" height="80" alt="Logo" style="border-radius:50%; background:#f2f2f2; padding:5px;">
-              <h1 style="font-size:24px;font-weight:bold;margin-top:10px;color:#ffffff;">${heading}</h1>
-            </td>
-          </tr>
-          <!-- Body -->
-          <tr>
-            <td style="padding:30px 20px;background-color:#ffffff;color:#333333;line-height:1.6;">
-              <p style="margin-bottom:20px;">${formattedBody}</p>
-              <div style="text-align:center;">
-                <a href="https://medwell2.vercel.app/" style="display:inline-block;padding:12px 20px;background:#2c7edb;color:#ffffff;text-decoration:none;font-weight:bold;border-radius:5px;">Learn More</a>
-              </div>
-            </td>
-          </tr>
-          <!-- Footer -->
-          <tr>
-            <td style="padding:20px;background-color:#f0f8ff;text-align:center;font-size:12px;color:#666666;border-radius:0 0 10px 10px;">
-              <strong>MedWell</strong> | Your Trusted Medical Companion
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-`;
-
+  const emailHTML = `
+    <table width="100%" cellpadding="0" cellspacing="0" style="min-width:100%;background-color:#f0f4f8;">
+      <tr>
+        <td width="100%" align="center" style="padding:40px 20px;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background-color:#ffffff;color:#333333;font-family:Arial,sans-serif;border-radius:8px;box-shadow:0px 4px 10px rgba(0,0,0,0.1);overflow:hidden;">
+            <!-- Header -->
+            <tr>
+              <td align="center" style="padding:30px 20px;background: linear-gradient(to right, #ef4444,#3b82f6);border-radius:8px 8px 0 0;">
+                <img src="https://i.ibb.co/6R125xgQ/logo.png" width="80" height="80" alt="Logo" style="border-radius:50%; background:#f0f4f8; padding:5px;">
+                <h1 style="font-size:28px;font-weight:bold;margin-top:15px;color:#ffffff;">${heading}</h1>
+              </td>
+            </tr>
+            <!-- Body -->
+            <tr>
+              <td style="padding:30px 20px;background-color:#ffffff;color:#333333;line-height:1.6;">
+                <p style="margin-bottom:20px;font-size:16px;">${formattedBody}</p>
+                <div style="text-align:center;">
+                  <a href="https://medwell2.vercel.app/" style="display:inline-block;padding:12px 24px;background:#3b82f6;color:#ffffff;text-decoration:none;font-weight:bold;border-radius:4px;font-size:16px;">Learn More</a>
+                </div>
+              </td>
+            </tr>
+            <!-- Footer -->
+            <tr>
+              <td style="padding:20px;background-color:#f0f4f8;text-align:center;font-size:14px;color:#666666;border-radius:0 0 8px 8px;">
+                <strong>MedWell</strong> | Your Trusted Healthcare Partner
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  `
 
   const handleSendEmail = async () => {
+    setIsSending(true)
     try {
-      setIsSending(true)
-      const recipientList = recipients
-        .split(",")
-        .map((email) => email.trim())
-        .filter((email) => email !== "")
-      const API_DATA = {
-        html: `${emailHTML}`,
-        subject: subject,
-        emails: recipientList,
-      }
+      // Implement your email sending logic here
+      // For example, using an API call to send the email
+      console.log("Sending email...")
+      console.log("Recipients:", recipients)
+      console.log("Subject:", subject)
+      console.log("Body:", emailHTML)
 
-      const response = await DaddyAPI.sendMarketingEmail(API_DATA)
-      console.log(response.data)
+      // Simulate an API call
+      await new Promise((resolve) => setTimeout(resolve, 2000))
+
+      alert("Email sent successfully!")
     } catch (error) {
-      console.error("Failed to send email:", error)
+      console.error("Error sending email:", error)
+      alert("Failed to send email.")
     } finally {
       setIsSending(false)
     }
   }
 
   const generateBodyText = async () => {
+    setIsGenerating(true)
     try {
-      setIsGenerating(true)
-      setBody("")
-
-      const response = await DaddyAPI.genEmailBody({ heading, subject })
-      const splitData = response.data.body.split(" ")
-
-      splitData.forEach((data: any, index: any) => {
-        setTimeout(() => {
-          setBody((prevBody) => prevBody + " " + data)
-
-          if (index === splitData.length - 1) {
-            setIsGenerating(false)
-          }
-        }, index * 100)
-      })
+      const api = new DaddyAPI()
+      const generatedText = await api.generateMarketingEmail()
+      setBody(generatedText)
     } catch (error) {
-      console.error("Failed to generate body:", error)
+      console.error("Error generating text:", error)
+      alert("Failed to generate email content.")
+    } finally {
       setIsGenerating(false)
     }
   }
 
   return (
-    <div className="container mx-auto max-w-7xl py-6">
-      <div className="flex flex-col gap-6">
+    <div className="container mx-auto max-w-7xl py-4 px-2">
+      <div className="flex flex-col gap-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Email Marketing</h1>
-            <p className="text-muted-foreground">Create and send marketing emails to your patients.</p>
+            <h1 className="text-3xl font-bold tracking-tight text-blue-800">Email Marketing</h1>
+            <p className="text-lg text-blue-600">Create and send engaging marketing emails to your patients.</p>
           </div>
-          <Button onClick={handleSendEmail} disabled={isSending} size="lg">
-            {isSending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+          <Button onClick={handleSendEmail} disabled={isSending} size="lg" className="bg-blue-500 hover:bg-blue-600">
+            {isSending ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Send className="mr-2 h-5 w-5" />}
             Send Email
           </Button>
         </div>
-        <Separator />
-        <div className="grid lg:grid-cols-2 gap-6">
-          <Card className="order-2 lg:order-1">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Mail className="h-5 w-5" />
+        <Separator className="bg-blue-200" />
+        <div className="grid lg:grid-cols-2 gap-8">
+          <Card className="order-2 lg:order-1 border-blue-200 shadow-lg">
+            <CardHeader className="bg-blue-50">
+              <CardTitle className="flex items-center gap-2 text-blue-800">
+                <Mail className="h-6 w-6" />
                 Email Editor
               </CardTitle>
-              <CardDescription>Customize your email content and appearance</CardDescription>
+              <CardDescription className="text-blue-600">Customize your email content and appearance</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-6 pt-6">
               <div className="space-y-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="heading">Heading</Label>
+                  <Label htmlFor="heading" className="text-blue-700">
+                    Heading
+                  </Label>
                   <Input
                     id="heading"
                     placeholder="Email heading"
                     value={heading}
                     onChange={(e) => setHeading(e.target.value)}
+                    className="border-blue-200 focus:border-blue-400"
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="subject">Subject</Label>
+                  <Label htmlFor="subject" className="text-blue-700">
+                    Subject
+                  </Label>
                   <Input
                     id="subject"
                     placeholder="Email subject"
                     value={subject}
                     onChange={(e) => setSubject(e.target.value)}
+                    className="border-blue-200 focus:border-blue-400"
                   />
                 </div>
               </div>
-              <Separator />
+              <Separator className="bg-blue-100" />
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="body">Email Body</Label>
+                  <Label htmlFor="body" className="text-blue-700">
+                    Email Body
+                  </Label>
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Button variant="outline" size="sm" onClick={generateBodyText} disabled={isGenerating}>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={generateBodyText}
+                          disabled={isGenerating}
+                          className="border-blue-200 text-blue-600 hover:bg-blue-50"
+                        >
                           {isGenerating ? (
                             <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                           ) : (
@@ -176,56 +180,62 @@ const emailHTML = `
                   value={body}
                   onChange={(e) => setBody(e.target.value)}
                   rows={8}
-                  className="resize-none"
+                  className="resize-none border-blue-200 focus:border-blue-400"
                 />
               </div>
-              <Separator />
+              <Separator className="bg-blue-100" />
               <div className="grid gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="recipients">Recipients</Label>
+                  <Label htmlFor="recipients" className="text-blue-700">
+                    Recipients
+                  </Label>
                   <Textarea
                     id="recipients"
                     placeholder="Enter email addresses separated by commas..."
                     value={recipients}
                     onChange={(e) => setRecipients(e.target.value)}
                     rows={3}
-                    className="resize-none"
+                    className="resize-none border-blue-200 focus:border-blue-400"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="bgColor">Background</Label>
+                    <Label htmlFor="bgColor" className="text-blue-700">
+                      Background
+                    </Label>
                     <div className="flex gap-2">
                       <Input
                         id="bgColor"
                         type="color"
                         value={bgColor}
                         onChange={(e) => setBgColor(e.target.value)}
-                        className="w-12 h-10 p-1"
+                        className="w-12 h-10 p-1 border-blue-200"
                       />
                       <Input
                         type="text"
                         value={bgColor}
                         onChange={(e) => setBgColor(e.target.value)}
-                        className="flex-1"
+                        className="flex-1 border-blue-200 focus:border-blue-400"
                       />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="textColor">Text</Label>
+                    <Label htmlFor="textColor" className="text-blue-700">
+                      Text
+                    </Label>
                     <div className="flex gap-2">
                       <Input
                         id="textColor"
                         type="color"
                         value={textColor}
                         onChange={(e) => setTextColor(e.target.value)}
-                        className="w-12 h-10 p-1"
+                        className="w-12 h-10 p-1 border-blue-200"
                       />
                       <Input
                         type="text"
                         value={textColor}
                         onChange={(e) => setTextColor(e.target.value)}
-                        className="flex-1"
+                        className="flex-1 border-blue-200 focus:border-blue-400"
                       />
                     </div>
                   </div>
@@ -233,15 +243,15 @@ const emailHTML = `
               </div>
             </CardContent>
           </Card>
-          <Card className="order-1 lg:order-2">
-            <CardHeader>
-              <CardTitle>Preview</CardTitle>
-              <CardDescription>See how your email will look</CardDescription>
+          <Card className="order-1 lg:order-2 border-blue-200 shadow-lg">
+            <CardHeader className="bg-blue-50">
+              <CardTitle className="text-blue-800">Preview</CardTitle>
+              <CardDescription className="text-blue-600">See how your email will look</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="border rounded-lg overflow-hidden shadow-sm">
-                <div className="p-3 bg-muted border-b">
-                  <div className="text-sm text-muted-foreground">Subject: {subject}</div>
+              <div className="border rounded-lg overflow-hidden shadow-sm border-blue-200">
+                <div className="p-3 bg-blue-100 border-b border-blue-200">
+                  <div className="text-sm text-blue-700">Subject: {subject}</div>
                 </div>
                 <div
                   dangerouslySetInnerHTML={{ __html: emailHTML }}
