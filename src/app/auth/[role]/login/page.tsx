@@ -137,14 +137,6 @@ export default function LoginPage() {
   return (
     <div className="pt-16 min-h-screen bg-gradient-to-b from-blue-50/50 to-white">
     <div className="container relative flex-1 flex items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
-        <Link
-          href="/"
-          className={cn("absolute left-4 top-4 md:left-8 md:top-8 lg:hidden", "flex items-center text-lg font-medium")}
-        >
-          <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Medwell</span>
-          <span className="text-blue-500">AI</span>
-        </Link>
-
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
