@@ -1,26 +1,53 @@
 "use client"
 
+import type React from "react"
+
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import Link from "next/link"
 import { useParams } from "next/navigation"
-import { EyeIcon, EyeOffIcon, Mail, Lock, User } from "lucide-react"
+import { EyeIcon, EyeOffIcon, Mail, Lock, User, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { AuthCard, AuthTitle, AuthDescription, AuthMessage } from "@/components/auth/auth-components"
 import { useAuth } from "@/services/useAuth"
+import { cn } from "@/lib/utils"
 import Image from "next/image"
-
-
-
-
 interface GoogleResponse {
   credential: string;
 }
+interface FormData {
+  fullName: string
+  email: string
+  password: string
+  confirmPassword: string
+}
+
+const roleInfo = {
+  patient: {
+    title: "Create Patient Account",
+    description: "Join our healthcare platform to manage your medical journey",
+    image: "/auth/p_signup.jpg",
+    gradient: "from-blue-600 to-indigo-600",
+  },
+  doctor: {
+    title: "Doctor Registration",
+    description: "Create your professional medical practice account",
+    image: "/auth/d_signup.jpg",
+    gradient: "from-indigo-600 to-purple-600",
+  },
+  hospital: {
+    title: "Hospital Registration",
+    description: "Set up your hospital's digital presence",
+    image: "/auth/h_signup.jpg",
+    gradient: "from-purple-600 to-blue-600",
+  },
+}
 
 export default function SignupPage() {
-  const [formData, setFormData] = useState({
+  const { role } = useParams()
+  const [formData, setFormData] = useState<FormData>({
     fullName: "",
     email: "",
     password: "",
@@ -29,22 +56,7 @@ export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [isMobile, setIsMobile] = useState(false)
   const { signup, googleLogin, errorMessage, setErrorMessage, checkAuth } = useAuth()
-  const params = useParams()
-  const role = params.role as string
-
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
-    
-    handleResize()
-    
-    window.addEventListener('resize', handleResize)
-    
-    return () => window.removeEventListener('resize', handleResize)
-  }, [])
 
   useEffect(() => {
     const initializeGoogleSignIn = () => {
@@ -55,13 +67,13 @@ export default function SignupPage() {
         })
         window.google.accounts.id.renderButton(
           document.getElementById("signInDiv"),
-          { theme: "outline", size: "large", width: isMobile ? 300 : 400 }
+          { theme: "outline", size: "large", width: window.innerWidth < 768 ? 300 : 400 }
         )
       } else {
         setTimeout(initializeGoogleSignIn, 100)
       }
     }
-
+  
     const loadGoogleScript = () => {
       if (typeof window !== 'undefined' && !window.google) {
         const script = document.createElement('script')
@@ -74,14 +86,19 @@ export default function SignupPage() {
         initializeGoogleSignIn()
       }
     }
-
+  
     loadGoogleScript()
-  }, [isMobile])
+  }, [])
+  
 
   const handleCallbackResponse = async (response: GoogleResponse) => {
     setIsLoading(true)
     try {
-      await googleLogin(response.credential, role)
+      if (typeof role === 'string') {
+        await googleLogin(response.credential, role)
+      } else {
+        setErrorMessage("Invalid role.")
+      }
     } finally {
       setIsLoading(false)
     }
@@ -92,7 +109,11 @@ export default function SignupPage() {
     if (!validateForm()) return
     setIsLoading(true)
     try {
-      await signup(formData.email, formData.password, formData.confirmPassword, formData.fullName, role)
+      if (typeof role === 'string') {
+        await signup(formData.email, formData.password, formData.confirmPassword, formData.fullName, role)
+      } else {
+        setErrorMessage("Invalid role.")
+      }
     } finally {
       setIsLoading(false)
     }
@@ -117,30 +138,35 @@ export default function SignupPage() {
     return true
   }
 
-
   return (
-    <div className="pt-16">
-      <div className="container relative min-h-screen flex items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
+    <div className="pt-16 min-h-screen bg-gradient-to-b from-blue-50/50 to-white">
+      <div className="container relative flex-1 flex items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0">        <Link
+          href="/"
+          className={cn("absolute left-4 top-4 md:left-8 md:top-8 lg:hidden", "flex items-center text-lg font-medium")}
+        >
+          <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Medwell</span>
+          <span className="text-blue-500">AI</span>
+        </Link>
+
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5 }}
-          className="relative hidden h-full flex-col bg-muted p-10 text-white dark:border-r lg:flex"
+          className={cn(
+            "relative hidden h-full flex-col p-10 text-white lg:flex",
+            "before:absolute before:inset-0 before:bg-gradient-to-b",
+            `before:${roleInfo[role as keyof typeof roleInfo]?.gradient || "from-blue-600 to-indigo-600"}`,
+            "before:opacity-90 before:mix-blend-multiply",
+          )}
         >
-          <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-zinc-900/10">
             <Image
-              src="/auth/signup.png"
+              src={roleInfo[role as keyof typeof roleInfo]?.image || "/placeholder.svg"}
               alt="Authentication"
               fill
-              className="object-cover opacity-90"
+              className="object-cover"
+              priority
             />
-            <div className="absolute inset-0 bg-blue-900/50" />
-          </div>
-          <div className="relative z-20 flex items-center text-lg font-medium">
-            <Link href="/" className="flex items-center">
-              <span className="text-white">Medwell</span>
-              <span className="text-blue-300">AI</span>
-            </Link>
           </div>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -149,139 +175,179 @@ export default function SignupPage() {
             className="relative z-20 mt-auto"
           >
             <blockquote className="space-y-2">
-              <p className="text-lg">
-                &quot;Join our network of healthcare providers and patients to experience the future of medical care.&quot;
+              <p className="text-xl text-black">
+                &quot;Join our network of healthcare providers and patients to experience the future of medical
+                care.&quot;
               </p>
-              <footer className="text-sm">Dr. James Wilson</footer>
+              <footer className="text-sm text-blue-700">Dr. James Wilson - Chief Medical Officer</footer>
             </blockquote>
           </motion.div>
         </motion.div>
+
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5 }}
           className="lg:p-8"
         >
-          <AuthCard>
-            <AuthTitle>Create an account</AuthTitle>
-            <AuthDescription>Enter your details below to create your account</AuthDescription>
+          <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px] lg:w-[400px]">
+            <AuthCard className="bg-white/95 backdrop-blur-sm">
+              <AuthTitle>{roleInfo[role as keyof typeof roleInfo]?.title}</AuthTitle>
+              <AuthDescription>{roleInfo[role as keyof typeof roleInfo]?.description}</AuthDescription>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {errorMessage && <div className="text-sm text-red-500 text-center">{errorMessage}</div>}
+              {errorMessage && (
+                <div className="flex items-center gap-2 p-3 text-sm text-red-600 bg-red-50 rounded-lg">
+                  <AlertCircle className="h-4 w-4" />
+                  <p>{errorMessage}</p>
+                </div>
+              )}
 
-              <div className="space-y-2">
-                <Label htmlFor="fullName">{role === "hospital" ? "Hospital Name" : "Full Name"}</Label>
-                <div className="relative">
-                  <Input
-                    id="fullName"
-                    name="fullName"
-                    type="text"
-                    value={formData.fullName}
-                    onChange={handleChange}
-                    className="pl-10"
-                    required
-                  />
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="fullName">{role === "hospital" ? "Hospital Name" : "Full Name"}</Label>
+                  <div className="relative">
+                    <Input
+                      id="fullName"
+                      name="fullName"
+                      type="text"
+                      value={formData.fullName}
+                      onChange={handleChange}
+                      className={cn(
+                        "pl-10",
+                        "border-input/50 bg-white/50 backdrop-blur-sm",
+                        "focus:bg-white focus:border-blue-500",
+                      )}
+                      required
+                    />
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <div className="relative">
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      className={cn(
+                        "pl-10",
+                        "border-input/50 bg-white/50 backdrop-blur-sm",
+                        "focus:bg-white focus:border-blue-500",
+                      )}
+                      required
+                    />
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      name="password"
+                      type={showPassword ? "text" : "password"}
+                      value={formData.password}
+                      onChange={handleChange}
+                      className={cn(
+                        "pl-10",
+                        "border-input/50 bg-white/50 backdrop-blur-sm",
+                        "focus:bg-white focus:border-blue-500",
+                      )}
+                      required
+                    />
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <button
+                      type="button"
+                      className="absolute right-3 top-1/2 -translate-y-1/2"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? (
+                        <EyeOffIcon className="h-4 w-4 text-muted-foreground hover:text-primary transition-colors" />
+                      ) : (
+                        <EyeIcon className="h-4 w-4 text-muted-foreground hover:text-primary transition-colors" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Confirm Password</Label>
+                  <div className="relative">
+                    <Input
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      type={showConfirmPassword ? "text" : "password"}
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
+                      className={cn(
+                        "pl-10",
+                        "border-input/50 bg-white/50 backdrop-blur-sm",
+                        "focus:bg-white focus:border-blue-500",
+                      )}
+                      required
+                    />
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <button
+                      type="button"
+                      className="absolute right-3 top-1/2 -translate-y-1/2"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOffIcon className="h-4 w-4 text-muted-foreground hover:text-primary transition-colors" />
+                      ) : (
+                        <EyeIcon className="h-4 w-4 text-muted-foreground hover:text-primary transition-colors" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <Button
+                  type="submit"
+                  className={cn(
+                    "w-full text-white",
+                    "bg-gradient-to-r shadow-lg transition-all duration-300",
+                    roleInfo[role as keyof typeof roleInfo]?.gradient || "from-blue-600 to-indigo-600",
+                    "hover:shadow-blue-500/25 hover:translate-y-[-1px]",
+                  )}
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Creating Account..." : "Create Account"}
+                </Button>
+              </form>
+
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-muted" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-white px-2 text-muted-foreground">Or continue with</span>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <div className="relative">
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    className="pl-10"
-                    required
-                  />
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                </div>
-              </div>
+              <div id="signInDiv" className="flex justify-center" />
 
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    name="password"
-                    type={showPassword ? "text" : "password"}
-                    value={formData.password}
-                    onChange={handleChange}
-                    className="pl-10"
-                    required
-                  />
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <button
-                    type="button"
-                    className="absolute right-3 top-1/2 -translate-y-1/2"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? (
-                      <EyeOffIcon className="h-4 w-4 text-muted-foreground" />
-                    ) : (
-                      <EyeIcon className="h-4 w-4 text-muted-foreground" />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
-                <div className="relative">
-                  <Input
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    type={showConfirmPassword ? "text" : "password"}
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    className="pl-10"
-                    required
-                  />
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <button
-                    type="button"
-                    className="absolute right-3 top-1/2 -translate-y-1/2"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  >
-                    {showConfirmPassword ? (
-                      <EyeOffIcon className="h-4 w-4 text-muted-foreground" />
-                    ) : (
-                      <EyeIcon className="h-4 w-4 text-muted-foreground" />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              <Button type="submit" className="w-full hover:bg-gray-200" disabled={isLoading}>
-                {isLoading ? "Creating Account..." : "Create Account"}
-              </Button>
-            </form>
-
-            <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-muted" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="bg-background px-2 text-muted-foreground">
-                  <span className="bg-gray-100 p-2">or</span>
-                </span>
-              </div>
-            </div>
-
-            <div id="signInDiv" className="flex justify-center" />
-
-            <AuthMessage>
-              Already have an account?{" "}
-              <Link href={`/auth/${role}/login`} className="text-primary hover:underline underline-offset-4">
-                Sign in
-              </Link>
-            </AuthMessage>
-          </AuthCard>
+              <AuthMessage>
+                Already have an account?{" "}
+                <Link
+                  href={`/auth/${role}/login`}
+                  className={cn(
+                    "font-medium transition-colors",
+                    "bg-gradient-to-r bg-clip-text text-transparent",
+                    roleInfo[role as keyof typeof roleInfo]?.gradient || "from-blue-600 to-indigo-600",
+                  )}
+                >
+                  Sign in
+                </Link>
+              </AuthMessage>
+            </AuthCard>
+          </div>
         </motion.div>
       </div>
     </div>
   )
 }
+
