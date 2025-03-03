@@ -46,7 +46,7 @@ export default function Hero() {
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   return (
-    <section className="py-12 md:py-20 px-4 md:px-6 max-w-7xl mx-auto overflow-hidden">
+    <section className="py-16 md:py-20 px-4 md:px-6 max-w-7xl mx-auto overflow-hidden">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
         <motion.div initial="hidden" animate="visible" variants={containerVariants} className="relative z-10">
           <motion.div
