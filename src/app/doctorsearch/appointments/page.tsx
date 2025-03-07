@@ -278,7 +278,7 @@ export default function AppointmentPage() {
 
       {/* Location Selection Modal */}
       <Dialog open={locationModalOpen} onOpenChange={setLocationModalOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md bg-white">
           <DialogHeader>
             <DialogTitle className="text-indigo-700 flex items-center gap-2">
               <MapPin className="h-5 w-5" />
@@ -289,7 +289,7 @@ export default function AppointmentPage() {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 py-4">
+          <div className="space-y-4 py-4 ">
             <RadioGroup value={selectedLocation || ""} onValueChange={setSelectedLocation}>
               {clinicLocations.map((location) => (
                 <div
