@@ -153,9 +153,10 @@ export default function AddReport() {
         setUploadStatus("Processing report...")
 
         const checkStatus = async () => {
+
           try {
             const taskStatusResponse = await DaddyAPI.getReportTaskStatus(response.data.task_id)
-            if (taskStatusResponse.data.status === "SUCCESS") {
+            if (taskStatusResponse.data.state === "SUCCESS") {
               setIsProcessing(false)
               setUploadStatus("Upload successful")
               setButtonText("Upload")
@@ -165,13 +166,14 @@ export default function AddReport() {
               setButtonText("Upload")
             } else {
               setButtonText(getRandomButtonText())
-              setTimeout(checkStatus, 5000)
+              setTimeout(checkStatus, 15000)
             }
           } catch (error) {
             setIsProcessing(false)
             setUploadStatus("Error checking status")
             setButtonText("Upload")
           }
+          return;
         }
 
         checkStatus()

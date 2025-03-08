@@ -110,7 +110,7 @@ const DoctorCard = ({ doctor }: DoctorCardProps) => (
             )}
           </div>
 
-          <Link href="/doctorsearch/appointment" className="block mt-6">
+          <Link href={{ pathname: "doctorsearch/appointments", query: { doctor_id: doctor.id } }} className="block mt-6">
             <Button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white group-hover:shadow-md transition-all">
               <Calendar className="h-4 w-4 mr-2" />
               Book Appointment

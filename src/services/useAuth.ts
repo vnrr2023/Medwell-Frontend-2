@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 
-export const API_URL = "https://4443-103-220-42-152.ngrok-free.app"
+export const API_URL = "https://4676-103-220-42-152.ngrok-free.app"
 
 export const useAuth = () => {
   const [errorMessage, setErrorMessage] = useState("")
@@ -18,7 +18,7 @@ export const useAuth = () => {
     formData.append("password", password)
 
     try {
-      const response = await fetch(`${API_URL}/auth/login_user/`, {
+      const response = await fetch(`${API_URL}/auth/login_user`, {
         method: "POST",
         body: formData,
       })
@@ -32,6 +32,7 @@ export const useAuth = () => {
         localStorage.setItem("Role", role)
         notifyAuthStateChange()
         router.push("/patient")
+        router.refresh()
         return true
       }
     } catch {
@@ -51,7 +52,7 @@ export const useAuth = () => {
     formData.append("name", fullName)
 
     try {
-      const response = await fetch(`${API_URL}/auth/register_user/`, {
+      const response = await fetch(`${API_URL}/auth/register_user`, {
         method: "POST",
         body: formData,
       })
@@ -80,7 +81,7 @@ export const useAuth = () => {
     formData.append("role", role)
 
     try {
-      const response = await fetch(`${API_URL}/auth/google_login/`, {
+      const response = await fetch(`${API_URL}/auth/google_login`, {
         method: "POST",
         body: formData,
       })
@@ -102,6 +103,7 @@ export const useAuth = () => {
     localStorage.removeItem("Role")
     notifyAuthStateChange()
     router.push("/auth")
+    router.refresh()
 
   }
 

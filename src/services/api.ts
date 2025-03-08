@@ -1,22 +1,18 @@
 import axios from "axios"
-export const ngrok_url_m = "http://localhost:3000/api" //main server
-export const ngrok_url = "https://4443-103-220-42-152.ngrok-free.app" //main server
-export const ngrok_url2 = "https://290a-103-220-42-152.ngrok-free.app"//chatbot server
-export const ngrok_url3 = "https://3914-103-220-42-152.ngrok-free.app"//marketing appointment server
+export const ngrok_url_m = "https://medwell2.vercel.app/api"
+export const ngrok_url = "https://4443-103-220-42-152.ngrok-free.app" 
+export const ngrok_url2 = "https://whatsapp-messaging-medwell-api.vercel.app" 
+
 const api = axios.create({
   baseURL: `${ngrok_url}/`,
 })
 const api2 = axios.create({
   baseURL: `${ngrok_url2}/`,
 })
-const api3 = axios.create({
-  baseURL: `${ngrok_url3}/`,
-})
+
 const apim = axios.create({
   baseURL: `${ngrok_url_m}/`,
 })
-
-
 
 const Token = typeof window !== 'undefined' ? localStorage.getItem("Token") : null
 export const mToken="1234"
@@ -29,7 +25,7 @@ const DaddyAPI = {
   // This api gets all the reports of the patients. :D
   //☑️
   getReports: () =>
-    apim.get("/patient/get_reports/", {
+    apim.post("/patient/get_reports", {
       headers: {
         Authorization: `Bearer ${mToken}`,
         "ngrok-skip-browser-warning": "69420",
@@ -39,7 +35,7 @@ const DaddyAPI = {
   // This is to send the report to the backend.
   //☑️
   addReport: (formData: FormData) =>
-    apim.post("/patient/send_report/", formData, {
+    apim.post("/patient/send_report", formData, {
       headers: {
         Authorization: `Bearer ${mToken}`,
         "Content-Type": "multipart/form-data",
@@ -47,15 +43,15 @@ const DaddyAPI = {
     }),
   // This api gets the status of a report task every 5 seconds.
   //☑️
-  getReportTaskStatus: (taskId: string) => apim.get(`/patient/get_report_task_status/?task_id=${taskId}`,{headers:{"ngrok-skip-browser-warning": "69420"},}),
+  getReportTaskStatus: (taskId: string) => apim.get(`/patient/get_task_status/${taskId}`,{headers:{"ngrok-skip-browser-warning": "69420"},}),
 
   // save the patient info add fields in an object and pass it as a parameter
   
     //☑️
   savePatientInfo: (data:any) =>
-    api.post("/patient/update_info/", data, {
+    apim.post("/patient/update_info/", data, {
       headers: {
-        Authorization: `Bearer ${Token}`,
+        Authorization: `Bearer ${mToken}`,
         "Content-Type": "application/json",
       },
     }),
@@ -168,30 +164,31 @@ provideAccess: (data:any) =>
       // Chat Report APIs
       //☑️
   createChatAgent: () =>
-    api2.get("/create_agent/147", {
+    apim.get("/create_agent/147", {
       headers: {
         "ngrok-skip-browser-warning": "69420",
-        Authorization: `Bearer ${Token}`,
+        Authorization: `Bearer ${mToken}`,
       },
     }),
 //☑️
   sendChatMessage: (messageData:any) =>
-    api2.post("/chat", messageData, {
+    apim.post("/chat", messageData, {
       headers: {
-        Authorization: `Bearer ${Token}`,
+        Authorization: `Bearer ${mToken}`,
         "Content-Type": "application/json",
       },
     }),
   sendChatMessage2: (messageData:any) =>
-    api2.post("/query", messageData, {
+    apim.post("/query", messageData, {
       headers: {
-        Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQ1NTcwNDg3LCJpYXQiOjE3NDAzODY0ODcsImp0aSI6IjQ2YzBmMDYwNzJmZDRkYzg4NDk4NWI3ODc4NWFmNmY2IiwidXNlcl9pZCI6MTQ3fQ.ByycG4-fwd72pUuOC09ZvztBU_kCOovpFW03Z8Sz6Xs`,
+        Authorization: `Bearer ${mToken}`,
         "Content-Type": "application/json",
       },
     }),
 
 //DOCTOR SEARCH APIs
 //Get Nearby Doctors and Hospitals by location or/and speciality
+//☑️
 doctorSearchSpecialty: (data:any) =>
   apim.post("/get_nearby_doctor/", data, {
     headers: {
@@ -200,6 +197,7 @@ doctorSearchSpecialty: (data:any) =>
     },
   }),
 //QUERY
+//☑️
 doctorSearchQuery: (data:any) =>
   apim.post("/search_doctors_and_hospitals/", data, {
     headers: {
@@ -209,15 +207,17 @@ doctorSearchQuery: (data:any) =>
   }),
   
   //doctor apis
+  //☑️
   refreshPatients: () =>
-    apim.get("/doctor/refresh_patients/", {
+    apim.get("/doctor/refresh_patients", {
       headers: {
         Authorization: `Bearer ${mToken}`,
         "Content-Type": "application/json",
       },
     }),
+    //☑️
   patientsReport: (id:any) =>
-    apim.post("/doctor/get_patient_reports/",id,{
+    apim.post("/doctor/get_patient_reports",id,{
       headers: {
         Authorization: `Bearer ${mToken}`,
         "Content-Type": "application/json",
@@ -225,20 +225,77 @@ doctorSearchQuery: (data:any) =>
     }),
 
     //marketing apis
+    //☑️
     sendMarketingEmail: (data:any) =>
-      api3.post("/marketting/market_services",data,{
+      apim.post("/marketting/market_services",data,{
         headers: {
-          Authorization: `Bearer ${Token}`,
+          Authorization: `Bearer ${mToken}`,
           "Content-Type": "application/json",
         },
       }),
+      //☑️
     genEmailBody: (data:any) =>
-      api3.post("/marketting/generate_mail_body",data,{
+      apim.post("/marketting/generate_mail_body",data,{
         headers: {
-          Authorization: `Bearer ${Token}`,
+          Authorization: `Bearer ${mToken}`,
           "Content-Type": "application/json",
         },
       }),
+
+      //APPOINTMENTS
+      //☑️
+      getSlots: (date:any,address_id:any) =>
+        apim.get(`/slots/get-slots-for-date-and-address/${date}/${address_id}`, {
+          headers: {
+            Authorization: `Bearer ${mToken}`,
+            "Content-Type": "application/json",
+            "ngrok-skip-browser-warning": "69420",
+          },
+        }),
+        //☑️
+      getaddressess: (id:any) =>
+        apim.get(`/appointment/get-doctor-addresses/${id}`, {
+          headers: {
+            Authorization: `Bearer ${mToken}`,
+            "Content-Type": "application/json",
+            "ngrok-skip-browser-warning": "69420",
+          },
+        }),
+        //☑️
+      getservices: (id:any) =>
+        apim.get(`/appointment/get-doctor-services/${id}`, {
+          headers: {
+            Authorization: `Bearer ${mToken}`,
+            "Content-Type": "application/json",
+            "ngrok-skip-browser-warning": "69420",
+          },
+        }),
+        //☑️
+      createAppointment: (data:any) =>
+        apim.post("/appointment/create_appointment_from_patient", data, {
+          headers: {
+            Authorization: `Bearer ${mToken}`,
+            "Content-Type": "application/json",
+          },
+        }),
+
+        //Whatsapp marketing 
+        
+        //☑️
+        sendWhatsappMsg: (data:any) =>
+          api2.post("/whatsapp/marketing", data, {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }),
+        //☑️
+        genWhatsappBody: (data:any) =>
+          apim.post("/whatsapp/generate_whatsapp_body",data,{
+            headers: {
+              Authorization: `Bearer ${mToken}`,
+              "Content-Type": "application/json",
+            },
+          }),
 
 }
 

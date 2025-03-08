@@ -6,11 +6,12 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
-import { Sparkles, Send, Mail, Loader2 } from "lucide-react"
+import { Sparkles, Send, Mail, Loader2, MessageSquare } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Separator } from "@/components/ui/separator"
-// import DaddyAPI from "@/services/api"
-
+import DaddyAPI from "@/services/api"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import Link from "next/link"
 export default function Page() {
   const [heading, setHeading] = useState("Special Offer from Our Clinic")
   const [subject, setSubject] = useState("Limited Time Health Check-up Package")
@@ -68,8 +69,6 @@ export default function Page() {
       console.log("Subject:", subject)
       console.log("Body:", emailHTML)
 
-      // Simulate an API call
-      await new Promise((resolve) => setTimeout(resolve, 2000))
 
       alert("Email sent successfully!")
     } catch (error) {
@@ -83,10 +82,9 @@ export default function Page() {
   const generateBodyText = async () => {
     setIsGenerating(true)
     try {
-      // const api = new DaddyAPI()
-      // const generatedText = await api.generateMarketingEmail()
-      const generatedText = "Dear Valued Patient,\n\nWe hope this email finds you in good health. We are excited to offer you a special health check-up package..."
-      setBody(generatedText)
+      
+      const generatedText = await DaddyAPI.genEmailBody({subject,heading})
+      setBody(generatedText.data.body)
     } catch (error) {
       console.error("Error generating text:", error)
       alert("Failed to generate email content.")
@@ -100,7 +98,25 @@ export default function Page() {
       <div className="flex flex-col gap-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-blue-800">Email Marketing</h1>
+            <div className="mb-6">
+              <Tabs defaultValue="whatsapp" className="mb-4">
+                <TabsList>
+                  <Link href="/doctor/marketing">
+                    <TabsTrigger value="email" className="flex items-center gap-2" asChild>
+                      <div>
+                        <Mail className="h-4 w-4" />
+                        Email Marketing
+                      </div>
+                    </TabsTrigger>
+                  </Link>
+                  <TabsTrigger value="whatsapp" className="flex items-center gap-2">
+                    <MessageSquare className="h-4 w-4" />
+                    WhatsApp Marketing
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+              <h1 className="text-3xl font-bold mb-6">WhatsApp Message Builder</h1>
+            </div>
             <p className="text-lg text-blue-600">Create and send engaging marketing emails to your patients.</p>
           </div>
           <Button onClick={handleSendEmail} disabled={isSending} size="lg" className="bg-blue-500 hover:bg-blue-600">

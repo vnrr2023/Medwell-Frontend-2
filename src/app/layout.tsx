@@ -24,8 +24,8 @@ export default function RootLayout({
             <div className="relative z-10">
               <Suspense fallback={<div>Loading...</div>}>
                 <Navbar />
-              </Suspense>
               {children}
+              </Suspense>
               
             </div>
           </div>
