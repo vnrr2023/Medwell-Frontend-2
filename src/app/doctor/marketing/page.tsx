@@ -101,21 +101,21 @@ export default function Page() {
             <div className="mb-6">
               <Tabs defaultValue="whatsapp" className="mb-4">
                 <TabsList>
-                  <Link href="/doctor/whatsapp">
+                  
                     <TabsTrigger value="email" className="flex items-center gap-2" asChild>
                       <div>
                         <Mail className="h-4 w-4" />
                         Email Marketing
                       </div>
                     </TabsTrigger>
-                  </Link>
+                    <Link href="/doctor/whatsapp">
                   <TabsTrigger value="whatsapp" className="flex items-center gap-2">
                     <MessageSquare className="h-4 w-4" />
                     WhatsApp Marketing
                   </TabsTrigger>
+                  </Link>
                 </TabsList>
               </Tabs>
-              <h1 className="text-3xl font-bold mb-6">WhatsApp Message Builder</h1>
             </div>
             <p className="text-lg text-blue-600">Create and send engaging marketing emails to your patients.</p>
           </div>
