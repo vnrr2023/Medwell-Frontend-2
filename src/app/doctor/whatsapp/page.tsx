@@ -174,7 +174,7 @@ export default function Page() {
     setIsSending(true)
     try {
       const response = await DaddyAPI.sendWhatsappMsg({
-        phone_numbers_list: phoneNumbersList,
+        phone_number: phoneNumbers,
         message,
       })
 
@@ -426,10 +426,12 @@ export default function Page() {
 
           <div className="mt-6 space-y-4">
             <div>
-              <Label htmlFor="phone-numbers">Phone Numbers (comma separated)</Label>
+              <Label htmlFor="phone-numbers">Phone Number</Label>
               <Input
                 id="phone-numbers"
-                placeholder="e.g. 9324052342, 7506375933"
+                maxLength={10}
+                type="number"
+                placeholder="e.g. 9324052342"
                 value={phoneNumbers}
                 onChange={(e) => setPhoneNumbers(e.target.value)}
               />
