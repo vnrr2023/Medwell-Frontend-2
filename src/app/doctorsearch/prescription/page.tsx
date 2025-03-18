@@ -53,6 +53,7 @@ interface Medicine {
 interface Prescription {
   prescriptionData: {
     Observations: string[]
+    Instructions: string[]
     Medicines: Medicine[]
   }
   otherData: string
@@ -102,6 +103,7 @@ export default function PrescriptionPage() {
   const [prescription, setPrescription] = useState<Prescription>({
     prescriptionData: {
       Observations: ["The patient is having headache.", "Not able to work properly"],
+      Instructions: ["The patient is having headache.", "Not able to work properly"],
       Medicines: [
         {
           row: "1",
@@ -113,12 +115,13 @@ export default function PrescriptionPage() {
         },
       ],
     },
-    otherData: "",
+    otherData: " ",
   })
   const [activeTab, setActiveTab] = useState<string>("write")
   const [previewDialogOpen, setPreviewDialogOpen] = useState<boolean>(false)
   const [saveSuccess, setSaveSuccess] = useState<boolean | null>(null)
-
+  const [newObservation, setNewObservation] = useState<string>("")
+  const [newInstruction, setNewInstruction] = useState<string>("")
   // Add a ref for printing
   const prescriptionPreviewRef = useRef<HTMLDivElement>(null)
 
@@ -153,19 +156,94 @@ export default function PrescriptionPage() {
   }
 
   // Update an observation
-  const updateObservation = (index: number, value: string) => {
-    const updatedObservations = [...prescription.prescriptionData.Observations]
-    updatedObservations[index] = value
+  // const updateObservation = (index: number, value: string) => {
+  //   const updatedObservations = [...prescription.prescriptionData.Observations]
+  //   updatedObservations[index] = value
 
+  //   setPrescription((prev) => ({
+  //     ...prev,
+  //     prescriptionData: {
+  //       ...prev.prescriptionData,
+  //       Observations: updatedObservations,
+  //     },
+  //   }))
+  // }
+// Add a new observation
+const addObservation = () => {
+  if (newObservation.trim()) {
     setPrescription((prev) => ({
       ...prev,
       prescriptionData: {
         ...prev.prescriptionData,
-        Observations: updatedObservations,
+        Observations: [...prev.prescriptionData.Observations, newObservation],
       },
     }))
+    setNewObservation("")
   }
+}
 
+// Remove an observation
+const removeObservation = (index: number) => {
+  setPrescription((prev) => ({
+    ...prev,
+    prescriptionData: {
+      ...prev.prescriptionData,
+      Observations: prev.prescriptionData.Observations.filter((_, i) => i !== index),
+    },
+  }))
+}
+
+// Update an observation
+const updateObservation = (index: number, value: string) => {
+  const updatedObservations = [...prescription.prescriptionData.Observations]
+  updatedObservations[index] = value
+
+  setPrescription((prev) => ({
+    ...prev,
+    prescriptionData: {
+      ...prev.prescriptionData,
+      Observations: updatedObservations,
+    },
+  }))
+}
+
+const addInstruction = () => {
+  if (newInstruction.trim()) {
+    setPrescription((prev) => ({
+      ...prev,
+      prescriptionData: {
+        ...prev.prescriptionData,
+        Instructions: [...prev.prescriptionData.Instructions, newInstruction],
+      },
+    }))
+    setNewInstruction("")
+  }
+}
+
+// Remove an Instruction
+const removeInstruction = (index: number) => {
+  setPrescription((prev) => ({
+    ...prev,
+    prescriptionData: {
+      ...prev.prescriptionData,
+      Instructions: prev.prescriptionData.Instructions.filter((_, i) => i !== index),
+    },
+  }))
+}
+
+// Update an Instruction
+const updateInstruction = (index: number, value: string) => {
+  const updatedInstructions = [...prescription.prescriptionData.Instructions]
+  updatedInstructions[index] = value
+
+  setPrescription((prev) => ({
+    ...prev,
+    prescriptionData: {
+      ...prev.prescriptionData,
+      Instructions: updatedInstructions,
+    },
+  }))
+}
   // Add a new medicine row
   const addMedicine = () => {
     setPrescription((prev) => {
@@ -419,8 +497,35 @@ export default function PrescriptionPage() {
                               placeholder="Enter observation"
                               className="flex-1 border-slate-300 focus:border-indigo-500"
                             />
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => removeObservation(index)}
+                              className="border-slate-300 text-slate-500 hover:text-red-600 hover:border-red-300"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                           </div>
                         ))}
+                      </div>
+
+                      <div className="flex items-center gap-2 mt-4">
+                        <Input
+                          value={newObservation}
+                          onChange={(e) => setNewObservation(e.target.value)}
+                          placeholder="Add new observation"
+                          className="flex-1 border-slate-300 focus:border-indigo-500"
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault()
+                              addObservation()
+                            }
+                          }}
+                        />
+                        <Button onClick={addObservation} className="bg-indigo-600 hover:bg-indigo-700">
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add
+                        </Button>
                       </div>
                     </div>
                   </TabsContent>
@@ -525,14 +630,47 @@ export default function PrescriptionPage() {
                   {/* Instructions Tab */}
                   <TabsContent value="instructions" className="space-y-6">
                     <div>
-                      <h3 className="text-lg font-semibold text-slate-800 mb-4">Additional Instructions</h3>
+                      <h3 className="text-lg font-semibold text-slate-800 mb-4">Instructions</h3>
 
-                      <Textarea
-                        value={prescription.otherData}
-                        onChange={(e) => updateOtherData(e.target.value)}
-                        placeholder="Enter additional instructions, lifestyle recommendations, or follow-up details"
-                        className="min-h-[200px] border-slate-300 focus:border-indigo-500"
-                      />
+                      <div className="space-y-4">
+                        {prescription.prescriptionData.Instructions.map((instruction, index) => (
+                          <div key={index} className="flex items-start gap-2">
+                            <Textarea
+                              value={instruction}
+                              onChange={(e) => updateInstruction(index, e.target.value)}
+                              placeholder="Enter instruction"
+                              className="flex-1 border-slate-300 focus:border-indigo-500"
+                            />
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => removeInstruction(index)}
+                              className="border-slate-300 text-slate-500 hover:text-red-600 hover:border-red-300"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="flex items-center gap-2 mt-4">
+                        <Input
+                          value={newInstruction}
+                          onChange={(e) => setNewInstruction(e.target.value)}
+                          placeholder="Add new instruction"
+                          className="flex-1 border-slate-300 focus:border-indigo-500"
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault()
+                              addInstruction()
+                            }
+                          }}
+                        />
+                        <Button onClick={addInstruction} className="bg-indigo-600 hover:bg-indigo-700">
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add
+                        </Button>
+                      </div>
                     </div>
                   </TabsContent>
                 </Tabs>
@@ -679,9 +817,18 @@ export default function PrescriptionPage() {
 
               {prescription.otherData && (
                 <div className="mb-6">
-                  <h4 className="text-md font-semibold text-indigo-700 mb-2">Additional Instructions</h4>
-                  <p className="text-slate-700 whitespace-pre-line">{prescription.otherData}</p>
-                </div>
+                <h4 className="text-md font-semibold text-indigo-700 mb-2">Instructions</h4>
+                <ul className="list-disc pl-5 space-y-1">
+                  {prescription.prescriptionData.Instructions.map(
+                    (instruction, index) =>
+                      instruction.trim() && (
+                        <li key={index} className="text-slate-700">
+                          {instruction}
+                        </li>
+                      ),
+                  )}
+                </ul>
+              </div>
               )}
 
               <div className="mt-8 pt-4 border-t text-right">
