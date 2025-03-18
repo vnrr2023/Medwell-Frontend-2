@@ -122,9 +122,9 @@ export default function PrescriptionPage() {
   // Add a ref for printing
   const prescriptionPreviewRef = useRef<HTMLDivElement>(null)
 
-  // Add print functionality
+  // Add print functionality - fixed the type error
   const handlePrint = useReactToPrint({
-    content: () => prescriptionPreviewRef.current,
+    // documentRef: prescriptionPreviewRef,
     documentTitle: `Prescription_${patientInfo.name}_${formatDate(currentDate)}`,
   })
 
@@ -286,7 +286,7 @@ export default function PrescriptionPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_3fr] gap-8">
           {/* Patient Info Card */}
-          <div>
+          <div className="order-2 lg:order-1">
             <Card className="border-indigo-100 shadow-lg sticky top-24">
               <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50 border-b">
                 <CardTitle className="text-indigo-700">Patient Information</CardTitle>
@@ -368,7 +368,7 @@ export default function PrescriptionPage() {
           </div>
 
           {/* Prescription Form */}
-          <div>
+          <div className="order-1 lg:order-2">
             <Card className="border-indigo-100 shadow-lg">
               <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50 border-b">
                 <div className="flex justify-between items-center">
@@ -384,21 +384,24 @@ export default function PrescriptionPage() {
                       className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white"
                     >
                       <ClipboardList className="h-4 w-4 mr-2" />
-                      Observations
+                      <span className="hidden sm:inline">Observations</span>
+                      <span className="sm:hidden">Obs</span>
                     </TabsTrigger>
                     <TabsTrigger
                       value="medicines"
                       className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white"
                     >
                       <Pill className="h-4 w-4 mr-2" />
-                      Medicines
+                      <span className="hidden sm:inline">Medicines</span>
+                      <span className="sm:hidden">Meds</span>
                     </TabsTrigger>
                     <TabsTrigger
                       value="instructions"
                       className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white"
                     >
                       <MessageSquareText className="h-4 w-4 mr-2" />
-                      Instructions
+                      <span className="hidden sm:inline">Instructions</span>
+                      <span className="sm:hidden">Instr</span>
                     </TabsTrigger>
                   </TabsList>
 
@@ -429,84 +432,92 @@ export default function PrescriptionPage() {
                         <h3 className="text-lg font-semibold text-slate-800">Prescribed Medicines</h3>
                         <Button onClick={addMedicine} className="bg-indigo-600 hover:bg-indigo-700">
                           <Plus className="h-4 w-4 mr-2" />
-                          Add Medicine
+                          <span className="hidden sm:inline">Add Medicine</span>
+                          <span className="sm:hidden">Add</span>
                         </Button>
                       </div>
 
                       <div className="border rounded-lg overflow-x-auto">
-                        <Table>
-                          <TableHeader className="bg-slate-50">
-                            <TableRow>
-                              <TableHead className="w-[5%]">No.</TableHead>
-                              <TableHead className="w-[35%]">Medicine Name</TableHead>
-                              <TableHead className="text-center">Breakfast</TableHead>
-                              <TableHead className="text-center">Lunch</TableHead>
-                              <TableHead className="text-center">Dinner</TableHead>
-                              <TableHead className="w-[15%]">Duration</TableHead>
-                              <TableHead className="w-[5%]"></TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {prescription.prescriptionData.Medicines.map((medicine) => (
-                              <TableRow key={medicine.row}>
-                                <TableCell className="font-medium">{medicine.row}</TableCell>
-                                <TableCell>
-                                  <Input
-                                    value={medicine.medicine}
-                                    onChange={(e) => updateMedicineName(medicine.row, e.target.value)}
-                                    placeholder="Medicine name"
-                                    className="border-slate-300 focus:border-indigo-500"
-                                  />
-                                </TableCell>
-                                <TableCell className="text-center">
-                                  <Checkbox
-                                    checked={medicine.breakfast === 1}
-                                    onCheckedChange={(checked) =>
-                                      updateMedicineTiming(medicine.row, "breakfast", checked ? 1 : 0)
-                                    }
-                                    className="data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
-                                  />
-                                </TableCell>
-                                <TableCell className="text-center">
-                                  <Checkbox
-                                    checked={medicine.lunch === 1}
-                                    onCheckedChange={(checked) =>
-                                      updateMedicineTiming(medicine.row, "lunch", checked ? 1 : 0)
-                                    }
-                                    className="data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
-                                  />
-                                </TableCell>
-                                <TableCell className="text-center">
-                                  <Checkbox
-                                    checked={medicine.dinner === 1}
-                                    onCheckedChange={(checked) =>
-                                      updateMedicineTiming(medicine.row, "dinner", checked ? 1 : 0)
-                                    }
-                                    className="data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
-                                  />
-                                </TableCell>
-                                <TableCell>
-                                  <Input
-                                    value={medicine.duration || ""}
-                                    onChange={(e) => updateMedicineDuration(medicine.row, e.target.value)}
-                                    placeholder="e.g. 7 days"
-                                    className="border-slate-300 focus:border-indigo-500"
-                                  />
-                                </TableCell>
-                                <TableCell>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => removeMedicine(medicine.row)}
-                                    className="text-slate-500 hover:text-red-600 hover:bg-red-50"
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </TableCell>
+                        <div className="min-w-[650px]">
+                          <Table>
+                            <TableHeader className="bg-slate-50">
+                              <TableRow>
+                                <TableHead className="w-[5%]">No.</TableHead>
+                                <TableHead className="w-[35%]">Medicine Name</TableHead>
+                                <TableHead className="text-center">B</TableHead>
+                                <TableHead className="text-center">L</TableHead>
+                                <TableHead className="text-center">D</TableHead>
+                                <TableHead className="w-[15%]">Duration</TableHead>
+                                <TableHead className="w-[5%]"></TableHead>
                               </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
+                            </TableHeader>
+                            <TableBody>
+                              {prescription.prescriptionData.Medicines.map((medicine) => (
+                                <TableRow key={medicine.row}>
+                                  <TableCell className="font-medium">{medicine.row}</TableCell>
+                                  <TableCell>
+                                    <Input
+                                      value={medicine.medicine}
+                                      onChange={(e) => updateMedicineName(medicine.row, e.target.value)}
+                                      placeholder="Medicine name"
+                                      className="border-slate-300 focus:border-indigo-500"
+                                    />
+                                  </TableCell>
+                                  <TableCell className="text-center">
+                                    <Checkbox
+                                      checked={medicine.breakfast === 1}
+                                      onCheckedChange={(checked) =>
+                                        updateMedicineTiming(medicine.row, "breakfast", checked ? 1 : 0)
+                                      }
+                                      className="data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
+                                    />
+                                  </TableCell>
+                                  <TableCell className="text-center">
+                                    <Checkbox
+                                      checked={medicine.lunch === 1}
+                                      onCheckedChange={(checked) =>
+                                        updateMedicineTiming(medicine.row, "lunch", checked ? 1 : 0)
+                                      }
+                                      className="data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
+                                    />
+                                  </TableCell>
+                                  <TableCell className="text-center">
+                                    <Checkbox
+                                      checked={medicine.dinner === 1}
+                                      onCheckedChange={(checked) =>
+                                        updateMedicineTiming(medicine.row, "dinner", checked ? 1 : 0)
+                                      }
+                                      className="data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
+                                    />
+                                  </TableCell>
+                                  <TableCell>
+                                    <Input
+                                      value={medicine.duration || ""}
+                                      onChange={(e) => updateMedicineDuration(medicine.row, e.target.value)}
+                                      placeholder="e.g. 7 days"
+                                      className="border-slate-300 focus:border-indigo-500"
+                                    />
+                                  </TableCell>
+                                  <TableCell>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => removeMedicine(medicine.row)}
+                                      className="text-slate-500 hover:text-red-600 hover:bg-red-50"
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      </div>
+                      <div className="mt-2 text-xs text-slate-500">
+                        <span className="inline-block mr-4">B = Breakfast</span>
+                        <span className="inline-block mr-4">L = Lunch</span>
+                        <span className="inline-block">D = Dinner</span>
                       </div>
                     </div>
                   </TabsContent>
@@ -526,11 +537,11 @@ export default function PrescriptionPage() {
                   </TabsContent>
                 </Tabs>
               </CardContent>
-              <CardFooter className="flex justify-between bg-slate-50 border-t p-6">
-                <div className="flex gap-2">
+              <CardFooter className="flex flex-col sm:flex-row justify-between bg-slate-50 border-t p-6 gap-4">
+                <div className="flex gap-2 w-full sm:w-auto">
                   <Button
                     variant="outline"
-                    className="border-slate-300 text-slate-700 hover:bg-slate-100"
+                    className="border-slate-300 text-slate-700 hover:bg-slate-100 flex-1 sm:flex-none"
                     onClick={() => {
                       const prevTab =
                         activeTab === "write" ? "instructions" : activeTab === "medicines" ? "write" : "medicines"
@@ -542,7 +553,7 @@ export default function PrescriptionPage() {
                   </Button>
                   <Button
                     variant="outline"
-                    className="border-slate-300 text-slate-700 hover:bg-slate-100"
+                    className="border-slate-300 text-slate-700 hover:bg-slate-100 flex-1 sm:flex-none"
                     onClick={() => {
                       const nextTab =
                         activeTab === "write" ? "medicines" : activeTab === "medicines" ? "instructions" : "write"
@@ -553,7 +564,7 @@ export default function PrescriptionPage() {
                     <ArrowLeft className="h-4 w-4 ml-2 rotate-180" />
                   </Button>
                 </div>
-                <Button className="bg-indigo-600 hover:bg-indigo-700" onClick={savePrescription}>
+                <Button className="bg-indigo-600 hover:bg-indigo-700 w-full sm:w-auto" onClick={savePrescription}>
                   <Save className="h-4 w-4 mr-2" />
                   Save Prescription
                 </Button>
@@ -565,7 +576,7 @@ export default function PrescriptionPage() {
 
       {/* Prescription Preview Dialog */}
       <Dialog open={previewDialogOpen} onOpenChange={setPreviewDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white">
+        <DialogContent className="w-[95vw] md:max-w-4xl max-w-sm max-h-[90vh] overflow-y-auto bg-white">
           <DialogHeader>
             <DialogTitle className="text-indigo-700 flex items-center gap-2">
               <FileText className="h-5 w-5" />
@@ -575,8 +586,8 @@ export default function PrescriptionPage() {
           </DialogHeader>
 
           <div className="py-4">
-            <div className="border rounded-lg p-6 bg-white" ref={prescriptionPreviewRef}>
-              <div className="flex justify-between items-start border-b pb-4 mb-4">
+            <div className="border rounded-lg p-4 sm:p-6 bg-white max-w-80 md:max-w-full" ref={prescriptionPreviewRef}>
+              <div className="flex flex-col sm:flex-row justify-between items-start border-b pb-4 mb-4 gap-4">
                 <div className="flex items-center gap-4">
                   <Avatar className="h-16 w-16 border-2 border-indigo-100">
                     <AvatarImage src={doctorInfo.image} alt={doctorInfo.name} />
@@ -593,7 +604,7 @@ export default function PrescriptionPage() {
                     <p className="text-sm text-slate-500">Reg. No: {doctorInfo.registration}</p>
                   </div>
                 </div>
-                <div className="text-right">
+                <div className="text-left sm:text-right w-full sm:w-auto">
                   <p className="font-medium text-slate-700">{doctorInfo.clinic}</p>
                   <p className="text-sm text-slate-500">{doctorInfo.address}</p>
                   <p className="text-sm text-slate-500 mt-2">Date: {formatDate(currentDate)}</p>
@@ -601,15 +612,15 @@ export default function PrescriptionPage() {
               </div>
 
               <div className="flex flex-wrap justify-between items-start border-b pb-4 mb-4 gap-4">
-                <div>
+                <div className="w-full sm:w-auto">
                   <p className="text-sm text-slate-500">Patient Name:</p>
                   <p className="font-medium text-slate-800">{patientInfo.name}</p>
                 </div>
-                <div>
+                <div className="w-full sm:w-auto">
                   <p className="text-sm text-slate-500">Patient ID:</p>
                   <p className="font-medium text-slate-800">{patientInfo.id}</p>
                 </div>
-                <div>
+                <div className="w-full sm:w-auto">
                   <p className="text-sm text-slate-500">Age/Gender:</p>
                   <p className="font-medium text-slate-800">
                     {patientInfo.age} years, {patientInfo.gender}
@@ -634,33 +645,35 @@ export default function PrescriptionPage() {
               <div className="mb-6">
                 <h4 className="text-md font-semibold text-indigo-700 mb-2">Medicines</h4>
                 <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader className="bg-slate-50">
-                      <TableRow>
-                        <TableHead className="w-[5%]">No.</TableHead>
-                        <TableHead className="w-[40%]">Medicine</TableHead>
-                        <TableHead className="text-center">Morning</TableHead>
-                        <TableHead className="text-center">Afternoon</TableHead>
-                        <TableHead className="text-center">Evening</TableHead>
-                        <TableHead>Duration</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {prescription.prescriptionData.Medicines.map(
-                        (medicine) =>
-                          medicine.medicine && (
-                            <TableRow key={medicine.row}>
-                              <TableCell>{medicine.row}</TableCell>
-                              <TableCell className="font-medium">{medicine.medicine}</TableCell>
-                              <TableCell className="text-center">{medicine.breakfast === 1 ? "✓" : "-"}</TableCell>
-                              <TableCell className="text-center">{medicine.lunch === 1 ? "✓" : "-"}</TableCell>
-                              <TableCell className="text-center">{medicine.dinner === 1 ? "✓" : "-"}</TableCell>
-                              <TableCell>{medicine.duration || "As directed"}</TableCell>
-                            </TableRow>
-                          ),
-                      )}
-                    </TableBody>
-                  </Table>
+                  <div className="min-w-[500px]">
+                    <Table>
+                      <TableHeader className="bg-slate-50">
+                        <TableRow>
+                          <TableHead className="w-[5%]">No.</TableHead>
+                          <TableHead className="w-[40%]">Medicine</TableHead>
+                          <TableHead className="text-center">Morning</TableHead>
+                          <TableHead className="text-center">Afternoon</TableHead>
+                          <TableHead className="text-center">Evening</TableHead>
+                          <TableHead>Duration</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {prescription.prescriptionData.Medicines.map(
+                          (medicine) =>
+                            medicine.medicine && (
+                              <TableRow key={medicine.row}>
+                                <TableCell>{medicine.row}</TableCell>
+                                <TableCell className="font-medium">{medicine.medicine}</TableCell>
+                                <TableCell className="text-center">{medicine.breakfast === 1 ? "✓" : "-"}</TableCell>
+                                <TableCell className="text-center">{medicine.lunch === 1 ? "✓" : "-"}</TableCell>
+                                <TableCell className="text-center">{medicine.dinner === 1 ? "✓" : "-"}</TableCell>
+                                <TableCell>{medicine.duration || "As directed"}</TableCell>
+                              </TableRow>
+                            ),
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
                 </div>
               </div>
 
@@ -678,25 +691,25 @@ export default function PrescriptionPage() {
             </div>
           </div>
 
-          <DialogFooter className="flex flex-wrap gap-2">
+          <DialogFooter className="flex flex-wrap gap-2 mt-4 md:max-w-4xl max-w-sm">
             <Button
               variant="outline"
-              className="border-slate-300 text-slate-700 hover:bg-slate-100"
+              className="border-slate-300 text-slate-700 hover:bg-slate-100 w-full sm:w-auto"
               onClick={() => setPreviewDialogOpen(false)}
             >
               Close
             </Button>
             <Button
               variant="outline"
-              className="border-indigo-200 text-indigo-700 hover:bg-indigo-50"
-              onClick={handlePrint}
+              className="border-indigo-200 text-indigo-700 hover:bg-indigo-50 w-full sm:w-auto"
+              onClick={() => handlePrint()}
             >
               <Printer className="h-4 w-4 mr-2" />
               Print
             </Button>
             <Button
               variant="outline"
-              className="border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+              className="border-indigo-200 text-indigo-700 hover:bg-indigo-50 w-full sm:w-auto"
               onClick={handleDownloadPDF}
             >
               <Download className="h-4 w-4 mr-2" />
