@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
       Generate a compelling and engaging WhatsApp message body that is concise,
       friendly, and encourages the recipient to take action.
       The message should be informal, direct, and suitable for a mobile audience.
-      Keep it very brief, ideally under 160 characters.
+      Keep it very brief Add emojicons a lot.
     `;
 
     const geminiResponse = await fetch(

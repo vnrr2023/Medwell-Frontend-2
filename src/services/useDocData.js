@@ -15,7 +15,7 @@ export function useDocData() {
   const fetchDoctorInfo = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${API_URL}doctor/get_doctor_info/`, {
+      const response = await axios.get(`${API_URL}doctor/get_doctor_info`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "ngrok-skip-browser-warning": "69420",
@@ -45,7 +45,7 @@ export function useDocData() {
   const fetchAddresses = async () => {
     try {
       setAddressesLoading(true);
-      const response = await axios.get(`${API_URL}doctor/get_doctor_addresses/`, {
+      const response = await axios.get(`${API_URL}doctor/get_doctor_addresses`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "ngrok-skip-browser-warning": "69420",
@@ -63,7 +63,7 @@ export function useDocData() {
 
   const addNewAddress = async (newAddress, newAddressType) => {
     try {
-      await axios.post(`${API_URL}doctor/add_doctor_address/`, {
+      await axios.post(`${API_URL}doctor/add_doctor_address`, {
         address: newAddress,
         address_type: newAddressType
       }, {
@@ -81,7 +81,7 @@ export function useDocData() {
 
   const updateDoctorInfo = async (updatedInfo) => {
     try {
-      await axios.post(`${API_URL}doctor/save_doctor_data/`, updatedInfo, {
+      await axios.post(`${API_URL}doctor/save_doctor_data`, updatedInfo, {
         headers: {
           Authorization: `Bearer ${token}`,
           "ngrok-skip-browser-warning": "69420",
@@ -105,7 +105,7 @@ export function useDocData() {
         }
       });
 
-      await axios.post(`${API_URL}doctor/save_doctor_multi_media_data/`, formData, {
+      await axios.post(`${API_URL}doctor/save_doctor_multi_media_data`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           "ngrok-skip-browser-warning": "69420",
