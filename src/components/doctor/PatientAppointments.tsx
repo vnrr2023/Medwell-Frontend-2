@@ -1,15 +1,30 @@
 "use client"
 
 import type React from "react"
+import Link from "next/link"
 
 import { useState, useCallback, useEffect, useRef } from "react"
 import moment from "moment"
-import { ChevronLeft, ChevronRight, User, Clock, CalendarDays, FileText, CalendarIcon } from "lucide-react"
+import {
+  ChevronLeft,
+  ChevronRight,
+  User,
+  Clock,
+  CalendarDays,
+  FileText,
+  CalendarIcon,
+} from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
@@ -178,7 +193,7 @@ export default function PatientAppointments() {
 
     try {
       const year = currentDate.year()
-      const month = currentDate.month() + 1 
+      const month = currentDate.month() + 1
 
       const response = await DaddyAPI.getDocCalendar(year, month)
       const data = response.data as CalendarDay[]
@@ -244,63 +259,64 @@ export default function PatientAppointments() {
     return `${startOfWeek.format("MMM D")} - ${endOfWeek.format("MMM D, YYYY")}`
   }
 
-
   const AppointmentCard: React.FC<{ appointment: Appointment }> = ({ appointment }) => (
-    <Card
-      className="mb-4 hover:shadow-lg transition-all duration-200 border-l-4"
-      style={{ borderLeftColor: appointment.color }}
-    >
-      <CardContent className="p-4">
-        <div className="flex items-start space-x-4">
-          <Avatar className="w-12 h-12 border-2 border-white shadow-sm">
-            <AvatarImage
-              src={`https://api.dicebear.com/6.x/initials/svg?seed=${appointment.patient}`}
-              alt={appointment.patient}
-            />
-            <AvatarFallback className="bg-primary/10 text-primary">
-              {appointment.patient
-                .split(" ")
-                ?.map((n) => n[0])
-                .join("")}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 space-y-2">
-            <div className="flex justify-between items-start">
-              <h3 className="font-semibold text-lg text-primary">{appointment.title}</h3>
-              <Badge
-                variant="secondary"
-                className="ml-2 shadow-sm"
-                style={{
-                  backgroundColor: `${appointment.color}15`,
-                  color: appointment.color,
-                  border: `1px solid ${appointment.color}30`,
-                }}
-              >
-                {moment(appointment.start).format("h:mm A")}
-              </Badge>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="flex items-center text-sm text-muted-foreground">
-                <User className="w-4 h-4 mr-2 text-primary/60" />
-                <span>{appointment.patient}</span>
+    <Link href={`/doctor/prescription/${appointment.id}`} passHref>
+      <Card
+        className="mb-4 hover:shadow-lg transition-all duration-200 border-l-4 cursor-pointer"
+        style={{ borderLeftColor: appointment.color }}
+      >
+        <CardContent className="p-4">
+          <div className="flex items-start space-x-4">
+            <Avatar className="w-12 h-12 border-2 border-white shadow-sm">
+              <AvatarImage
+                src={`https://api.dicebear.com/6.x/initials/svg?seed=${appointment.patient}`}
+                alt={appointment.patient}
+              />
+              <AvatarFallback className="bg-primary/10 text-primary">
+                {appointment.patient
+                  .split(" ")
+                  ?.map((n) => n[0])
+                  .join("")}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 space-y-2">
+              <div className="flex justify-between items-start">
+                <h3 className="font-semibold text-lg text-primary">{appointment.title}</h3>
+                <Badge
+                  variant="secondary"
+                  className="ml-2 shadow-sm"
+                  style={{
+                    backgroundColor: `${appointment.color}15`,
+                    color: appointment.color,
+                    border: `1px solid ${appointment.color}30`,
+                  }}
+                >
+                  {moment(appointment.start).format("h:mm A")}
+                </Badge>
               </div>
-              <div className="flex items-center text-sm text-muted-foreground">
-                <Clock className="w-4 h-4 mr-2 text-primary/60" />
-                <span>{moment(appointment.start).format("h:mm A")}</span>
-              </div>
-              <div className="flex items-center text-sm text-muted-foreground">
-                <CalendarDays className="w-4 h-4 mr-2 text-primary/60" />
-                <span>{moment(appointment.start).format("MMM D, YYYY")}</span>
-              </div>
-              <div className="flex items-center text-sm text-muted-foreground">
-                <FileText className="w-4 h-4 mr-2 text-primary/60" />
-                <span className="truncate">{appointment.notes}</span>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex items-center text-sm text-muted-foreground">
+                  <User className="w-4 h-4 mr-2 text-primary/60" />
+                  <span>{appointment.patient}</span>
+                </div>
+                <div className="flex items-center text-sm text-muted-foreground">
+                  <Clock className="w-4 h-4 mr-2 text-primary/60" />
+                  <span>{moment(appointment.start).format("h:mm A")}</span>
+                </div>
+                <div className="flex items-center text-sm text-muted-foreground">
+                  <CalendarDays className="w-4 h-4 mr-2 text-primary/60" />
+                  <span>{moment(appointment.start).format("MMM D, YYYY")}</span>
+                </div>
+                <div className="flex items-center text-sm text-muted-foreground">
+                  <FileText className="w-4 h-4 mr-2 text-primary/60" />
+                  <span className="truncate">{appointment.notes}</span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </Link>
   )
 
   const AppointmentSkeleton = () => (
@@ -333,7 +349,7 @@ export default function PatientAppointments() {
     })
 
     return weekDays.flatMap((day) =>
-      day.appointments?.map((apt, index) => ({
+      day.appointments?.map((apt) => ({
         id: apt.id,
         title: apt.serviceName,
         start: `${day.date}T${apt.timing}`,
@@ -362,7 +378,10 @@ export default function PatientAppointments() {
             <tr>
               <th className="p-2 border-b bg-muted/30 sticky left-0 z-10"></th>
               {weekDays?.map((day, index) => (
-                <th key={index} className="p-3 border-b bg-muted/30 min-w-[110px] text-sm font-medium">
+                <th
+                  key={index}
+                  className="p-3 border-b bg-muted/30 min-w-[110px] text-sm font-medium"
+                >
                   <div className="flex flex-col items-center">
                     <span className="text-muted-foreground">{day.format("ddd")}</span>
                     <span className="text-lg font-semibold">{day.format("D")}</span>
@@ -390,19 +409,18 @@ export default function PatientAppointments() {
                       key={dayIndex}
                       className="p-2 border-r border-b relative h-16 group-hover:bg-muted/5 transition-colors duration-200"
                     >
-                      {appointmentsInSlot?.map((app, appIndex) => (
-                        <div
-                          key={appIndex}
-                          className="absolute inset-1 flex items-center justify-center text-xs cursor-pointer rounded-md shadow-sm transition-transform hover:scale-[1.02] hover:shadow-md"
-                          style={{
-                            backgroundColor: `${app?.color}15`,
-                            color: app?.color,
-                            border: `1px solid ${app?.color}30`,
-                          }}
-                          onClick={() => handleSelectEvent(app)}
-                        >
-                          <span className="font-medium">{app?.title}</span>
-                        </div>
+                      {appointmentsInSlot?.map((app) => (
+                          <div key={app.id}
+                            className="absolute inset-1 flex items-center justify-center text-xs cursor-pointer rounded-md shadow-sm transition-transform hover:scale-[1.02] hover:shadow-md"
+                            style={{
+                              backgroundColor: `${app?.color}15`,
+                              color: app?.color,
+                              border: `1px solid ${app?.color}30`,
+                            }}
+                            onClick={() => handleSelectEvent(app)}
+                          >
+                            <span className="font-medium">{app?.title}</span>
+                          </div>
                       ))}
                     </td>
                   )
@@ -423,7 +441,11 @@ export default function PatientAppointments() {
           <p className="text-muted-foreground">Manage and view your scheduled appointments</p>
         </div>
 
-        <Tabs value={view} onValueChange={(value) => setView(value as "list" | "calendar")} className="w-full mb-6">
+        <Tabs
+          value={view}
+          onValueChange={(value) => setView(value as "list" | "calendar")}
+          className="w-full mb-6"
+        >
           <div className="flex items-center justify-between mb-6">
             <TabsList className="grid w-[200px] grid-cols-2">
               <TabsTrigger value="list">List</TabsTrigger>
@@ -550,7 +572,9 @@ export default function PatientAppointments() {
         <Dialog open={!!selectedAppointment} onOpenChange={() => setSelectedAppointment(null)}>
           <DialogContent className="sm:max-w-[425px] bg-white">
             <DialogHeader>
-              <DialogTitle className="text-xl font-semibold text-primary">{selectedAppointment?.title}</DialogTitle>
+              <DialogTitle className="text-xl font-semibold text-primary">
+                {selectedAppointment?.title}
+              </DialogTitle>
               <DialogDescription>Appointment details and information</DialogDescription>
             </DialogHeader>
             {selectedAppointment && (
@@ -604,6 +628,9 @@ export default function PatientAppointments() {
                       <p className="text-sm text-muted-foreground">
                         {selectedAppointment.notes || "No notes available"}
                       </p>
+                      <Link href={`/doctor/prescription/${selectedAppointment.id}`} passHref>
+                      <Button variant="outline" className="mt-2 p-2">Details</Button>
+                      </Link>
                     </div>
                   </div>
                 </div>
@@ -615,4 +642,3 @@ export default function PatientAppointments() {
     </div>
   )
 }
-

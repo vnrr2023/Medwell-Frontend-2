@@ -15,8 +15,10 @@ import {
   Camera,
   PlusCircle,
   X,
+  Trash2,
+  Plus,
 } from "lucide-react"
-import { useDocData } from "@/services/useDocData"
+import  useDocData from "@/services/useDocData"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -36,7 +38,8 @@ interface Address {
 }
 
 interface Service {
-  name: string
+  id: string
+  serviceName: string
   price: string
 }
 
@@ -57,8 +60,20 @@ interface DoctorInfo {
 }
 
 export function DoctorProfile() {
-  const { doctorInfo, addresses, loading, addressesLoading, addNewAddress, updateDoctorInfo, uploadMultimedia } =
-    useDocData()
+  const {
+    doctorInfo,
+    addresses,
+    services,
+    loading,
+    addressesLoading,
+    servicesLoading,
+    addNewAddress,
+    updateDoctorInfo,
+    uploadMultimedia,
+    addService,
+    updateService,
+    deleteService,
+  } = useDocData()
 
   const [isEditing, setIsEditing] = useState(false)
   const [activeTab, setActiveTab] = useState("personal")
@@ -78,6 +93,11 @@ export function DoctorProfile() {
     passport: null,
   })
 
+  // Add state for service management
+  const [newServiceName, setNewServiceName] = useState("")
+  const [newServicePrice, setNewServicePrice] = useState("")
+  const [editingService, setEditingService] = useState<Service | null>(null)
+
   const defaultDoctorInfo: DoctorInfo = {
     name: "",
     specialization: "",
@@ -95,6 +115,33 @@ export function DoctorProfile() {
   }
 
   const doctor: DoctorInfo = (doctorInfo as DoctorInfo) || defaultDoctorInfo
+
+  // Add a function to handle service form submission
+  const handleServiceSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (editingService) {
+      updateService(editingService.id, newServiceName, newServicePrice)
+      setEditingService(null)
+    } else {
+      addService(newServiceName, newServicePrice)
+    }
+    setNewServiceName("")
+    setNewServicePrice("")
+  }
+
+  // Add a function to set up service editing
+  const handleEditService = (service: Service) => {
+    setEditingService(service)
+    setNewServiceName(service.serviceName)
+    setNewServicePrice(service.price)
+  }
+
+  // Add a function to cancel service editing
+  const handleCancelEdit = () => {
+    setEditingService(null)
+    setNewServiceName("")
+    setNewServicePrice("")
+  }
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -147,8 +194,62 @@ export function DoctorProfile() {
     }
   }
 
+  // Update the renderEditForm function to include services tab
   const renderEditForm = () => {
     switch (activeTab) {
+      case "services":
+        return (
+          <div className="space-y-6">
+            <form onSubmit={handleServiceSubmit} className="flex items-center space-x-2 mb-6">
+              <Input
+                type="text"
+                value={newServiceName}
+                onChange={(e) => setNewServiceName(e.target.value)}
+                placeholder="Service name"
+                className="flex-grow"
+                required
+              />
+              <Input
+                type="text"
+                value={newServicePrice}
+                onChange={(e) => setNewServicePrice(e.target.value)}
+                placeholder="Price"
+                className="w-[120px]"
+                required
+              />
+              <Button type="submit">{editingService ? "Update" : <Plus className="w-5 h-5" />}</Button>
+              {editingService && (
+                <Button type="button" variant="outline" onClick={handleCancelEdit}>
+                  <X className="w-5 h-5" />
+                </Button>
+              )}
+            </form>
+
+            {servicesLoading ? (
+              <div className="text-center py-4">Loading services...</div>
+            ) : (
+              <div className="space-y-3">
+                {services.map((service: Service) => (
+                  <div key={service.id} className="flex items-center justify-between p-3 border rounded-md">
+                    <div>
+                      <p className="font-medium">{service.serviceName}</p>
+                      <p className="text-sm text-gray-500">₹{service.price}</p>
+                    </div>
+                    <div className="flex space-x-2">
+                      <Button variant="ghost" size="sm" onClick={() => handleEditService(service)}>
+                        <Edit2 className="w-4 h-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => deleteService(service.id)}>
+                        <Trash2 className="w-4 h-4 text-red-500" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+                {services.length === 0 && <div className="text-center py-4 text-gray-500">No services added yet</div>}
+              </div>
+            )}
+          </div>
+        )
       case "address":
         return (
           <div className="space-y-6">
@@ -169,7 +270,7 @@ export function DoctorProfile() {
                   <SelectItem value="home">Home</SelectItem>
                 </SelectContent>
               </Select>
-              <Button onClick={() => addNewAddress(newAddress, newAddressType)}>
+              <Button onClick={() => addNewAddress(newAddress)}>
                 <PlusCircle className="w-5 h-5" />
               </Button>
             </div>
@@ -332,6 +433,7 @@ export function DoctorProfile() {
     )
   }
 
+  // Update the Tabs component to include services tab
   return (
     <div className="w-full max-w-[1200px] mx-auto p-4 sm:p-6 md:p-8 relative">
       {!isEditing ? (
@@ -409,12 +511,18 @@ export function DoctorProfile() {
                     <h2 className="text-lg font-semibold">Services and price list</h2>
                   </div>
                   <div className="space-y-3 text-sm">
-                    {(doctor.services || []).map((service: Service, index: number) => (
-                      <div key={index} className="flex justify-between items-center">
-                        <span className="text-gray-600">{service.name}</span>
-                        <span className="font-medium">{service.price}</span>
-                      </div>
-                    ))}
+                    {servicesLoading ? (
+                      <div className="text-center py-4">Loading services...</div>
+                    ) : services.length > 0 ? (
+                      services.map((service: Service) => (
+                        <div key={service.id} className="flex justify-between items-center">
+                          <span className="text-gray-600">{service.serviceName}</span>
+                          <span className="font-medium">₹{service.price}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-4 text-gray-500">No services added yet</div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -464,14 +572,17 @@ export function DoctorProfile() {
                 <TabsTrigger value="personal">Basic Information</TabsTrigger>
                 <TabsTrigger value="address">Address Information</TabsTrigger>
                 <TabsTrigger value="multimedia">Multimedia Information</TabsTrigger>
+                <TabsTrigger value="services">Services</TabsTrigger>
               </TabsList>
 
               <form onSubmit={handleSave} className="space-y-6">
                 <TabsContent value={activeTab}>{renderEditForm()}</TabsContent>
 
-                <div className="flex justify-end">
-                  <Button type="submit">Save Changes</Button>
-                </div>
+                {activeTab !== "services" && (
+                  <div className="flex justify-end">
+                    <Button type="submit">Save Changes</Button>
+                  </div>
+                )}
               </form>
             </Tabs>
           </CardContent>

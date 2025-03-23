@@ -1,7 +1,7 @@
 import axios from "axios"
 export const ngrok_url_m = "https://medwell2.vercel.app/api"
 export const ngrok_url = "https://f4c3-103-220-42-152.ngrok-free.app" 
-export const ngrok_url2 = "https://c113-103-220-42-152.ngrok-free.app" 
+export const ngrok_url2 = "https://709c-103-220-42-152.ngrok-free.app" 
 
 const api = axios.create({
   baseURL: `${ngrok_url}/`,
@@ -243,36 +243,45 @@ doctorSearchQuery: (data:any) =>
       //APPOINTMENTS
       //☑️
       getSlots: (date:any,address_id:any) =>
-        apim.get(`slots/get-slots-for-date-and-address/${date}/${address_id}`, {
+        api2.get(`slots/get-slots-for-date-and-address/${date}/${address_id}`, {
           headers: {
-            Authorization: `Bearer ${mToken}`,
+            Authorization: `Bearer ${Token}`,
             "Content-Type": "application/json",
             "ngrok-skip-browser-warning": "69420",
           },
         }),
         //☑️
       getaddressess: (id:any) =>
-        apim.get(`doctor/data/addresses/${id}`, {
+        api2.get(`doctor/data/addresses/${id}`, {
           headers: {
-            Authorization: `Bearer ${mToken}`,
+            Authorization: `Bearer ${Token}`,
             "Content-Type": "application/json",
             "ngrok-skip-browser-warning": "69420",
           },
         }),
         //☑️
       getservices: (id:any) =>
-        apim.get(`doctor/data/services/${id}`, {
+        api2.get(`doctor/data/services/${id}`, {
           headers: {
-            Authorization: `Bearer ${mToken}`,
+            Authorization: `Bearer ${Token}`,
+            "Content-Type": "application/json",
+            "ngrok-skip-browser-warning": "69420",
+          },
+        }),
+        //☑️
+      getDocInfo: (id:any) =>
+        api2.get(`doctor/data/profile/${id}`, {
+          headers: {
+            Authorization: `Bearer ${Token}`,
             "Content-Type": "application/json",
             "ngrok-skip-browser-warning": "69420",
           },
         }),
         //☑️
       createAppointment: (data:any) =>
-        apim.post("appointment/patient/create", data, {
+        api2.post("appointment/patient/create", data, {
           headers: {
-            Authorization: `Bearer ${mToken}`,
+            Authorization: `Bearer ${Token}`,
             "Content-Type": "application/json",
           },
         }),
@@ -297,34 +306,115 @@ doctorSearchQuery: (data:any) =>
           //doctor appointments apis
           
           getDoctorPrevAppointments: (page = 0) =>
-            apim.get(`appointment/doctor/previous-appointments/${page}`, {
+            api2.get(`appointment/doctor/previous-appointments`, {
               headers: {
-                Authorization: `Bearer ${mToken}`,
+                Authorization: `Bearer ${Token}`,
                 "ngrok-skip-browser-warning": "69420",
               },
-        
+              params:{page}
             }),
-        
+            
           // Upcoming appointments with date filter
           getDoctorUpcomingAppointments: (date: string, time?: string) =>
-            apim.get(`appointment/doctor/upcoming-appointments/${date}/10:00`, {
+            api2.get(`appointment/doctor/upcoming-appointments`, {
               headers: {
-                Authorization: `Bearer ${mToken}`,
+                Authorization: `Bearer ${Token}`,
                 "ngrok-skip-browser-warning": "69420",
               },
+              params:{date,time}
             }),
         
           // Calendar data with year and month
           getDocCalendar: (year: number, month: number) =>
-            apim.get(`appointment/doctor/appointment-calendar/${year}/${month}`, {
+            api2.get(`appointment/doctor/appointment-calendar`, {
               headers: {
-                Authorization: `Bearer ${mToken}`,
+                Authorization: `Bearer ${Token}`,
                 "ngrok-skip-browser-warning": "69420",
               },
               params:{year, month}
             }),
+          // getDoctorPrevAppointments: (page = 0) =>
+          //   apim.get(`appointment/doctor/previous-appointments/${page}`, {
+          //     headers: {
+          //       Authorization: `Bearer ${mToken}`,
+          //       "ngrok-skip-browser-warning": "69420",
+          //     },
+          //     params:{page}
+          //   }),
+        
+          // // Upcoming appointments with date filter
+          // getDoctorUpcomingAppointments: (date: string, time?: string) =>
+          //   apim.get(`appointment/doctor/upcoming-appointments/${date}/10:00`, {
+          //     headers: {
+          //       Authorization: `Bearer ${mToken}`,
+          //       "ngrok-skip-browser-warning": "69420",
+          //     },
+          //     params:{date,time}
+          //   }),
+        
+          // // Calendar data with year and month
+          // getDocCalendar: (year: number, month: number) =>
+          //   apim.get(`appointment/doctor/appointment-calendar/${year}/${month}`, {
+          //     headers: {
+          //       Authorization: `Bearer ${mToken}`,
+          //       "ngrok-skip-browser-warning": "69420",
+          //     },
+          //     params:{year, month}
+          //   }),
 
-            
+            //patient appointments api
+
+            getPatientPrevAppointments: (page = 0) =>
+              apim.get(`appointment/patient/previous-appointments/${page}`, {
+                headers: {
+                  Authorization: `Bearer ${mToken}`,
+                  "ngrok-skip-browser-warning": "69420",
+                },
+                params:{page}
+              }),
+          
+            // Upcoming appointments with date filter
+            getPatientUpcomingAppointments: (date: string, time?: string) =>
+              apim.get(`appointment/patient/upcoming-appointments/${date}/10:00`, {
+                headers: {
+                  Authorization: `Bearer ${mToken}`,
+                  "ngrok-skip-browser-warning": "69420",
+                },
+                params:{date,time}
+              }),
+          
+            // Calendar data with year and month
+            getPatCalendar: (year: number, month: number) =>
+              apim.get(`appointment/patient/appointment-calendar/${year}/${month}`, {
+                headers: {
+                  Authorization: `Bearer ${mToken}`,
+                  "ngrok-skip-browser-warning": "69420",
+                },
+                params:{year, month}
+              }),
+              //prescriptions with id
+            getPrescriptions: (id:any) =>
+              api2.get(`prescription/${id}`, {
+                headers: {
+                  Authorization: `Bearer ${Token}`,
+                  "ngrok-skip-browser-warning": "69420",
+                },
+              }),
+              
+              addPrescription: (data:any) =>
+                api2.post("prescription/add",data,{
+                  headers: {
+                    Authorization: `Bearer ${Token}`,
+                    "Content-Type": "application/json",
+                  },
+                }),
+              updatePrescription: (data:any) =>
+                api2.put("prescription/update",data,{
+                  headers: {
+                    Authorization: `Bearer ${Token}`,
+                    "Content-Type": "application/json",
+                  },
+                }),
 }
 
 export default DaddyAPI

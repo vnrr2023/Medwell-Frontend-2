@@ -1,53 +1,136 @@
 "use client"
 
 import type React from "react"
-import { useState, useCallback } from "react"
+
+import { useState, useCallback, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Calendar, momentLocalizer, Views } from "react-big-calendar"
 import moment from "moment"
 import "react-big-calendar/lib/css/react-big-calendar.css"
 import DatePicker from "react-datepicker"
 import "react-datepicker/dist/react-datepicker.css"
-import { PlusCircle, X, ChevronLeft, ChevronRight, Trash2 } from "lucide-react"
-import type { Appointment } from "./types"
-import Chat from "@/components/chatbots/Chat"
+import { PlusCircle, X, ChevronLeft, ChevronRight, Trash2, History, Loader2 } from "lucide-react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import DaddyAPI from "@/services/api"
+
+// Define interfaces for API responses
+interface AppointmentSlot {
+  id: string
+  timing: string
+  status: string
+  date: string
+}
+
+interface Patient {
+  id: string
+  name: string
+}
+
+interface DoctorService {
+  id: string
+  serviceName: string
+  serviceAmount: string
+}
+
+interface ApiAppointment {
+  id: string
+  bookedAt: string
+  status: string | null
+  appointmentSlot: AppointmentSlot
+  patient: Patient
+  doctorServices: DoctorService
+}
+
+interface ApiResponse {
+  appointments: ApiAppointment[]
+  nextPage: number | null
+  totalPages: number
+  hasNext: boolean
+  currentPage: number
+}
+
+interface CalendarDay {
+  date: string
+  appointments: {
+    id: string
+    timing: string
+    patientName: string
+    serviceName: string
+  }[]
+}
+
+// Interface for our component's appointment format
+interface Appointment {
+  id: string | number
+  title: string
+  start: Date | string
+  end: Date | string
+  doctor: string
+  notes: string
+  color: string
+  serviceAmount?: string
+  isPrevious?: boolean
+}
 
 const localizer = momentLocalizer(moment)
 
-const initialAppointments: Appointment[] = [
-  {
-    id: 1,
-    title: "Annual Checkup",
-    start: new Date(2024, 9, 15, 10, 0),
-    end: new Date(2024, 9, 15, 11, 0),
-    doctor: "Nishikant",
-    notes: "Bring medical history",
-    color: "#3b82f6",
-  },
-  {
-    id: 2,
-    title: "Dental Cleaning",
-    start: new Date(2024, 9, 18, 14, 30),
-    end: new Date(2024, 9, 18, 15, 30),
-    doctor: "Vivek",
-    notes: "Floss beforehand",
-    color: "#10b981",
-  },
-  {
-    id: 3,
-    title: "Eye Exam",
-    start: new Date(2024, 11, 22, 11, 0),
-    end: new Date(2024, 11, 22, 12, 0),
-    doctor: "Rehan",
-    notes: "Bring current glasses",
-    color: "#f59e0b",
-  },
-]
+// Color mapping for different service types
+const serviceColors: Record<string, string> = {
+  "Follow Up": "#22c55e",
+  Consultation: "#ef4444",
+  Checkup: "#6366f1",
+  Surgery: "#fb923c",
+  default: "#eab308",
+}
 
-export default function Appointments() {
-  const [appointments, setAppointments] = useState<Appointment[]>(initialAppointments)
+// Convert API appointment to our format
+const convertApiAppointment = (apiAppointment: ApiAppointment, isPrevious = false): Appointment => {
+  const { id, appointmentSlot, doctorServices } = apiAppointment
+  const startTime = `${appointmentSlot.date}T${appointmentSlot.timing}`
+
+  // Calculate end time (assuming 30 min appointments)
+  const startMoment = moment(startTime)
+  const endMoment = startMoment.clone().add(30, "minutes")
+
+  return {
+    id,
+    title: doctorServices.serviceName,
+    start: startMoment.toDate(),
+    end: endMoment.toDate(),
+    doctor: "Dr. Smith", // Placeholder, replace with actual doctor name if available
+    notes: `${doctorServices.serviceName} - $${doctorServices.serviceAmount}`,
+    color: serviceColors[doctorServices.serviceName] || serviceColors.default,
+    serviceAmount: doctorServices.serviceAmount,
+    isPrevious,
+  }
+}
+
+export default function PatientAppointments() {
+  // State for appointments
+  const [appointments, setAppointments] = useState<Appointment[]>([])
+  const [previousAppointments, setPreviousAppointments] = useState<Appointment[]>([])
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isPrevModalOpen, setIsPrevModalOpen] = useState(false)
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
+  const [currentDate, setCurrentDate] = useState(new Date())
+  const [loading, setLoading] = useState({
+    previous: false,
+    upcoming: false,
+    calendar: false,
+  })
+  const [paginationInfo, setPaginationInfo] = useState({
+    currentPage: 0,
+    hasNext: false,
+    loadingMore: false,
+    scrollLock: false,
+  })
+
+  // New appointment form state
   const [newAppointment, setNewAppointment] = useState<Appointment>({
     id: 0,
     title: "",
@@ -57,8 +140,158 @@ export default function Appointments() {
     notes: "",
     color: "#3b82f6",
   })
-  const [currentDate, setCurrentDate] = useState(new Date(2024, 9, 1))
-//   const [currentView, setCurrentView] = useState(Views.MONTH)
+
+  // Ref for infinite scroll
+  const prevAppointmentsRef = useRef<HTMLDivElement>(null)
+
+  // Fetch previous appointments
+  const fetchPreviousAppointments = async (page = 0, append = false) => {
+    if (paginationInfo.loadingMore || paginationInfo.scrollLock) return
+
+    if (append) {
+      setPaginationInfo((prev) => ({ ...prev, loadingMore: true }))
+    } else {
+      setLoading((prev) => ({ ...prev, previous: true }))
+    }
+
+    try {
+      // Use mock API for development, replace with real API in production
+      const response = await DaddyAPI.getPatientPrevAppointments(page)
+      const data = response.data as ApiResponse
+
+      const convertedAppointments = data.appointments.map((app) => convertApiAppointment(app, true))
+
+      if (append) {
+        setPreviousAppointments((prev) => [...prev, ...convertedAppointments])
+      } else {
+        setPreviousAppointments(convertedAppointments)
+      }
+
+      setPaginationInfo({
+        currentPage: data.currentPage,
+        hasNext: data.hasNext,
+        loadingMore: false,
+        scrollLock: false,
+      })
+
+      // Add previous appointments to calendar if it's the first page
+      if (page === 0 && !append) {
+        setAppointments((prev) => {
+          // Filter out any existing previous appointments
+          const upcomingOnly = prev.filter((app) => !app.isPrevious)
+          return [...upcomingOnly, ...convertedAppointments]
+        })
+      }
+    } catch (error) {
+      console.error("Error fetching previous appointments:", error)
+    } finally {
+      setLoading((prev) => ({ ...prev, previous: false }))
+      if (append) {
+        setPaginationInfo((prev) => ({ ...prev, loadingMore: false }))
+      }
+    }
+  }
+
+  // Fetch upcoming appointments
+  const fetchUpcomingAppointments = async () => {
+    setLoading((prev) => ({ ...prev, upcoming: true }))
+
+    try {
+      // Format date as YYYY-MM-DD
+      const formattedDate = moment(currentDate).format("YYYY-MM-DD")
+
+      // Use mock API for development, replace with real API in production
+      const response = await DaddyAPI.getPatientUpcomingAppointments(formattedDate)
+      const data = response.data
+
+      const convertedAppointments = data.appointments.map((app:any) => convertApiAppointment(app))
+
+      // Update appointments, keeping previous ones
+      setAppointments((prev) => {
+        // Filter out any existing upcoming appointments
+        const previousOnly = prev.filter((app) => app.isPrevious)
+        return [...previousOnly, ...convertedAppointments]
+      })
+    } catch (error) {
+      console.error("Error fetching upcoming appointments:", error)
+    } finally {
+      setLoading((prev) => ({ ...prev, upcoming: false }))
+    }
+  }
+
+  // Fetch calendar data
+  const fetchCalendarData = async () => {
+    setLoading((prev) => ({ ...prev, calendar: true }))
+
+    try {
+      const year = currentDate.getFullYear()
+      const month = currentDate.getMonth() + 1 // Moment months are 0-indexed
+
+      // Use mock API for development, replace with real API in production
+      const response = await DaddyAPI.getPatCalendar(year, month)
+      const data = response.data as CalendarDay[]
+
+      // Process calendar data if needed
+      // This could be used to add additional appointments to the calendar view
+    } catch (error) {
+      console.error("Error fetching calendar data:", error)
+    } finally {
+      setLoading((prev) => ({ ...prev, calendar: false }))
+    }
+  }
+
+  // Initial data fetch
+  useEffect(() => {
+    fetchPreviousAppointments()
+    fetchUpcomingAppointments()
+    fetchCalendarData()
+  }, [])
+
+  // Refetch when date changes
+  useEffect(() => {
+    fetchUpcomingAppointments()
+    fetchCalendarData()
+  }, [currentDate])
+
+  // Infinite scroll for previous appointments with bounce effect
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (
+          entries[0].isIntersecting &&
+          paginationInfo.hasNext &&
+          !paginationInfo.loadingMore &&
+          !paginationInfo.scrollLock
+        ) {
+          // Set scroll lock to prevent multiple triggers
+          setPaginationInfo((prev) => ({ ...prev, scrollLock: true }))
+
+          // Fetch next page after a small delay to create the bounce effect
+          setTimeout(() => {
+            fetchPreviousAppointments(paginationInfo.currentPage + 1, true)
+          }, 300)
+        }
+      },
+      { threshold: 0.5 },
+    )
+
+    const currentRef = prevAppointmentsRef.current
+    if (currentRef && isPrevModalOpen) {
+      observer.observe(currentRef)
+    }
+
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef)
+      }
+    }
+  }, [
+    paginationInfo.currentPage,
+    paginationInfo.hasNext,
+    paginationInfo.loadingMore,
+    paginationInfo.scrollLock,
+    isPrevModalOpen,
+  ])
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -76,7 +309,12 @@ export default function Appointments() {
       e.preventDefault()
       if (!newAppointment.title || !newAppointment.doctor) return
 
-      setAppointments((prev) => [...prev, { ...newAppointment, id: Date.now() }])
+      const newAppointmentWithId = {
+        ...newAppointment,
+        id: `new-${Date.now()}`,
+      }
+
+      setAppointments((prev) => [...prev, newAppointmentWithId])
       setNewAppointment({
         id: 0,
         title: "",
@@ -107,7 +345,7 @@ export default function Appointments() {
     })
   }, [])
 
-  const handleDeleteAppointment = useCallback((id: number) => {
+  const handleDeleteAppointment = useCallback((id: string | number) => {
     setAppointments((prev) => prev.filter((appointment) => appointment.id !== id))
     setSelectedAppointment(null)
   }, [])
@@ -117,7 +355,7 @@ export default function Appointments() {
       style: {
         backgroundColor: event.color,
         borderRadius: "4px",
-        opacity: 0.8,
+        opacity: event.isPrevious ? 0.6 : 0.8,
         color: "white",
         border: "0px",
         display: "block",
@@ -130,6 +368,14 @@ export default function Appointments() {
     const diffTime = date.getTime() - today.getTime()
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
     return diffDays
+  }
+
+  const openPreviousAppointmentsModal = () => {
+    setIsPrevModalOpen(true)
+    // Reset pagination if needed
+    if (previousAppointments.length === 0) {
+      fetchPreviousAppointments()
+    }
   }
 
   return (
@@ -151,50 +397,60 @@ export default function Appointments() {
             <PlusCircle className="w-5 h-5 mr-2" />
             Add New Appointment
           </motion.button>
-          {appointments.length === 0 ? (
-            <p className="text-gray-500">No upcoming appointments</p>
+
+          {loading.upcoming ? (
+            <div className="flex justify-center items-center py-8">
+              <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+            </div>
+          ) : appointments.filter((app) => !app.isPrevious).length === 0 ? (
+            <p className="text-gray-500 text-center py-4">No upcoming appointments</p>
           ) : (
             <ul className="space-y-4">
-              {appointments.map((appointment) => {
-                const daysDiff = getDaysDifference(appointment.start)
-                let statusText = ""
-                let statusColor = ""
-                if (daysDiff < 0) {
-                  statusText = `Missed by ${Math.abs(daysDiff)} days`
-                  statusColor = "text-red-600"
-                } else if (daysDiff === 0) {
-                  statusText = "Today"
-                  statusColor = "text-green-600"
-                } else {
-                  statusText = `In ${daysDiff} days`
-                  statusColor = "text-blue-600"
-                }
-                return (
-                  <li
-                    key={appointment.id}
-                    className="bg-gray-50 p-3 lg:p-4 rounded-md flex justify-between items-start"
-                  >
-                    <div>
-                      <h3 className="font-semibold text-sm lg:text-base">{appointment.title}</h3>
-                      <p className="text-xs lg:text-sm text-gray-600">Dr. {appointment.doctor}</p>
-                      <p className="text-xs lg:text-sm text-gray-600">
-                        {moment(appointment.start).format("MMM D, YYYY h:mm A")}
-                      </p>
-                      <p className={`text-xs lg:text-sm ${statusColor} font-medium mt-1`}>{statusText}</p>
-                    </div>
-                    <button
-                      onClick={() => handleDeleteAppointment(appointment.id)}
-                      className="text-red-600 hover:text-red-800"
+              {appointments
+                .filter((appointment) => !appointment.isPrevious)
+                .map((appointment) => {
+                  const daysDiff = getDaysDifference(appointment.start as Date)
+                  let statusText = ""
+                  let statusColor = ""
+
+                  if (daysDiff < 0) {
+                    statusText = `Missed by ${Math.abs(daysDiff)} days`
+                    statusColor = "text-red-600"
+                  } else if (daysDiff === 0) {
+                    statusText = "Today"
+                    statusColor = "text-green-600"
+                  } else {
+                    statusText = `In ${daysDiff} days`
+                    statusColor = "text-blue-600"
+                  }
+
+                  return (
+                    <li
+                      key={appointment.id}
+                      className="bg-gray-50 p-3 lg:p-4 rounded-md flex justify-between items-start"
                     >
-                      <Trash2 className="w-4 h-4 lg:w-5 lg:h-5" />
-                    </button>
-                  </li>
-                )
-              })}
+                      <div>
+                        <h3 className="font-semibold text-sm lg:text-base">{appointment.title}</h3>
+                        <p className="text-xs lg:text-sm text-gray-600">Dr. {appointment.doctor}</p>
+                        <p className="text-xs lg:text-sm text-gray-600">
+                          {moment(appointment.start).format("MMM D, YYYY h:mm A")}
+                        </p>
+                        <p className={`text-xs lg:text-sm ${statusColor} font-medium mt-1`}>{statusText}</p>
+                      </div>
+                      <button
+                        onClick={() => handleDeleteAppointment(appointment.id)}
+                        className="text-red-600 hover:text-red-800"
+                      >
+                        <Trash2 className="w-4 h-4 lg:w-5 lg:h-5" />
+                      </button>
+                    </li>
+                  )
+                })}
             </ul>
           )}
         </div>
       </motion.div>
+
       <motion.div
         initial={{ opacity: 0, x: 50 }}
         animate={{ opacity: 1, x: 0 }}
@@ -202,32 +458,64 @@ export default function Appointments() {
         className="w-full lg:w-2/3"
       >
         <div className="bg-white p-4 lg:p-6 rounded-lg shadow-md">
-          <div className="flex justify-between items-center mb-4 lg:mb-8">
-            <button onClick={() => handleNavigate("PREV")} className="p-1 rounded-full hover:bg-gray-200">
-              <ChevronLeft className="w-5 h-5 lg:w-6 lg:h-6" />
-            </button>
-            <span className="text-lg lg:text-2xl font-medium">{moment(currentDate).format("MMMM YYYY")}</span>
-            <button onClick={() => handleNavigate("NEXT")} className="p-1 rounded-full hover:bg-gray-200">
-              <ChevronRight className="w-5 h-5 lg:w-6 lg:h-6" />
-            </button>
+          <div className="flex justify-between items-center mb-4 lg:mb-6">
+            <div className="flex items-center gap-2">
+              <button onClick={() => handleNavigate("PREV")} className="p-1 rounded-full hover:bg-gray-200">
+                <ChevronLeft className="w-5 h-5 lg:w-6 lg:h-6" />
+              </button>
+              <span className="text-lg lg:text-2xl font-medium">{moment(currentDate).format("MMMM YYYY")}</span>
+              <button onClick={() => handleNavigate("NEXT")} className="p-1 rounded-full hover:bg-gray-200">
+                <ChevronRight className="w-5 h-5 lg:w-6 lg:h-6" />
+              </button>
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={openPreviousAppointmentsModal}
+              className="flex items-center gap-1"
+            >
+              <History className="w-4 h-4" />
+              <span>Previous Appointments</span>
+            </Button>
           </div>
-          <Calendar
-            localizer={localizer}
-            events={appointments}
-            startAccessor="start"
-            endAccessor="end"
-            style={{ height: 400, fontSize: "0.8rem" }}
-            defaultView={Views.MONTH}
-            views={[Views.MONTH]}
-            date={currentDate}
-            onNavigate={setCurrentDate}
-            eventPropGetter={eventStyleGetter}
-            onSelectEvent={handleSelectEvent}
-            className="rounded-lg border border-gray-200 text-xs lg:text-sm"
-            toolbar={false}
-          />
+
+          {loading.calendar && appointments.length === 0 ? (
+            <div className="flex justify-center items-center py-20">
+              <Loader2 className="w-10 h-10 animate-spin text-blue-500" />
+            </div>
+          ) : (
+            <Calendar
+              localizer={localizer}
+              events={appointments}
+              startAccessor="start"
+              endAccessor="end"
+              style={{ height: 500, fontSize: "0.8rem" }}
+              defaultView={Views.MONTH}
+              views={[Views.MONTH]}
+              date={currentDate}
+              onNavigate={setCurrentDate}
+              eventPropGetter={eventStyleGetter}
+              onSelectEvent={handleSelectEvent}
+              className="rounded-lg border border-gray-200 text-xs lg:text-sm"
+              toolbar={false}
+            />
+          )}
+
+          <div className="mt-4 flex gap-3">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-blue-600 opacity-80"></div>
+              <span className="text-xs text-gray-600">Upcoming</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-blue-600 opacity-60"></div>
+              <span className="text-xs text-gray-600">Previous</span>
+            </div>
+          </div>
         </div>
       </motion.div>
+
+      {/* Add New Appointment Modal */}
       <AnimatePresence>
         {isModalOpen && (
           <motion.div
@@ -275,7 +563,7 @@ export default function Appointments() {
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Start Time</label>
                     <DatePicker
-                      selected={newAppointment.start}
+                      selected={newAppointment.start as any}
                       onChange={(date) => handleDateChange(date, "start")}
                       showTimeSelect
                       timeFormat="HH:mm"
@@ -288,7 +576,7 @@ export default function Appointments() {
                   <div>
                     <label className="block text-sm font-medium text-gray-700">End Time</label>
                     <DatePicker
-                      selected={newAppointment.end}
+                      selected={newAppointment.end as any}
                       onChange={(date) => handleDateChange(date, "end")}
                       showTimeSelect
                       timeFormat="HH:mm"
@@ -330,6 +618,8 @@ export default function Appointments() {
             </motion.div>
           </motion.div>
         )}
+
+        {/* View Appointment Details Modal */}
         {selectedAppointment && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -362,20 +652,119 @@ export default function Appointments() {
                 <p>
                   <strong>Notes:</strong> {selectedAppointment.notes || "No notes"}
                 </p>
+                {selectedAppointment.serviceAmount && (
+                  <p>
+                    <strong>Service Amount:</strong> ${selectedAppointment.serviceAmount}
+                  </p>
+                )}
+                <p>
+                  <strong>Status:</strong>{" "}
+                  <span className={selectedAppointment.isPrevious ? "text-gray-600" : "text-green-600"}>
+                    {selectedAppointment.isPrevious ? "Completed" : "Upcoming"}
+                  </span>
+                </p>
               </div>
               <div className="mt-6 flex justify-end">
-                <button
-                  onClick={() => handleDeleteAppointment(selectedAppointment.id)}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                >
-                  Delete Appointment
-                </button>
+                {!selectedAppointment.isPrevious && (
+                  <button
+                    onClick={() => handleDeleteAppointment(selectedAppointment.id)}
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                  >
+                    Delete Appointment
+                  </button>
+                )}
               </div>
             </motion.div>
           </motion.div>
         )}
+
+        {/* Previous Appointments Modal */}
+        <Dialog open={isPrevModalOpen} onOpenChange={setIsPrevModalOpen}>
+          <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-hidden">
+            <DialogHeader>
+              <DialogTitle>Previous Appointments</DialogTitle>
+            </DialogHeader>
+            <ScrollArea className="h-[500px] pr-4">
+              {loading.previous && previousAppointments.length === 0 ? (
+                <div className="flex justify-center items-center py-10">
+                  <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+                </div>
+              ) : previousAppointments.length === 0 ? (
+                <div className="text-center py-10 text-gray-500">No previous appointments found</div>
+              ) : (
+                <div className="space-y-4">
+                  {previousAppointments.map((appointment) => (
+                    <Card key={appointment.id} className="border-l-4" style={{ borderLeftColor: appointment.color }}>
+                      <CardContent className="p-4">
+                        <div className="flex items-start space-x-4">
+                          <Avatar className="w-12 h-12 border-2 border-white shadow-sm">
+                            <AvatarImage
+                              src={`https://api.dicebear.com/6.x/initials/svg?seed=${appointment.doctor}`}
+                              alt={appointment.doctor}
+                            />
+                            <AvatarFallback className="bg-primary/10 text-primary">
+                              {appointment.doctor
+                                .split(" ")
+                                .map((n) => n[0])
+                                .join("")}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 space-y-2">
+                            <div className="flex justify-between items-start">
+                              <h3 className="font-semibold text-lg text-primary">{appointment.title}</h3>
+                              <Badge
+                                variant="secondary"
+                                className="ml-2 shadow-sm"
+                                style={{
+                                  backgroundColor: `${appointment.color}15`,
+                                  color: appointment.color,
+                                  border: `1px solid ${appointment.color}30`,
+                                }}
+                              >
+                                {moment(appointment.start).format("h:mm A")}
+                              </Badge>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                              <div className="flex items-center text-sm text-muted-foreground">
+                                <span>Dr. {appointment.doctor}</span>
+                              </div>
+                              <div className="flex items-center text-sm text-muted-foreground">
+                                <span>{moment(appointment.start).format("MMM D, YYYY")}</span>
+                              </div>
+                              <div className="col-span-2 flex items-center text-sm text-muted-foreground">
+                                <span className="truncate">{appointment.notes}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+
+                  {/* Pagination loading indicator with bounce effect */}
+                  {paginationInfo.hasNext && (
+                    <div
+                      ref={prevAppointmentsRef}
+                      className={`py-4 text-center transition-all duration-300 ${
+                        paginationInfo.loadingMore ? "translate-y-2" : "translate-y-0"
+                      }`}
+                    >
+                      {paginationInfo.loadingMore ? (
+                        <div className="flex justify-center items-center gap-2">
+                          <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
+                          <span className="text-sm text-muted-foreground">Loading more...</span>
+                        </div>
+                      ) : (
+                        <span className="text-sm text-muted-foreground">Scroll for more</span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </ScrollArea>
+          </DialogContent>
+        </Dialog>
       </AnimatePresence>
-      <Chat/>
     </div>
   )
 }

@@ -1,140 +1,224 @@
-'use client';
+"use client"
 
-import { useState, useEffect } from 'react';
-import axios from 'axios';
-import { ngrok_url2, ngrok_url_m } from './api';
-import { mToken as Token } from './api';
-const API_URL = ngrok_url_m+"/"
-export function useDocData() {
-  const token=Token
-  const [doctorInfo, setDoctorInfo] = useState({});
-  const [addresses, setAddresses] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [addressesLoading, setAddressesLoading] = useState(true);
+import { useState, useEffect } from "react"
+import axios from "axios"
+import { ngrok_url2 } from "./api"
+import { Token as token } from "./api"
+const API_URL = ngrok_url2+"/"
+
+const useDocData = () => {
+
+  const [doctorInfo, setDoctorInfo] = useState({})
+  const [addresses, setAddresses] = useState([])
+  const [services, setServices] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [addressesLoading, setAddressesLoading] = useState(true)
+  const [servicesLoading, setServicesLoading] = useState(true)
 
   const fetchDoctorInfo = async () => {
     try {
-      setLoading(true);
+      setLoading(true)
       const response = await axios.get(`${API_URL}doctor/data/profile`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "ngrok-skip-browser-warning": "69420",
         },
-      });
+      })
 
-      const { doctor_info, ...otherData } = response.data;
+      const data = response.data
 
       setDoctorInfo({
-        name: otherData.name || "",
-        email: doctor_info?.email || "",
-        phone: otherData.phone_number || "",
-        specialization: otherData.speciality || "",
-        profilePicture: API_URL + otherData.profile_pic || './doctorpfp(female).png',
-        registrationNumber: otherData.registeration_number || '',
-        verified: otherData.verified || false,
-        submittedAt: otherData.submitted_at || '',
-      });
-      console.log("Doctor info fetched successfully:", doctorInfo);
+        name: data.name || "",
+        email: data.user?.name || "",
+        phone: data.phoneNumber || "",
+        specialization: data.speciality || "",
+        profilePicture: data.profilePic ? API_URL + data.profilePic : "./doctorpfp(female).png",
+        registrationNumber: data.registerationNumber || "",
+        verified: data.verified || false,
+        submittedAt: data.submittedAt || "",
+        education: data.education || "",
+      })
+      console.log("Doctor info fetched successfully:", data)
     } catch (error) {
-      console.error('Error fetching doctor info:', error);
+      console.error("Error fetching doctor info:", error)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const fetchAddresses = async () => {
     try {
-      setAddressesLoading(true);
+      setAddressesLoading(true)
       const response = await axios.get(`${API_URL}doctor/data/addresses`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "ngrok-skip-browser-warning": "69420",
         },
-      });
+      })
 
-      setAddresses(response.data.addresses || []);
-      console.log("Addresses fetched successfully:", response.data.addresses);
+      setAddresses(response.data || [])
+      console.log("Addresses fetched successfully:", response.data)
     } catch (error) {
-      console.error('Error fetching addresses:', error);
+      console.error("Error fetching addresses:", error)
     } finally {
-      setAddressesLoading(false);
+      setAddressesLoading(false)
     }
-  };
+  }
 
-  const addNewAddress = async (newAddress, newAddressType) => {
+  const fetchServices = async () => {
     try {
-      await axios.post(`${API_URL}doctor/add_doctor_address`, {
-        address: newAddress,
-        address_type: newAddressType,
-        "timings":{
-          "end":"18:00",
-          "start":"09:00"
-        }
-      }, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      await fetchAddresses();
-    } catch (error) {
-      console.error('Error saving address:', error);
-    }
-  };
-
-  const updateDoctorInfo = async (updatedInfo) => {
-    try {
-      await axios.post(`${API_URL}doctor/save_doctor_data`, updatedInfo, {
+      setServicesLoading(true)
+      const response = await axios.get(`${API_URL}doctor/data/services`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "ngrok-skip-browser-warning": "69420",
         },
-      });
+      })
 
-      await fetchDoctorInfo();
+      setServices(response.data || [])
+      console.log("Services fetched successfully:", response.data)
     } catch (error) {
-      console.error('Error updating doctor info:', error);
+      console.error("Error fetching services:", error)
+    } finally {
+      setServicesLoading(false)
     }
-  };
+  }
 
-  const uploadMultimedia = async (files) => {
+  const addNewAddress = async (addressData) => {
     try {
-      const formData = new FormData();
-      
-      Object.keys(files).forEach(key => {
-        if (files[key]) {
-          formData.append('file', files[key]);
-          formData.append('mm_type', key);
-        }
-      });
-
-      await axios.post(`${API_URL}doctor/save_doctor_multi_media_data`, formData, {
+      await axios.post(`${API_URL}doctor/data/addresses`, addressData, {
         headers: {
           Authorization: `Bearer ${token}`,
           "ngrok-skip-browser-warning": "69420",
-          'Content-Type': 'multipart/form-data',
         },
-      });
-
-      await fetchDoctorInfo();
+      })
+      fetchAddresses()
     } catch (error) {
-      console.error('Error uploading multimedia:', error);
+      console.error("Error adding new address:", error)
     }
-  };
+  }
+
+  const updateDoctorInfo = async (doctorInfo) => {
+    try {
+      await axios.post(`${API_URL}doctor/data/profile`, doctorInfo, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "ngrok-skip-browser-warning": "69420",
+        },
+      })
+      fetchDoctorInfo()
+    } catch (error) {
+      console.error("Error updating doctor info:", error)
+    }
+  }
+
+  const uploadMultimedia = async (formData) => {
+    try {
+      const response = await axios.post(`${API_URL}doctor/data/upload`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+          "ngrok-skip-browser-warning": "69420",
+        },
+      })
+      fetchDoctorInfo()
+      return response.data
+    } catch (error) {
+      console.error("Error uploading multimedia:", error)
+      throw error
+    }
+  }
+
+  const addService = async (serviceName, amount) => {
+    try {
+      await axios.post(
+        `${API_URL}doctor_service/add_service`,
+        {
+          service_name: serviceName,
+          amount: amount,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "ngrok-skip-browser-warning": "69420",
+          },
+        },
+      )
+
+      await fetchServices()
+    } catch (error) {
+      console.error("Error adding service:", error)
+    }
+  }
+
+  const updateService = async (serviceId, serviceName, amount) => {
+    try {
+      await axios.post(
+        `${API_URL}doctor_service/update_service`,
+        {
+          service_id: serviceId,
+          service_name: serviceName,
+          amount: amount,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "ngrok-skip-browser-warning": "69420",
+          },
+        },
+      )
+
+      await fetchServices()
+    } catch (error) {
+      console.error("Error updating service:", error)
+    }
+  }
+
+  const deleteService = async (serviceId) => {
+    try {
+      await axios.post(
+        `${API_URL}doctor_service/delete_service`,
+        {
+          service_id: serviceId,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "ngrok-skip-browser-warning": "69420",
+          },
+        },
+      )
+
+      await fetchServices()
+    } catch (error) {
+      console.error("Error deleting service:", error)
+    }
+  }
 
   useEffect(() => {
-    fetchDoctorInfo();
-    fetchAddresses();
-  }, []); 
+    fetchDoctorInfo()
+    fetchAddresses()
+    fetchServices()
+  }, [])
+
   return {
     doctorInfo,
     addresses,
+    services,
     loading,
     addressesLoading,
+    servicesLoading,
     fetchDoctorInfo,
     fetchAddresses,
+    fetchServices,
     addNewAddress,
     updateDoctorInfo,
     uploadMultimedia,
-  };
+    addService,
+    updateService,
+    deleteService,
+  }
 }
+
+export default useDocData
+

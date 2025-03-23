@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useRef } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useRef, useEffect } from "react"
+import { useParams, useRouter } from "next/navigation"
 import {
   ArrowLeft,
   Plus,
@@ -15,6 +15,7 @@ import {
   Printer,
   CheckCircle2,
   AlertCircle,
+  Loader2,
 } from "lucide-react"
 import { useReactToPrint } from "react-to-print"
 import jsPDF from "jspdf"
@@ -39,6 +40,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import DaddyAPI from "@/services/api"
 
 // Types
 interface Medicine {
@@ -50,6 +52,7 @@ interface Medicine {
   duration?: string
 }
 
+// Add Instructions array to the Prescription interface if it doesn't exist
 interface Prescription {
   prescriptionData: {
     Observations: string[]
@@ -57,6 +60,7 @@ interface Prescription {
     Medicines: Medicine[]
   }
   otherData: string
+  presId?: string
 }
 
 interface PatientInfo {
@@ -100,10 +104,13 @@ const formatDate = (date: Date): string => {
 export default function PrescriptionPage() {
   const router = useRouter()
   const [currentDate] = useState<Date>(new Date())
+  const { id } = useParams() as { id: string }
+  const [loading, setLoading] = useState<boolean>(false)
+ 
   const [prescription, setPrescription] = useState<Prescription>({
     prescriptionData: {
-      Observations: ["The patient is having headache.", "Not able to work properly"],
-      Instructions: ["The patient is having headache.", "Not able to work properly"],
+      Observations: [],
+      Instructions: [],
       Medicines: [
         {
           row: "1",
@@ -115,19 +122,56 @@ export default function PrescriptionPage() {
         },
       ],
     },
-    otherData: " ",
+    otherData: "",
   })
   const [activeTab, setActiveTab] = useState<string>("write")
   const [previewDialogOpen, setPreviewDialogOpen] = useState<boolean>(false)
   const [saveSuccess, setSaveSuccess] = useState<boolean | null>(null)
   const [newObservation, setNewObservation] = useState<string>("")
   const [newInstruction, setNewInstruction] = useState<string>("")
-  // Add a ref for printing
   const prescriptionPreviewRef = useRef<HTMLDivElement>(null)
 
-  // Add print functionality - fixed the type error
+  useEffect(() => {
+    const fetchPrescription = async () => {
+      if (id && id !== "new") {
+        try {
+          setLoading(true)
+          const data: any = await DaddyAPI.getPrescriptions(id)
+          
+          const transformedData: any = {
+            prescriptionData: {
+              Observations: data.data.prescription.Observations || [],
+              Instructions: data.data.otherInfo ? [data.data.otherInfo] : [],
+              Medicines: data.data.prescription.Medicines || [
+                {
+                  row: "1",
+                  medicine: "",
+                  breakfast: 0,
+                  lunch: 0,
+                  dinner: 0,
+                  duration: "",
+                }
+              ],
+            },
+            otherData: data.data.otherInfo || "",
+            presId: data.data.id,
+          }
+
+          setPrescription(transformedData)
+        } catch (error) {
+          console.error("Error fetching prescription:", error)
+          // Handle error (could show an error message)
+        } finally {
+          setLoading(false)
+        }
+      }
+    }
+
+    fetchPrescription()
+  }, [id])
+
+  // Add print functionality
   const handlePrint = useReactToPrint({
-    // documentRef: prescriptionPreviewRef,
     documentTitle: `Prescription_${patientInfo.name}_${formatDate(currentDate)}`,
   })
 
@@ -155,95 +199,81 @@ export default function PrescriptionPage() {
     }
   }
 
-  // Update an observation
-  // const updateObservation = (index: number, value: string) => {
-  //   const updatedObservations = [...prescription.prescriptionData.Observations]
-  //   updatedObservations[index] = value
+  // Add a new observation
+  const addObservation = () => {
+    if (newObservation.trim()) {
+      setPrescription((prev) => ({
+        ...prev,
+        prescriptionData: {
+          ...prev.prescriptionData,
+          Observations: [...prev.prescriptionData.Observations, newObservation],
+        },
+      }))
+      setNewObservation("")
+    }
+  }
 
-  //   setPrescription((prev) => ({
-  //     ...prev,
-  //     prescriptionData: {
-  //       ...prev.prescriptionData,
-  //       Observations: updatedObservations,
-  //     },
-  //   }))
-  // }
-// Add a new observation
-const addObservation = () => {
-  if (newObservation.trim()) {
+  // Remove an observation
+  const removeObservation = (index: number) => {
     setPrescription((prev) => ({
       ...prev,
       prescriptionData: {
         ...prev.prescriptionData,
-        Observations: [...prev.prescriptionData.Observations, newObservation],
+        Observations: prev.prescriptionData.Observations.filter((_, i) => i !== index),
       },
     }))
-    setNewObservation("")
   }
-}
 
-// Remove an observation
-const removeObservation = (index: number) => {
-  setPrescription((prev) => ({
-    ...prev,
-    prescriptionData: {
-      ...prev.prescriptionData,
-      Observations: prev.prescriptionData.Observations.filter((_, i) => i !== index),
-    },
-  }))
-}
+  const updateObservation = (index: number, value: string) => {
+    const updatedObservations = [...prescription.prescriptionData.Observations]
+    updatedObservations[index] = value
 
-// Update an observation
-const updateObservation = (index: number, value: string) => {
-  const updatedObservations = [...prescription.prescriptionData.Observations]
-  updatedObservations[index] = value
-
-  setPrescription((prev) => ({
-    ...prev,
-    prescriptionData: {
-      ...prev.prescriptionData,
-      Observations: updatedObservations,
-    },
-  }))
-}
-
-const addInstruction = () => {
-  if (newInstruction.trim()) {
     setPrescription((prev) => ({
       ...prev,
       prescriptionData: {
         ...prev.prescriptionData,
-        Instructions: [...prev.prescriptionData.Instructions, newInstruction],
+        Observations: updatedObservations,
       },
     }))
-    setNewInstruction("")
   }
-}
 
-// Remove an Instruction
-const removeInstruction = (index: number) => {
-  setPrescription((prev) => ({
-    ...prev,
-    prescriptionData: {
-      ...prev.prescriptionData,
-      Instructions: prev.prescriptionData.Instructions.filter((_, i) => i !== index),
-    },
-  }))
-}
+  const addInstruction = () => {
+    if (newInstruction.trim()) {
+      setPrescription((prev) => ({
+        ...prev,
+        prescriptionData: {
+          ...prev.prescriptionData,
+          Instructions: [...prev.prescriptionData.Instructions, newInstruction],
+        },
+      }))
+      setNewInstruction("")
+    }
+  }
 
-// Update an Instruction
-const updateInstruction = (index: number, value: string) => {
-  const updatedInstructions = [...prescription.prescriptionData.Instructions]
-  updatedInstructions[index] = value
+  // Remove an Instruction
+  const removeInstruction = (index: number) => {
+    setPrescription((prev) => ({
+      ...prev,
+      prescriptionData: {
+        ...prev.prescriptionData,
+        Instructions: prev.prescriptionData.Instructions.filter((_, i) => i !== index),
+      },
+    }))
+  }
 
-  setPrescription((prev) => ({
-    ...prev,
-    prescriptionData: {
-      ...prev.prescriptionData,
-      Instructions: updatedInstructions,
-    },
-  }))
-}
+  const updateInstruction = (index: number, value: string) => {
+    const updatedInstructions = [...prescription.prescriptionData.Instructions]
+    updatedInstructions[index] = value
+
+    setPrescription((prev) => ({
+      ...prev,
+      prescriptionData: {
+        ...prev.prescriptionData,
+        Instructions: updatedInstructions,
+      },
+    }))
+  }
+
   // Add a new medicine row
   const addMedicine = () => {
     setPrescription((prev) => {
@@ -299,7 +329,6 @@ const updateInstruction = (index: number, value: string) => {
     }))
   }
 
-  // Update medicine timing
   const updateMedicineTiming = (row: string, meal: "breakfast" | "lunch" | "dinner", value: number) => {
     setPrescription((prev) => ({
       ...prev,
@@ -310,7 +339,6 @@ const updateInstruction = (index: number, value: string) => {
     }))
   }
 
-  // Update medicine duration
   const updateMedicineDuration = (row: string, value: string) => {
     setPrescription((prev) => ({
       ...prev,
@@ -321,7 +349,6 @@ const updateInstruction = (index: number, value: string) => {
     }))
   }
 
-  // Update other data
   const updateOtherData = (value: string) => {
     setPrescription((prev) => ({
       ...prev,
@@ -329,20 +356,66 @@ const updateInstruction = (index: number, value: string) => {
     }))
   }
 
-  // Save prescription
-  const savePrescription = () => {
-    // Here you would typically send the data to your backend
-    console.log("Saving prescription:", prescription)
+  const savePrescription = async () => {
+    try {
+      setLoading(true)
+      setSaveSuccess(null)
 
-    // Simulate API call
-    setTimeout(() => {
+      const prescriptionData = {
+        prescriptionData: {
+          Observations: prescription.prescriptionData.Observations,
+          Medicines: prescription.prescriptionData.Medicines,
+        },
+        otherData: prescription.prescriptionData.Instructions[0],
+        id: prescription.presId,
+      };
+      const prescriptionAddData = {
+        prescriptionData: {
+          Observations: prescription.prescriptionData.Observations,
+          Medicines: prescription.prescriptionData.Medicines,
+        },
+        otherData: prescription.prescriptionData.Instructions[0],
+        appointmentId: id,
+      };
+      
+      let response: any
+      if (prescription.presId) {
+        response = await DaddyAPI.updatePrescription(prescriptionData)
+      } else {
+        response = await DaddyAPI.addPrescription(prescriptionAddData)
+      }
+
+      console.log("Prescription saved:", response)
       setSaveSuccess(true)
 
-      // Reset success message after 3 seconds
-      setTimeout(() => {
-        setSaveSuccess(null)
-      }, 3000)
-    }, 1000)
+      if (id === "new" && response.id) {
+        setTimeout(() => {
+          router.push(`/prescription/${response.id}`)
+        }, 1500)
+      }
+    } catch (error) {
+      console.error("Error saving prescription:", error)
+      setSaveSuccess(false)
+    } finally {
+      setLoading(false)
+
+      if (setSaveSuccess) {
+        setTimeout(() => {
+          setSaveSuccess(null)
+        }, 3000)
+      }
+    }
+  }
+
+  if (loading && !prescription.prescriptionData.Observations.length) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-12 w-12 text-indigo-600 animate-spin" />
+          <p className="text-lg text-slate-600">Loading prescription data...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -355,7 +428,9 @@ const updateInstruction = (index: number, value: string) => {
           </Button>
           <div className="flex items-center gap-3 mb-2">
             <FileText className="h-8 w-8 text-white" />
-            <h1 className="text-3xl font-bold text-white">Write Prescription</h1>
+            <h1 className="text-3xl font-bold text-white">
+              {id && id !== "new" ? "Edit Prescription" : "Write Prescription"}
+            </h1>
           </div>
           <p className="text-indigo-100">Create a detailed prescription for your patient</p>
         </div>
@@ -363,7 +438,6 @@ const updateInstruction = (index: number, value: string) => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_3fr] gap-8">
-          {/* Patient Info Card */}
           <div className="order-2 lg:order-1">
             <Card className="border-indigo-100 shadow-lg sticky top-24">
               <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50 border-b">
@@ -416,9 +490,22 @@ const updateInstruction = (index: number, value: string) => {
                     <FileText className="mr-2 h-4 w-4" />
                     Preview Prescription
                   </Button>
-                  <Button className="w-full bg-indigo-600 hover:bg-indigo-700" onClick={savePrescription}>
-                    <Save className="mr-2 h-4 w-4" />
-                    Save Prescription
+                  <Button
+                    className="w-full bg-indigo-600 hover:bg-indigo-700"
+                    onClick={savePrescription}
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="mr-2 h-4 w-4" />
+                        Save Prescription
+                      </>
+                    )}
                   </Button>
                 </div>
 
@@ -702,9 +789,22 @@ const updateInstruction = (index: number, value: string) => {
                     <ArrowLeft className="h-4 w-4 ml-2 rotate-180" />
                   </Button>
                 </div>
-                <Button className="bg-indigo-600 hover:bg-indigo-700 w-full sm:w-auto" onClick={savePrescription}>
-                  <Save className="h-4 w-4 mr-2" />
-                  Save Prescription
+                <Button
+                  className="bg-indigo-600 hover:bg-indigo-700 w-full sm:w-auto"
+                  onClick={savePrescription}
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      Save Prescription
+                    </>
+                  )}
                 </Button>
               </CardFooter>
             </Card>
@@ -815,20 +915,20 @@ const updateInstruction = (index: number, value: string) => {
                 </div>
               </div>
 
-              {prescription.otherData && (
+              {prescription.prescriptionData.Instructions.length > 0 && (
                 <div className="mb-6">
-                <h4 className="text-md font-semibold text-indigo-700 mb-2">Instructions</h4>
-                <ul className="list-disc pl-5 space-y-1">
-                  {prescription.prescriptionData.Instructions.map(
-                    (instruction, index) =>
-                      instruction.trim() && (
-                        <li key={index} className="text-slate-700">
-                          {instruction}
-                        </li>
-                      ),
-                  )}
-                </ul>
-              </div>
+                  <h4 className="text-md font-semibold text-indigo-700 mb-2">Instructions</h4>
+                  <ul className="list-disc pl-5 space-y-1">
+                    {prescription.prescriptionData.Instructions.map(
+                      (instruction, index) =>
+                        instruction.trim() && (
+                          <li key={index} className="text-slate-700">
+                            {instruction}
+                          </li>
+                        ),
+                    )}
+                  </ul>
+                </div>
               )}
 
               <div className="mt-8 pt-4 border-t text-right">

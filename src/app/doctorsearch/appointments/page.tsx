@@ -33,6 +33,8 @@ import {
 } from "@/components/ui/dialog"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
+
+// Replace the import for DoctorAPI with the actual API service
 import DaddyAPI from "@/services/api"
 
 // Types
@@ -51,10 +53,14 @@ interface TimeSlots {
 interface DoctorInfo {
   id: string
   name: string
-  specialty: string
-  image?: string
-  rating: number
-  experience: string
+  speciality: string
+  profilePic?: string
+  profileQr?: string
+  education?: string
+  phoneNumber?: string
+  verified?: boolean
+  rating?: number
+  experience?: string
 }
 
 interface ClinicLocation {
@@ -80,17 +86,8 @@ interface ServiceType {
 
 const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
-// Sample doctor data
-const doctorInfo: DoctorInfo = {
-  id: "dr-smith-123",
-  name: "Dr. Sarah Smith",
-  specialty: "Cardiologist",
-  image: "/placeholder.svg?height=200&width=200",
-  rating: 4.8,
-  experience: "15+ years",
-}
-
-export default function AppointmentContent() {
+export default function AppointmentPage() {
+  const [docInfo, setDocInfo] = useState<any>(null)
   const [currentWeek, setCurrentWeek] = useState<Date>(new Date())
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null)
@@ -103,11 +100,28 @@ export default function AppointmentContent() {
   const [loading, setLoading] = useState<boolean>(false)
   const [serviceTypes, setServiceTypes] = useState<ServiceType[]>([])
 
-  // Properly import and use useSearchParams
   const searchParams = useSearchParams()
   const doctor_id = searchParams.get("doctor_id")
 
   const router = useRouter()
+
+  useEffect(() => {
+    const fetchDoctorInfo = async () => {
+      try {
+        setLoading(true)
+        const response = await DaddyAPI.getDocInfo(doctor_id)
+        if (response.data) {
+          setDocInfo(response.data)
+        }
+      } catch (error) {
+        console.error("Error fetching doctor info:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchDoctorInfo()
+  }, [doctor_id])
 
   useEffect(() => {
     const fetchDoctorAddresses = async () => {
@@ -125,7 +139,7 @@ export default function AppointmentContent() {
     }
 
     fetchDoctorAddresses()
-  }, [selectedDate, doctor_id])
+  }, [doctor_id, selectedDate])
 
   const fetchTimeSlotsAndServices = async () => {
     if (!selectedLocation) return
@@ -211,12 +225,12 @@ export default function AppointmentContent() {
   }
 
   const handleLocationSelect = (locationId: string) => {
-    const location = clinicLocations.find((loc) => loc.id.toString() === locationId)
     setSelectedLocation(locationId)
     setLocationModalOpen(false)
     fetchTimeSlotsAndServices()
   }
 
+  // Replace the handleConfirmAppointment function with:
   const handleConfirmAppointment = async () => {
     if (selectedSlot && selectedLocation && selectedService) {
       try {
@@ -261,13 +275,13 @@ export default function AppointmentContent() {
     return clinicLocations.find((loc) => loc.id.toString() === selectedLocation)
   }
 
-  const getSelectedServiceDetails = (): any => {
+  const getSelectedServiceDetails = (): ServiceType | undefined => {
     return serviceTypes.find((service) => service.id === selectedService)
   }
 
   return (
     <div className="min-h-screen bg-slate-50 pt-20 pb-12">
-      <div className="w-full py-8 px-4 sm:px-6 lg:px-8 bg-[url('/bg.svg')] bg-cover bg-center bg-blend-overlay">
+      <div className="w-full py-8 px-4 sm:px-6 lg:px-8 bg-[url('/placeholder.svg?height=400&width=1200')] bg-cover bg-center bg-blend-overlay bg-indigo-900/70">
         <div className="max-w-7xl mx-auto">
           <Button variant="ghost" className="text-white mb-4 hover:bg-white/20" onClick={() => router.back()}>
             <ArrowLeft className="mr-2 h-4 w-4" />
@@ -350,24 +364,33 @@ export default function AppointmentContent() {
               <div className="space-y-6">
                 <div className="flex flex-col md:flex-row md:items-center gap-6">
                   <Avatar className="h-20 w-20 border-2 border-indigo-100">
-                    <AvatarImage src={doctorInfo.image} alt={doctorInfo.name} />
+                    <AvatarImage src={docInfo?.profilePic} alt={docInfo?.name} />
                     <AvatarFallback className="bg-indigo-100 text-indigo-700 text-xl">
-                      {doctorInfo.name
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")}
+                      {docInfo?.name
+                        ? docInfo.name
+                            .split(" ")
+                            .map((n:any) => n[0])
+                            .join("")
+                        : "DR"}
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <h3 className="text-xl font-bold text-slate-800">{doctorInfo.name}</h3>
-                    <p className="text-indigo-600">{doctorInfo.specialty}</p>
+                    <h3 className="text-xl font-bold text-slate-800">{docInfo?.name}</h3>
+                    <p className="text-indigo-600">{docInfo?.speciality}</p>
                     <div className="flex items-center gap-2 mt-1">
                       <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-200">
-                        {doctorInfo.experience}
+                        {docInfo?.education}
                       </Badge>
-                      <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
-                        ★ {doctorInfo.rating}
-                      </Badge>
+                      {docInfo?.rating && (
+                        <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+                          ★ {docInfo.rating}
+                        </Badge>
+                      )}
+                      {docInfo?.verified && (
+                        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                          Verified
+                        </Badge>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -393,8 +416,8 @@ export default function AppointmentContent() {
                   </div>
                   <div>
                     <h4 className="text-sm font-medium text-slate-500 mb-1">SERVICE TYPE</h4>
-                    <p className="text-lg font-medium text-slate-800">{getSelectedServiceDetails()?.name}</p>
-                    <p className="text-sm text-slate-600">30 min • {getSelectedServiceDetails()?.price}</p>
+                    <p className="text-lg font-medium text-slate-800">{getSelectedServiceDetails()?.serviceName}</p>
+                    <p className="text-sm text-slate-600">30 min • {getSelectedServiceDetails()?.serviceAmount}</p>
                   </div>
                 </div>
 
@@ -426,61 +449,75 @@ export default function AppointmentContent() {
                   <CardTitle className="text-indigo-700">Doctor Information</CardTitle>
                 </CardHeader>
                 <CardContent className="pt-6">
-                  <div className="flex flex-col items-center text-center mb-6">
-                    <Avatar className="h-24 w-24 mb-4 border-2 border-indigo-100">
-                      <AvatarImage src={doctorInfo.image} alt={doctorInfo.name} />
-                      <AvatarFallback className="bg-indigo-100 text-indigo-700 text-xl">
-                        {doctorInfo.name
-                          .split(" ")
-                          .map((n) => n[0])
-                          .join("")}
-                      </AvatarFallback>
-                    </Avatar>
-                    <h3 className="text-xl font-bold text-slate-800">{doctorInfo.name}</h3>
-                    <p className="text-indigo-600">{doctorInfo.specialty}</p>
-                    <div className="flex items-center gap-2 mt-2">
-                      <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-200">
-                        {doctorInfo.experience}
-                      </Badge>
-                      <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
-                        ★ {doctorInfo.rating}
-                      </Badge>
+                  {loading ? (
+                    <div className="flex justify-center py-12">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
                     </div>
-                  </div>
-
-                  <Separator className="my-6" />
-
-                  <div className="space-y-4">
-                    <div>
-                      <h4 className="text-sm font-medium text-slate-500 mb-1">CONSULTATION FEE</h4>
-                      <p className="text-lg font-medium text-slate-800">₹800</p>
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-medium text-slate-500 mb-1">LANGUAGES</h4>
-                      <div className="flex flex-wrap gap-2">
-                        <Badge variant="outline" className="bg-slate-50">
-                          English
-                        </Badge>
-                        <Badge variant="outline" className="bg-slate-50">
-                          Hindi
-                        </Badge>
+                  ) : (
+                    <>
+                      <div className="flex flex-col items-center text-center mb-6">
+                        <Avatar className="h-24 w-24 mb-4 border-2 border-indigo-100">
+                          <AvatarImage src={docInfo?.profilePic} alt={docInfo?.name} />
+                          <AvatarFallback className="bg-indigo-100 text-indigo-700 text-xl">
+                            {docInfo?.name
+                              ? docInfo.name
+                                  .split(" ")
+                                  .map((n:any) => n[0])
+                                  .join("")
+                              : "DR"}
+                          </AvatarFallback>
+                        </Avatar>
+                        <h3 className="text-xl font-bold text-slate-800">{docInfo?.name}</h3>
+                        <p className="text-indigo-600">{docInfo?.speciality}</p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-200">
+                            {docInfo?.education}
+                          </Badge>
+                          {docInfo?.rating && (
+                            <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+                              ★ {docInfo.rating}
+                            </Badge>
+                          )}
+                          {docInfo?.verified && (
+                            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                              Verified
+                            </Badge>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-medium text-slate-500 mb-1">SERVICES</h4>
-                      <div className="flex flex-wrap gap-2">
-                        <Badge variant="outline" className="bg-slate-50">
-                          Cardiology
-                        </Badge>
-                        <Badge variant="outline" className="bg-slate-50">
-                          ECG
-                        </Badge>
-                        <Badge variant="outline" className="bg-slate-50">
-                          Heart Surgery
-                        </Badge>
+
+                      <Separator className="my-6" />
+
+                      <div className="space-y-4">
+                        <div>
+                          <h4 className="text-sm font-medium text-slate-500 mb-1">CONTACT</h4>
+                          <p className="text-lg font-medium text-slate-800">{docInfo?.phoneNumber}</p>
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-medium text-slate-500 mb-1">LANGUAGES</h4>
+                          <div className="flex flex-wrap gap-2">
+                            <Badge variant="outline" className="bg-slate-50">
+                              English
+                            </Badge>
+                            <Badge variant="outline" className="bg-slate-50">
+                              Hindi
+                            </Badge>
+                          </div>
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-medium text-slate-500 mb-1">SERVICES</h4>
+                          <div className="flex flex-wrap gap-2">
+                            <Badge variant="outline" className="bg-slate-50">
+                              {docInfo?.speciality}
+                            </Badge>
+                            <Badge variant="outline" className="bg-slate-50">
+                              Consultation
+                            </Badge>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
+                    </>
+                  )}
 
                   {selectedLocation && (
                     <>
@@ -715,7 +752,7 @@ export default function AppointmentContent() {
                 </Card>
               )}
 
-              {/* Service Types (Replacing Waiting List) */}
+              {/* Service Types */}
               <Card className="border-indigo-100 shadow-lg">
                 <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50 border-b">
                   <CardTitle className="text-indigo-700 flex items-center gap-2">
