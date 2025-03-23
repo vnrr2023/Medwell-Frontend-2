@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation"
 import { Home, User, Users, Calendar, Mail } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { MobileNav } from "@/components/doctor/MobileNav"
-import React from "react"; // Added import for React
+import React from "react"; 
 import Image from "next/image"
 
 const navItems = [

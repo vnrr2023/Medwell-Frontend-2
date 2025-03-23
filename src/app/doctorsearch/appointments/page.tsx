@@ -165,9 +165,7 @@ export default function AppointmentContent() {
           servicesResponse.data.map((service: any) => ({
             id: service.id,
             serviceName: service.serviceName,
-            description: "Medical service",
-            duration: "30 min",
-            price: `₹${service.serviceAmount}`,
+            serviceAmount: `₹${service.serviceAmount}`,
           })),
         )
       }
@@ -742,7 +740,7 @@ export default function AppointmentContent() {
                               30 min
                             </Badge>
                             <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-200">
-                              ₹{service.serviceAmount}
+                              {service.serviceAmount}
                             </Badge>
                           </div>
                         </Label>

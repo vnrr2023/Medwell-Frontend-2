@@ -1,7 +1,8 @@
 "use client"
 
 import type React from "react"
-import { useState, useCallback } from "react"
+
+import { useState, useCallback, useEffect, useRef } from "react"
 import moment from "moment"
 import { ChevronLeft, ChevronRight, User, Clock, CalendarDays, FileText, CalendarIcon } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -12,6 +13,53 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
+import { Skeleton } from "@/components/ui/skeleton"
+import DaddyAPI from "@/services/api"
+
+interface AppointmentSlot {
+  id: string
+  timing: string
+  status: string
+  date: string
+}
+
+interface Patient {
+  id: string
+  name: string
+}
+
+interface DoctorService {
+  id: string
+  serviceName: string
+  serviceAmount: string
+}
+
+interface ApiAppointment {
+  id: string
+  bookedAt: string
+  status: string | null
+  appointmentSlot: AppointmentSlot
+  patient: Patient
+  doctorServices: DoctorService
+}
+
+interface ApiResponse {
+  appointments: ApiAppointment[]
+  nextPage: number | null
+  totalPages: number
+  hasNext: boolean
+  currentPage: number
+}
+
+interface CalendarDay {
+  date: string
+  appointments: {
+    id: string
+    timing: string
+    patientName: string
+    serviceName: string
+  }[]
+}
 
 interface Appointment {
   id: string
@@ -21,64 +69,160 @@ interface Appointment {
   patient: string
   notes: string
   color: string
+  serviceAmount?: string
 }
 
-const initialAppointments: Appointment[] = [
-  {
-    id: "1",
-    title: "Checkup",
-    start: "2025-03-02T22:00",
-    end: "2025-03-02T22:30",
-    patient: "John Doe",
-    notes: "General checkup",
-    color: "#22c55e",
-  },
-  {
-    id: "2",
-    title: "Consultation",
-    start: "2025-03-15T14:00",
-    end: "2025-03-15T14:30",
-    patient: "Jane Smith",
-    notes: "Discuss treatment plan",
-    color: "#ef4444",
-  },
-  {
-    id: "3",
-    title: "Follow-up",
-    start: "2025-03-16T09:00",
-    end: "2025-03-16T09:30",
-    patient: "Peter Jones",
-    notes: "Review test results",
-    color: "#eab308",
-  },
-  {
-    id: "4",
-    title: "Surgery",
-    start: "2025-03-18T11:00",
-    end: "2025-03-18T13:00",
-    patient: "Mary Brown",
-    notes: "Minor surgery",
-    color: "#6366f1",
-  },
-  {
-    id: "5",
-    title: "Consultation",
-    start: "2025-03-20T15:00",
-    end: "2025-03-20T15:30",
-    patient: "David Lee",
-    notes: "Discuss medication",
-    color: "#fb923c",
-  },
-]
+const serviceColors: Record<string, string> = {
+  "Follow Up": "#22c55e",
+  Consultation: "#ef4444",
+  Checkup: "#6366f1",
+  Surgery: "#fb923c",
+  default: "#eab308",
+}
+
+const convertApiAppointment = (apiAppointment: ApiAppointment): Appointment => {
+  const { id, appointmentSlot, patient, doctorServices } = apiAppointment
+  const startTime = `${appointmentSlot.date}T${appointmentSlot.timing}`
+
+  const startMoment = moment(startTime)
+  const endMoment = startMoment.clone().add(30, "minutes")
+
+  return {
+    id,
+    title: doctorServices.serviceName,
+    start: startMoment.format(),
+    end: endMoment.format(),
+    patient: patient.name,
+    notes: `${doctorServices.serviceName} - $${doctorServices.serviceAmount}`,
+    color: serviceColors[doctorServices.serviceName] || serviceColors.default,
+    serviceAmount: doctorServices.serviceAmount,
+  }
+}
 
 export default function PatientAppointments() {
-  const [appointments, setAppointments] = useState(initialAppointments)
+  const [previousAppointments, setPreviousAppointments] = useState<Appointment[]>([])
+  const [upcomingAppointments, setUpcomingAppointments] = useState<Appointment[]>([])
+  const [calendarData, setCalendarData] = useState<CalendarDay[]>([])
   const [currentDate, setCurrentDate] = useState(moment())
   const [view, setView] = useState("list")
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
+  const [loading, setLoading] = useState({
+    previous: true,
+    upcoming: true,
+    calendar: true,
+  })
+  const [paginationInfo, setPaginationInfo] = useState({
+    currentPage: 0,
+    hasNext: false,
+    loadingMore: false,
+  })
 
-  const todayAppointments = appointments.filter((appointment) => moment(appointment.start).isSame(currentDate, "day"))
-  const futureAppointments = appointments.filter((appointment) => moment(appointment.start).isAfter(currentDate, "day"))
+  const prevAppointmentsRef = useRef<HTMLDivElement>(null)
+
+  const fetchPreviousAppointments = async (page = 0, append = false) => {
+    if (paginationInfo.loadingMore) return
+
+    if (append) {
+      setPaginationInfo((prev) => ({ ...prev, loadingMore: true }))
+    } else {
+      setLoading((prev) => ({ ...prev, previous: true }))
+    }
+
+    try {
+      const response = await DaddyAPI.getDoctorPrevAppointments(page)
+      const data = response.data as ApiResponse
+
+      const convertedAppointments = data.appointments?.map(convertApiAppointment)
+
+      if (append) {
+        setPreviousAppointments((prev) => [...prev, ...convertedAppointments])
+      } else {
+        setPreviousAppointments(convertedAppointments)
+      }
+
+      setPaginationInfo({
+        currentPage: data.currentPage,
+        hasNext: data.hasNext,
+        loadingMore: false,
+      })
+    } catch (error) {
+      console.error("Error fetching previous appointments:", error)
+    } finally {
+      setLoading((prev) => ({ ...prev, previous: false }))
+      if (append) {
+        setPaginationInfo((prev) => ({ ...prev, loadingMore: false }))
+      }
+    }
+  }
+
+  const fetchUpcomingAppointments = async () => {
+    setLoading((prev) => ({ ...prev, upcoming: true }))
+
+    try {
+      const formattedDate = currentDate.format("YYYY-MM-DD")
+
+      const response = await DaddyAPI.getDoctorUpcomingAppointments(formattedDate)
+      const data = response.data
+
+      const convertedAppointments = data?.appointments?.map(convertApiAppointment)
+      setUpcomingAppointments(convertedAppointments)
+    } catch (error) {
+      console.error("Error fetching upcoming appointments:", error)
+    } finally {
+      setLoading((prev) => ({ ...prev, upcoming: false }))
+    }
+  }
+
+  const fetchCalendarData = async () => {
+    setLoading((prev) => ({ ...prev, calendar: true }))
+
+    try {
+      const year = currentDate.year()
+      const month = currentDate.month() + 1 
+
+      const response = await DaddyAPI.getDocCalendar(year, month)
+      const data = response.data as CalendarDay[]
+
+      setCalendarData(data)
+    } catch (error) {
+      console.error("Error fetching calendar data:", error)
+    } finally {
+      setLoading((prev) => ({ ...prev, calendar: false }))
+    }
+  }
+
+  useEffect(() => {
+    fetchPreviousAppointments()
+    fetchUpcomingAppointments()
+    fetchCalendarData()
+  }, [])
+
+  useEffect(() => {
+    fetchUpcomingAppointments()
+    fetchCalendarData()
+  }, [currentDate])
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && paginationInfo.hasNext && !paginationInfo.loadingMore) {
+          fetchPreviousAppointments(paginationInfo.currentPage + 1, true)
+        }
+      },
+      { threshold: 0.5 },
+    )
+
+    const currentRef = prevAppointmentsRef.current
+    if (currentRef) {
+      observer.observe(currentRef)
+    }
+
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef)
+      }
+    }
+  }, [paginationInfo.currentPage, paginationInfo.hasNext, paginationInfo.loadingMore])
 
   const handleSelectEvent = useCallback((appointment: Appointment) => {
     setSelectedAppointment(appointment)
@@ -100,6 +244,7 @@ export default function PatientAppointments() {
     return `${startOfWeek.format("MMM D")} - ${endOfWeek.format("MMM D, YYYY")}`
   }
 
+
   const AppointmentCard: React.FC<{ appointment: Appointment }> = ({ appointment }) => (
     <Card
       className="mb-4 hover:shadow-lg transition-all duration-200 border-l-4"
@@ -115,7 +260,7 @@ export default function PatientAppointments() {
             <AvatarFallback className="bg-primary/10 text-primary">
               {appointment.patient
                 .split(" ")
-                .map((n) => n[0])
+                ?.map((n) => n[0])
                 .join("")}
             </AvatarFallback>
           </Avatar>
@@ -158,10 +303,57 @@ export default function PatientAppointments() {
     </Card>
   )
 
+  const AppointmentSkeleton = () => (
+    <div className="mb-4 border rounded-lg p-4">
+      <div className="flex items-start space-x-4">
+        <Skeleton className="w-12 h-12 rounded-full" />
+        <div className="flex-1 space-y-2">
+          <div className="flex justify-between items-start">
+            <Skeleton className="h-6 w-24" />
+            <Skeleton className="h-6 w-16" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-full" />
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+
+  const getWeeklyAppointments = (): Appointment[] => {
+    const weekStart = moment(currentDate).startOf("week")
+    const weekEnd = moment(currentDate).endOf("week")
+
+    const weekDays = calendarData.filter((day) => {
+      const dayDate = moment(day.date)
+      return dayDate.isSameOrAfter(weekStart, "day") && dayDate.isSameOrBefore(weekEnd, "day")
+    })
+
+    return weekDays.flatMap((day) =>
+      day.appointments?.map((apt, index) => ({
+        id: apt.id,
+        title: apt.serviceName,
+        start: `${day.date}T${apt.timing}`,
+        end: moment(`${day.date}T${apt.timing}`).add(30, "minutes").format(),
+        patient: apt.patientName,
+        notes: apt.serviceName,
+        color: serviceColors[apt.serviceName] || serviceColors.default,
+      })),
+    )
+  }
+
   const WeeklyCalendar: React.FC = () => {
     const weekStart = moment(currentDate).startOf("week")
     const weekDays = Array.from({ length: 7 }, (_, i) => moment(weekStart).add(i, "days"))
-    const timeSlots = Array.from({ length: 24 }, (_, i) => moment().startOf("day").add(i, "hours"))
+    const timeSlots = Array.from({ length: 12 }, (_, i) =>
+      moment()
+        .startOf("day")
+        .add(i + 8, "hours"),
+    )
+    const weeklyAppointments = getWeeklyAppointments()
 
     return (
       <div className="w-full">
@@ -169,7 +361,7 @@ export default function PatientAppointments() {
           <thead>
             <tr>
               <th className="p-2 border-b bg-muted/30 sticky left-0 z-10"></th>
-              {weekDays.map((day, index) => (
+              {weekDays?.map((day, index) => (
                 <th key={index} className="p-3 border-b bg-muted/30 min-w-[110px] text-sm font-medium">
                   <div className="flex flex-col items-center">
                     <span className="text-muted-foreground">{day.format("ddd")}</span>
@@ -180,36 +372,36 @@ export default function PatientAppointments() {
             </tr>
           </thead>
           <tbody>
-            {timeSlots.map((time, timeIndex) => (
+            {timeSlots?.map((time, timeIndex) => (
               <tr key={timeIndex} className="group">
                 <td className="p-2 border-r text-center text-sm font-medium sticky left-0 bg-muted/30 z-10 text-muted-foreground">
                   {time.format("h:mm A")}
                 </td>
-                {weekDays.map((day, dayIndex) => {
+                {weekDays?.map((day, dayIndex) => {
                   const cellDateTime = moment(day).set({
                     hour: time.get("hour"),
                     minute: time.get("minute"),
                   })
-                  const appointmentsInSlot = appointments.filter((app) =>
-                    moment(app.start).isSame(cellDateTime, "hour"),
+                  const appointmentsInSlot = weeklyAppointments?.filter((app) =>
+                    moment(app?.start).isSame(cellDateTime, "hour"),
                   )
                   return (
                     <td
                       key={dayIndex}
                       className="p-2 border-r border-b relative h-16 group-hover:bg-muted/5 transition-colors duration-200"
                     >
-                      {appointmentsInSlot.map((app, appIndex) => (
+                      {appointmentsInSlot?.map((app, appIndex) => (
                         <div
                           key={appIndex}
                           className="absolute inset-1 flex items-center justify-center text-xs cursor-pointer rounded-md shadow-sm transition-transform hover:scale-[1.02] hover:shadow-md"
                           style={{
-                            backgroundColor: `${app.color}15`,
-                            color: app.color,
-                            border: `1px solid ${app.color}30`,
+                            backgroundColor: `${app?.color}15`,
+                            color: app?.color,
+                            border: `1px solid ${app?.color}30`,
                           }}
                           onClick={() => handleSelectEvent(app)}
                         >
-                          <span className="font-medium">{app.title}</span>
+                          <span className="font-medium">{app?.title}</span>
                         </div>
                       ))}
                     </td>
@@ -248,21 +440,41 @@ export default function PatientAppointments() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Clock className="w-5 h-5 text-blue-500" />
-                    Today&apos;s Appointments
+                    Previous Appointments
                   </CardTitle>
-                  <CardDescription>{todayAppointments.length} appointments scheduled for today</CardDescription>
+                  <CardDescription>
+                    {loading.previous && previousAppointments?.length === 0
+                      ? "Loading appointments..."
+                      : `${previousAppointments.length} previous appointments`}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <ScrollArea className="h-[400px] pr-4">
-                    {todayAppointments.length === 0 ? (
+                    {loading.previous && previousAppointments.length === 0 ? (
+                      Array.from({ length: 3 })?.map((_, i) => <AppointmentSkeleton key={i} />)
+                    ) : previousAppointments.length === 0 ? (
                       <div className="flex flex-col items-center justify-center h-32 text-center">
                         <CalendarIcon className="w-8 h-8 text-muted-foreground/50 mb-2" />
-                        <p className="text-muted-foreground">No appointments scheduled for today</p>
+                        <p className="text-muted-foreground">No previous appointments found</p>
                       </div>
                     ) : (
-                      todayAppointments.map((appointment) => (
-                        <AppointmentCard key={appointment.id} appointment={appointment} />
-                      ))
+                      <>
+                        {previousAppointments?.map((appointment) => (
+                          <AppointmentCard key={appointment.id} appointment={appointment} />
+                        ))}
+                        {paginationInfo.hasNext && (
+                          <div ref={prevAppointmentsRef} className="py-4 text-center">
+                            {paginationInfo.loadingMore ? (
+                              <div className="flex justify-center items-center gap-2">
+                                <Skeleton className="h-4 w-4 rounded-full" />
+                                <span className="text-sm text-muted-foreground">Loading more...</span>
+                              </div>
+                            ) : (
+                              <span className="text-sm text-muted-foreground">Scroll for more</span>
+                            )}
+                          </div>
+                        )}
+                      </>
                     )}
                   </ScrollArea>
                 </CardContent>
@@ -274,17 +486,23 @@ export default function PatientAppointments() {
                     <CalendarDays className="w-5 h-5 text-green-500" />
                     Upcoming Appointments
                   </CardTitle>
-                  <CardDescription>{futureAppointments.length} upcoming appointments scheduled</CardDescription>
+                  <CardDescription>
+                    {loading.upcoming
+                      ? "Loading appointments..."
+                      : `${upcomingAppointments?.length} upcoming appointments scheduled`}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <ScrollArea className="h-[400px] pr-4">
-                    {futureAppointments.length === 0 ? (
+                    {loading.upcoming ? (
+                      Array.from({ length: 3 })?.map((_, i) => <AppointmentSkeleton key={i} />)
+                    ) : upcomingAppointments?.length === 0 ? (
                       <div className="flex flex-col items-center justify-center h-32 text-center">
                         <CalendarIcon className="w-8 h-8 text-muted-foreground/50 mb-2" />
                         <p className="text-muted-foreground">No upcoming appointments scheduled</p>
                       </div>
                     ) : (
-                      futureAppointments.map((appointment) => (
+                      upcomingAppointments?.map((appointment) => (
                         <AppointmentCard key={appointment.id} appointment={appointment} />
                       ))
                     )}
@@ -308,11 +526,22 @@ export default function PatientAppointments() {
                 </div>
               </CardHeader>
               <CardContent>
-                <ScrollArea className="h-[600px] w-full" type="always">
-                  <div className="min-w-[800px]">
-                    <WeeklyCalendar />
+                {loading.calendar ? (
+                  <div className="h-[600px] flex items-center justify-center">
+                    <div className="space-y-4 w-full">
+                      <Skeleton className="h-8 w-full" />
+                      {Array.from({ length: 5 })?.map((_, i) => (
+                        <Skeleton key={i} className="h-16 w-full" />
+                      ))}
+                    </div>
                   </div>
-                </ScrollArea>
+                ) : (
+                  <ScrollArea className="h-[600px] w-full" type="always">
+                    <div className="min-w-[800px]">
+                      <WeeklyCalendar />
+                    </div>
+                  </ScrollArea>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -335,7 +564,7 @@ export default function PatientAppointments() {
                     <AvatarFallback>
                       {selectedAppointment.patient
                         .split(" ")
-                        .map((n) => n[0])
+                        ?.map((n) => n[0])
                         .join("")}
                     </AvatarFallback>
                   </Avatar>

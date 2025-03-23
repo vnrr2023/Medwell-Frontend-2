@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation"
 import { MoreHorizontal } from "lucide-react"
 import { useState, useMemo, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import type React from "react" // Added import for React
+import type React from "react" 
 
 interface NavItem {
   label: string

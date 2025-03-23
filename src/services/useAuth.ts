@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-
-export const API_URL = "https://4676-103-220-42-152.ngrok-free.app"
+import { ngrok_url } from "./api"
+export const API_URL = ngrok_url 
 
 export const useAuth = () => {
   const [errorMessage, setErrorMessage] = useState("")
@@ -63,6 +63,7 @@ export const useAuth = () => {
         return false
       } else {
         localStorage.setItem("Token", data.access_token)
+        console.log(data.access_token)
         localStorage.setItem("Role", role)
         notifyAuthStateChange()
         router.push("/patient")

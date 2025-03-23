@@ -1,7 +1,7 @@
 import axios from "axios"
-export const ngrok_url_m = "https://medwell2.vercel.app/api"
-export const ngrok_url = "https://4443-103-220-42-152.ngrok-free.app" 
-export const ngrok_url2 = "https://whatsapp-messaging-medwell-api.vercel.app" 
+export const ngrok_url_m = "http://localhost:3000/api"
+export const ngrok_url = "https://f4c3-103-220-42-152.ngrok-free.app" 
+export const ngrok_url2 = "https://c113-103-220-42-152.ngrok-free.app" 
 
 const api = axios.create({
   baseURL: `${ngrok_url}/`,
@@ -14,11 +14,9 @@ const apim = axios.create({
   baseURL: `${ngrok_url_m}/`,
 })
 
-const Token = typeof window !== 'undefined' ? localStorage.getItem("Token") : null
+export const Token = typeof window !== 'undefined' ? localStorage.getItem("Token") : null
 export const mToken="1234"
-// export const Token="1234"
 console.log(Token)
-// const Token = LocalStorageAccess()
 
 const DaddyAPI = {
   // All Patient APIs
@@ -245,7 +243,7 @@ doctorSearchQuery: (data:any) =>
       //APPOINTMENTS
       //☑️
       getSlots: (date:any,address_id:any) =>
-        apim.get(`/slots/get-slots-for-date-and-address/${date}/${address_id}`, {
+        apim.get(`slots/get-slots-for-date-and-address/${date}/${address_id}`, {
           headers: {
             Authorization: `Bearer ${mToken}`,
             "Content-Type": "application/json",
@@ -254,7 +252,7 @@ doctorSearchQuery: (data:any) =>
         }),
         //☑️
       getaddressess: (id:any) =>
-        apim.get(`/appointment/get-doctor-addresses/${id}`, {
+        apim.get(`doctor/data/addresses/${id}`, {
           headers: {
             Authorization: `Bearer ${mToken}`,
             "Content-Type": "application/json",
@@ -263,7 +261,7 @@ doctorSearchQuery: (data:any) =>
         }),
         //☑️
       getservices: (id:any) =>
-        apim.get(`/appointment/get-doctor-services/${id}`, {
+        apim.get(`doctor/data/services/${id}`, {
           headers: {
             Authorization: `Bearer ${mToken}`,
             "Content-Type": "application/json",
@@ -272,7 +270,7 @@ doctorSearchQuery: (data:any) =>
         }),
         //☑️
       createAppointment: (data:any) =>
-        apim.post("/appointment/create_appointment_from_patient", data, {
+        apim.post("appointment/patient/create", data, {
           headers: {
             Authorization: `Bearer ${mToken}`,
             "Content-Type": "application/json",
@@ -283,7 +281,7 @@ doctorSearchQuery: (data:any) =>
         
         //☑️
         sendWhatsappMsg: (data:any) =>
-          api2.post("/whatsapp/marketing", data, {
+          apim.post("/whatsapp/marketing", data, {
             headers: {
               "Content-Type": "application/json",
             },
@@ -296,7 +294,37 @@ doctorSearchQuery: (data:any) =>
               "Content-Type": "application/json",
             },
           }),
+          //doctor appointments apis
+          
+          getDoctorPrevAppointments: (page = 0) =>
+            apim.get(`appointment/doctor/previous-appointments/${page}`, {
+              headers: {
+                Authorization: `Bearer ${mToken}`,
+                "ngrok-skip-browser-warning": "69420",
+              },
+        
+            }),
+        
+          // Upcoming appointments with date filter
+          getDoctorUpcomingAppointments: (date: string, time?: string) =>
+            apim.get(`appointment/doctor/upcoming-appointments/${date}/10:00`, {
+              headers: {
+                Authorization: `Bearer ${mToken}`,
+                "ngrok-skip-browser-warning": "69420",
+              },
+            }),
+        
+          // Calendar data with year and month
+          getDocCalendar: (year: number, month: number) =>
+            apim.get(`appointment/doctor/appointment-calendar/${year}/${month}`, {
+              headers: {
+                Authorization: `Bearer ${mToken}`,
+                "ngrok-skip-browser-warning": "69420",
+              },
+              params:{year, month}
+            }),
 
+            
 }
 
 export default DaddyAPI
