@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server"
 
-export async function GET(request: Request, { params }: { params: { date: string; time: string } }) {
-  const { date, time } = params
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url)
+  const date = searchParams.get("date")
+  const time = searchParams.get("time")
 
   if (!date) {
     return NextResponse.json({ error: "Date parameter is required" }, { status: 400 })

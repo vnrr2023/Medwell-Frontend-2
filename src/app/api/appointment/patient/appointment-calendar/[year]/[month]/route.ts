@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server"
 
-export async function GET(request: Request, { params }: { params: { year: string; month: string } }) {
-  const { year, month } = params
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url)
+  const year = searchParams.get("year")
+  const month = searchParams.get("month")
 
   if (!year || !month) {
     return NextResponse.json({ error: "Year and month parameters are required" }, { status: 400 })

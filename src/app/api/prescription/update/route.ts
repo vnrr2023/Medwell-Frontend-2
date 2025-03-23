@@ -51,8 +51,7 @@ const samplePrescription = {
 }
 
 export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
+  request: Request
 ) {
   // Simulate API delay
   await new Promise(resolve => setTimeout(resolve, 500))

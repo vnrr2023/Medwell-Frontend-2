@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server"
 
-export async function GET(request: Request, { params }: { params: { page: string } }) {
-  const page = Number.parseInt(params.page || "0")
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url)
+  const page = Number.parseInt(searchParams.get("page") || "0")
 
   // Mock previous appointments
   const appointments = Array.from({ length: 5 }, (_, i) => ({

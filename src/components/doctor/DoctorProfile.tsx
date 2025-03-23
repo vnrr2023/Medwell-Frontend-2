@@ -270,7 +270,7 @@ export function DoctorProfile() {
                   <SelectItem value="home">Home</SelectItem>
                 </SelectContent>
               </Select>
-              <Button onClick={() => addNewAddress(newAddress)}>
+              <Button onClick={() => addNewAddress({newAddress,newAddressType})}>
                 <PlusCircle className="w-5 h-5" />
               </Button>
             </div>

@@ -16,7 +16,7 @@ import {
   PlusCircle,
   X,
 } from "lucide-react"
-import { useDocData } from "@/services/useDocData"
+import useDocData  from "@/services/useDocData"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -169,7 +169,7 @@ export function DoctorProfile() {
                   <SelectItem value="home">Home</SelectItem>
                 </SelectContent>
               </Select>
-              <Button onClick={() => addNewAddress(newAddress, newAddressType)}>
+              <Button onClick={() => addNewAddress({newAddress, newAddressType})}>
                 <PlusCircle className="w-5 h-5" />
               </Button>
             </div>
