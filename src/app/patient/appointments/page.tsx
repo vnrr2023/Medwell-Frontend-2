@@ -680,7 +680,7 @@ export default function PatientAppointments() {
 
         {/* Previous Appointments Modal */}
         <Dialog open={isPrevModalOpen} onOpenChange={setIsPrevModalOpen}>
-          <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-hidden">
+          <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-hidden bg-white">
             <DialogHeader>
               <DialogTitle>Previous Appointments</DialogTitle>
             </DialogHeader>

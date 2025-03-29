@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, User, Users, Calendar, Mail } from 'lucide-react'
+import { Home, User, Users, Calendar, Mail, PieChart } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { MobileNav } from "@/components/doctor/MobileNav"
 import React from "react"; 
@@ -13,6 +13,7 @@ const navItems = [
   { label: "Dashboard", icon: Home, href: "/doctor" },
   { label: "Profile", icon: User, href: "/doctor/profile" },
   { label: "Patients", icon: Users, href: "/doctor/patients" },
+  { label: "Analytics", icon: PieChart, href: "/doctor/Analytics" },
   { label: "Appointments", icon: Calendar, href: "/doctor/appointments" },
   { label: "Marketing", icon: Mail, href: "/doctor/marketing" },
 ]

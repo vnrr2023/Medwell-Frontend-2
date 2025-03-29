@@ -5,26 +5,12 @@ import Link from "next/link"
 
 import { useState, useCallback, useEffect, useRef } from "react"
 import moment from "moment"
-import {
-  ChevronLeft,
-  ChevronRight,
-  User,
-  Clock,
-  CalendarDays,
-  FileText,
-  CalendarIcon,
-} from "lucide-react"
+import { ChevronLeft, ChevronRight, Clock, CalendarDays, FileText, CalendarIcon, Loader2 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
@@ -131,6 +117,7 @@ export default function PatientAppointments() {
     hasNext: false,
     loadingMore: false,
   })
+  const [isPrevModalOpen, setIsPrevModalOpen] = useState(false)
 
   const prevAppointmentsRef = useRef<HTMLDivElement>(null)
 
@@ -259,57 +246,68 @@ export default function PatientAppointments() {
     return `${startOfWeek.format("MMM D")} - ${endOfWeek.format("MMM D, YYYY")}`
   }
 
+  // Update the AppointmentCard component to make it more visually appealing
   const AppointmentCard: React.FC<{ appointment: Appointment }> = ({ appointment }) => (
     <Link href={`/doctor/prescription/${appointment.id}`} passHref>
       <Card
-        className="mb-4 hover:shadow-lg transition-all duration-200 border-l-4 cursor-pointer"
+        className="mb-4 hover:shadow-lg transition-all duration-200 border-l-4 cursor-pointer overflow-hidden group"
         style={{ borderLeftColor: appointment.color }}
       >
-        <CardContent className="p-4">
-          <div className="flex items-start space-x-4">
-            <Avatar className="w-12 h-12 border-2 border-white shadow-sm">
-              <AvatarImage
-                src={`https://api.dicebear.com/6.x/initials/svg?seed=${appointment.patient}`}
-                alt={appointment.patient}
-              />
-              <AvatarFallback className="bg-primary/10 text-primary">
-                {appointment.patient
-                  .split(" ")
-                  ?.map((n) => n[0])
-                  .join("")}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1 space-y-2">
-              <div className="flex justify-between items-start">
-                <h3 className="font-semibold text-lg text-primary">{appointment.title}</h3>
-                <Badge
-                  variant="secondary"
-                  className="ml-2 shadow-sm"
-                  style={{
-                    backgroundColor: `${appointment.color}15`,
-                    color: appointment.color,
-                    border: `1px solid ${appointment.color}30`,
-                  }}
+        <CardContent className="p-0">
+          <div className="flex flex-col md:flex-row">
+            <div className="w-full md:w-2 h-2 md:h-auto" style={{ backgroundColor: appointment.color }}></div>
+            <div className="p-4 flex-1">
+              <div className="flex items-start space-x-4">
+                <Avatar
+                  className={`w-12 h-12 border-2 border-white shadow-sm ring-2 ring-[${appointment.color}] ring-opacity-10`}
                 >
-                  {moment(appointment.start).format("h:mm A")}
-                </Badge>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="flex items-center text-sm text-muted-foreground">
-                  <User className="w-4 h-4 mr-2 text-primary/60" />
-                  <span>{appointment.patient}</span>
-                </div>
-                <div className="flex items-center text-sm text-muted-foreground">
-                  <Clock className="w-4 h-4 mr-2 text-primary/60" />
-                  <span>{moment(appointment.start).format("h:mm A")}</span>
-                </div>
-                <div className="flex items-center text-sm text-muted-foreground">
-                  <CalendarDays className="w-4 h-4 mr-2 text-primary/60" />
-                  <span>{moment(appointment.start).format("MMM D, YYYY")}</span>
-                </div>
-                <div className="flex items-center text-sm text-muted-foreground">
-                  <FileText className="w-4 h-4 mr-2 text-primary/60" />
-                  <span className="truncate">{appointment.notes}</span>
+                  <AvatarImage
+                    src={`https://api.dicebear.com/6.x/initials/svg?seed=${appointment.patient}`}
+                    alt={appointment.patient}
+                  />
+                  <AvatarFallback className="bg-primary/10 text-primary">
+                    {appointment.patient
+                      .split(" ")
+                      ?.map((n) => n[0])
+                      .join("")}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 space-y-2">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-semibold text-lg text-primary group-hover:text-primary/80 transition-colors">
+                        {appointment.title}
+                      </h3>
+                      <p className="text-sm font-medium text-muted-foreground">{appointment.patient}</p>
+                    </div>
+                    <Badge
+                      variant="secondary"
+                      className="ml-2 shadow-sm"
+                      style={{
+                        backgroundColor: `${appointment.color}15`,
+                        color: appointment.color,
+                        border: `1px solid ${appointment.color}30`,
+                      }}
+                    >
+                      {moment(appointment.start).format("h:mm A")}
+                    </Badge>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+                    <div className="flex items-center text-sm text-muted-foreground">
+                      <Clock className="w-4 h-4 mr-2 text-primary/60" />
+                      <span>
+                        {moment(appointment.start).format("h:mm A - ") + moment(appointment.end).format("h:mm A")}
+                      </span>
+                    </div>
+                    <div className="flex items-center text-sm text-muted-foreground">
+                      <CalendarDays className="w-4 h-4 mr-2 text-primary/60" />
+                      <span>{moment(appointment.start).format("MMM D, YYYY")}</span>
+                    </div>
+                    <div className="flex items-center text-sm text-muted-foreground md:col-span-2">
+                      <FileText className="w-4 h-4 mr-2 text-primary/60" />
+                      <span className="truncate">{appointment.notes}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -319,20 +317,28 @@ export default function PatientAppointments() {
     </Link>
   )
 
+  // Update the AppointmentSkeleton to match the new design
   const AppointmentSkeleton = () => (
-    <div className="mb-4 border rounded-lg p-4">
-      <div className="flex items-start space-x-4">
-        <Skeleton className="w-12 h-12 rounded-full" />
-        <div className="flex-1 space-y-2">
-          <div className="flex justify-between items-start">
-            <Skeleton className="h-6 w-24" />
-            <Skeleton className="h-6 w-16" />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-full" />
+    <div className="mb-4 border rounded-lg overflow-hidden">
+      <div className="flex flex-col md:flex-row">
+        <div className="w-full md:w-2 h-2 md:h-auto bg-muted"></div>
+        <div className="p-4 flex-1">
+          <div className="flex items-start space-x-4">
+            <Skeleton className="w-12 h-12 rounded-full" />
+            <div className="flex-1 space-y-2">
+              <div className="flex justify-between items-start">
+                <div>
+                  <Skeleton className="h-6 w-24" />
+                  <Skeleton className="h-4 w-32 mt-1" />
+                </div>
+                <Skeleton className="h-6 w-16" />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full md:col-span-2" />
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -378,10 +384,7 @@ export default function PatientAppointments() {
             <tr>
               <th className="p-2 border-b bg-muted/30 sticky left-0 z-10"></th>
               {weekDays?.map((day, index) => (
-                <th
-                  key={index}
-                  className="p-3 border-b bg-muted/30 min-w-[110px] text-sm font-medium"
-                >
+                <th key={index} className="p-3 border-b bg-muted/30 min-w-[110px] text-sm font-medium">
                   <div className="flex flex-col items-center">
                     <span className="text-muted-foreground">{day.format("ddd")}</span>
                     <span className="text-lg font-semibold">{day.format("D")}</span>
@@ -410,17 +413,18 @@ export default function PatientAppointments() {
                       className="p-2 border-r border-b relative h-16 group-hover:bg-muted/5 transition-colors duration-200"
                     >
                       {appointmentsInSlot?.map((app) => (
-                          <div key={app.id}
-                            className="absolute inset-1 flex items-center justify-center text-xs cursor-pointer rounded-md shadow-sm transition-transform hover:scale-[1.02] hover:shadow-md"
-                            style={{
-                              backgroundColor: `${app?.color}15`,
-                              color: app?.color,
-                              border: `1px solid ${app?.color}30`,
-                            }}
-                            onClick={() => handleSelectEvent(app)}
-                          >
-                            <span className="font-medium">{app?.title}</span>
-                          </div>
+                        <div
+                          key={app.id}
+                          className="absolute inset-1 flex items-center justify-center text-xs cursor-pointer rounded-md shadow-sm transition-transform hover:scale-[1.02] hover:shadow-md"
+                          style={{
+                            backgroundColor: `${app?.color}15`,
+                            color: app?.color,
+                            border: `1px solid ${app?.color}30`,
+                          }}
+                          onClick={() => handleSelectEvent(app)}
+                        >
+                          <span className="font-medium">{app?.title}</span>
+                        </div>
                       ))}
                     </td>
                   )
@@ -441,11 +445,7 @@ export default function PatientAppointments() {
           <p className="text-muted-foreground">Manage and view your scheduled appointments</p>
         </div>
 
-        <Tabs
-          value={view}
-          onValueChange={(value) => setView(value as "list" | "calendar")}
-          className="w-full mb-6"
-        >
+        <Tabs value={view} onValueChange={(value) => setView(value as "list" | "calendar")} className="w-full mb-6">
           <div className="flex items-center justify-between mb-6">
             <TabsList className="grid w-[200px] grid-cols-2">
               <TabsTrigger value="list">List</TabsTrigger>
@@ -457,53 +457,15 @@ export default function PatientAppointments() {
           </div>
 
           <TabsContent value="list" className="mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card className="border-t-4 border-t-blue-500">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Clock className="w-5 h-5 text-blue-500" />
-                    Previous Appointments
-                  </CardTitle>
-                  <CardDescription>
-                    {loading.previous && previousAppointments?.length === 0
-                      ? "Loading appointments..."
-                      : `${previousAppointments.length} previous appointments`}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ScrollArea className="h-[400px] pr-4">
-                    {loading.previous && previousAppointments.length === 0 ? (
-                      Array.from({ length: 3 })?.map((_, i) => <AppointmentSkeleton key={i} />)
-                    ) : previousAppointments.length === 0 ? (
-                      <div className="flex flex-col items-center justify-center h-32 text-center">
-                        <CalendarIcon className="w-8 h-8 text-muted-foreground/50 mb-2" />
-                        <p className="text-muted-foreground">No previous appointments found</p>
-                      </div>
-                    ) : (
-                      <>
-                        {previousAppointments?.map((appointment) => (
-                          <AppointmentCard key={appointment.id} appointment={appointment} />
-                        ))}
-                        {paginationInfo.hasNext && (
-                          <div ref={prevAppointmentsRef} className="py-4 text-center">
-                            {paginationInfo.loadingMore ? (
-                              <div className="flex justify-center items-center gap-2">
-                                <Skeleton className="h-4 w-4 rounded-full" />
-                                <span className="text-sm text-muted-foreground">Loading more...</span>
-                              </div>
-                            ) : (
-                              <span className="text-sm text-muted-foreground">Scroll for more</span>
-                            )}
-                          </div>
-                        )}
-                      </>
-                    )}
-                  </ScrollArea>
-                </CardContent>
-              </Card>
-
-              <Card className="border-t-4 border-t-green-500">
-                <CardHeader>
+            <div className="grid grid-cols-1 gap-6">
+              <div className="w-full w-max-[700px] flex justify-end mb-4">
+                <Button variant="outline" className="flex items-center gap-2" onClick={() => setIsPrevModalOpen(true)}>
+                  <Clock className="w-4 h-4 text-blue-500" />
+                  Previous Appointments
+                </Button>
+              </div>
+              <Card className="border-t-4 border-t-green-500 overflow-hidden max-w-[700px]">
+                <CardHeader className="bg-green-50 dark:bg-green-900/10">
                   <CardTitle className="flex items-center gap-2">
                     <CalendarDays className="w-5 h-5 text-green-500" />
                     Upcoming Appointments
@@ -514,8 +476,8 @@ export default function PatientAppointments() {
                       : `${upcomingAppointments?.length} upcoming appointments scheduled`}
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <ScrollArea className="h-[400px] pr-4">
+                <CardContent className="p-0 pt-4">
+                  <ScrollArea className="h-[400px] px-4">
                     {loading.upcoming ? (
                       Array.from({ length: 3 })?.map((_, i) => <AppointmentSkeleton key={i} />)
                     ) : upcomingAppointments?.length === 0 ? (
@@ -572,9 +534,7 @@ export default function PatientAppointments() {
         <Dialog open={!!selectedAppointment} onOpenChange={() => setSelectedAppointment(null)}>
           <DialogContent className="sm:max-w-[425px] bg-white">
             <DialogHeader>
-              <DialogTitle className="text-xl font-semibold text-primary">
-                {selectedAppointment?.title}
-              </DialogTitle>
+              <DialogTitle className="text-xl font-semibold text-primary">{selectedAppointment?.title}</DialogTitle>
               <DialogDescription>Appointment details and information</DialogDescription>
             </DialogHeader>
             {selectedAppointment && (
@@ -629,7 +589,9 @@ export default function PatientAppointments() {
                         {selectedAppointment.notes || "No notes available"}
                       </p>
                       <Link href={`/doctor/prescription/${selectedAppointment.id}`} passHref>
-                      <Button variant="outline" className="mt-2 p-2">Details</Button>
+                        <Button variant="outline" className="mt-2 p-2">
+                          Details
+                        </Button>
                       </Link>
                     </div>
                   </div>
@@ -638,7 +600,113 @@ export default function PatientAppointments() {
             )}
           </DialogContent>
         </Dialog>
+        <Dialog open={isPrevModalOpen} onOpenChange={setIsPrevModalOpen}>
+          <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-hidden bg-white">
+            <DialogHeader>
+              <DialogTitle>Previous Appointments</DialogTitle>
+            </DialogHeader>
+            <ScrollArea className="h-[500px] pr-4">
+              {loading.previous && previousAppointments.length === 0 ? (
+                <div className="flex justify-center items-center py-10">
+                  <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+                </div>
+              ) : previousAppointments.length === 0 ? (
+                <div className="text-center py-10 text-gray-500">No previous appointments found</div>
+              ) : (
+                // Update the previous appointments card in the dialog
+                // Replace the previous appointments section in the Dialog with this improved version
+                <div className="space-y-4">
+                  {previousAppointments.map((appointment) => (
+                    <Link key={appointment.id} href={`/doctor/prescription/${appointment.id}`} passHref>
+                      <Card
+                        className="border-l-4 hover:shadow-md transition-all duration-200 overflow-hidden group"
+                        style={{ borderLeftColor: appointment.color }}
+                      >
+                        <CardContent className="p-0">
+                          <div className="flex flex-col md:flex-row">
+                            <div
+                              className="w-full md:w-2 h-2 md:h-auto"
+                              style={{ backgroundColor: appointment.color }}
+                            ></div>
+                            <div className="p-4 flex-1">
+                              <div className="flex items-start space-x-4">
+                                <Avatar
+                                  className={`w-12 h-12 border-2 border-white shadow-sm ring-2 ring-[${appointment.color}] ring-opacity-10`}
+                                >
+                                  <AvatarImage
+                                    src={`https://api.dicebear.com/6.x/initials/svg?seed=${appointment.patient}`}
+                                    alt={appointment.patient}
+                                  />
+                                  <AvatarFallback className="bg-primary/10 text-primary">
+                                    {appointment.patient
+                                      .split(" ")
+                                      .map((n) => n[0])
+                                      .join("")}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div className="flex-1 space-y-2">
+                                  <div className="flex justify-between items-start">
+                                    <div>
+                                      <h3 className="font-semibold text-lg text-primary group-hover:text-primary/80 transition-colors">
+                                        {appointment.title}
+                                      </h3>
+                                      <p className="text-sm font-medium text-muted-foreground">{appointment.patient}</p>
+                                    </div>
+                                    <div className="flex flex-col items-end">
+                                      <Badge
+                                        variant="secondary"
+                                        className="shadow-sm"
+                                        style={{
+                                          backgroundColor: `${appointment.color}15`,
+                                          color: appointment.color,
+                                          border: `1px solid ${appointment.color}30`,
+                                        }}
+                                      >
+                                        {moment(appointment.start).format("h:mm A")}
+                                      </Badge>
+                                      <span className="text-xs text-muted-foreground mt-1">
+                                        {moment(appointment.start).format("MMM D, YYYY")}
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center text-sm text-muted-foreground mt-2">
+                                    <FileText className="w-4 h-4 mr-2 text-primary/60 flex-shrink-0" />
+                                    <span className="truncate">{appointment.notes}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  ))}
+
+                  {/* Pagination loading indicator with bounce effect */}
+                  {paginationInfo.hasNext && (
+                    <div
+                      ref={prevAppointmentsRef}
+                      className={`py-4 text-center transition-all duration-300 ${
+                        paginationInfo.loadingMore ? "translate-y-2" : "translate-y-0"
+                      }`}
+                    >
+                      {paginationInfo.loadingMore ? (
+                        <div className="flex justify-center items-center gap-2">
+                          <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
+                          <span className="text-sm text-muted-foreground">Loading more...</span>
+                        </div>
+                      ) : (
+                        <span className="text-sm text-muted-foreground">Scroll for more</span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </ScrollArea>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   )
 }
+
