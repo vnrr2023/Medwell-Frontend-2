@@ -54,9 +54,7 @@ export default function DoctorDashboard() {
     const fetchDashboardData = async () => {
       try {
         setLoading(true)
-        // In a real app, you would pass the actual doctor ID
-        const doctorId = "your-doctor-id"
-        const response = await DaddyAPI.getDoctorDashboard(doctorId)
+        const response = await DaddyAPI.getDoctorDashboard()
         setDashboardData(response.data)
         setError(null)
       } catch (err) {
@@ -279,10 +277,6 @@ function PatientTrendChart({ dates, appointments }: { dates: string[]; appointme
 
   return (
     <div className="h-[200px]">
-      {/* 
-        In a real implementation, you would use a chart library like Recharts here.
-        For simplicity, I'm showing a basic representation of the data.
-      */}
       <div className="flex h-full items-end space-x-2">
         {appointments.map((count, index) => (
           <div key={index} className="flex flex-col items-center">

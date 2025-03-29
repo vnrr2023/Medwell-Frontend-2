@@ -106,9 +106,9 @@ export const Patients: React.FC = () => {
 
   if (selectedPatientId) {
     if (viewMode === "reports") {
-      return <PatientReports patientId={selectedPatientId} onClose={handleBackToPatients} />
+      return <PatientReports onClose={handleBackToPatients} />
     } else if (viewMode === "health") {
-      return <PatientHealth patientId={selectedPatientId} onClose={handleBackToPatients} />
+      return <PatientHealth onClose={handleBackToPatients} />
     }
   }
 

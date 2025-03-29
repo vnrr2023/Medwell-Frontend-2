@@ -191,7 +191,7 @@ const CircularMetric = ({ value, total, label, icon: Icon, color }:{value:any,to
   )
 }
 
-export default function PatientHealth({ patientId, onClose }:{patientId:any, onClose:any}) {
+export default function PatientHealth({ onClose }:{ onClose:any}) {
   const charts = [
     { label: 'Hemoglobin', data: dummyResponse.data.hemoglobin.map(Number), color: '#9333ea', icon: Droplet },
     { label: 'RBC Count', data: dummyResponse.data.rbc_count.map(Number), color: '#7e22ce', icon: Thermometer },
@@ -211,7 +211,6 @@ export default function PatientHealth({ patientId, onClose }:{patientId:any, onC
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Patients
         </button>
-        <h1 className="text-3xl font-bold text-gray-800">Patient Health - Patient {patientId}</h1>
       </div>
 
       {/* Line Charts */}
