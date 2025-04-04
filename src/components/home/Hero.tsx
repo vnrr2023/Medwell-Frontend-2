@@ -129,12 +129,23 @@ export default function Hero() {
                 Learn More
               </Button>
             </motion.div>
-            <Link href="/app-download" className="flex items-center gap-2 px-6 py-3">
-    Download our App
-    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
-    {/* Subtle glowing effect */}
-    <span className="absolute inset-0 bg-white opacity-10 blur-lg group-hover:opacity-20 transition-opacity"></span>
-  </Link>
+            <motion.div
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ type: "spring", stiffness: 400, damping: 17 }}
+            >
+              <Button
+                size="lg"
+                className="relative bg-gradient-to-r from-green-600 to-lime-500 hover:from-green-700 hover:to-lime-600 text-white shadow-lg border border-white/10 transition-all duration-300 group overflow-hidden"
+                asChild
+              >
+                <Link href="/app-download" className="flex items-center gap-2 px-6 py-3">
+                  Download our App
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
+                  <span className="absolute inset-0 bg-white opacity-10 blur-lg group-hover:opacity-20 transition-opacity"></span>
+                </Link>
+              </Button>
+            </motion.div>
           </motion.div>
 
           <motion.div variants={itemVariants} className="mt-8 flex items-center gap-2">
