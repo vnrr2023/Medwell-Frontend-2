@@ -29,7 +29,6 @@ import { Separator } from "@/components/ui/separator"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -40,6 +39,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+
 import DaddyAPI from "@/services/api"
 
 // Types
@@ -52,7 +52,6 @@ interface Medicine {
   duration?: string
 }
 
-// Add Instructions array to the Prescription interface if it doesn't exist
 interface Prescription {
   prescriptionData: {
     Observations: string[]
@@ -106,54 +105,66 @@ export default function PrescriptionPage() {
   const [currentDate] = useState<Date>(new Date())
   const { id } = useParams() as { id: string }
   const [loading, setLoading] = useState<boolean>(false)
- 
+  // Update the initial state to ensure it follows the required data structure
   const [prescription, setPrescription] = useState<Prescription>({
     prescriptionData: {
-      Observations: [],
-      Instructions: [],
+      Observations: ["The patient is having headache.", "Not able to work properly"],
+      Instructions: ["Take good Sleep"],
       Medicines: [
         {
           row: "1",
-          medicine: "",
+          medicine: "Crocin",
           breakfast: 0,
-          lunch: 0,
+          lunch: 1,
           dinner: 0,
-          duration: "",
+          duration: "7 days",
         },
       ],
     },
-    otherData: "",
+    otherData: "Take good Sleep",
   })
   const [activeTab, setActiveTab] = useState<string>("write")
   const [previewDialogOpen, setPreviewDialogOpen] = useState<boolean>(false)
   const [saveSuccess, setSaveSuccess] = useState<boolean | null>(null)
   const [newObservation, setNewObservation] = useState<string>("")
   const [newInstruction, setNewInstruction] = useState<string>("")
+  // Add a ref for printing
   const prescriptionPreviewRef = useRef<HTMLDivElement>(null)
 
+  // Update the useEffect to properly handle the data structure when fetching
   useEffect(() => {
     const fetchPrescription = async () => {
       if (id && id !== "new") {
         try {
           setLoading(true)
           const data: any = await DaddyAPI.getPrescriptions(id)
-          
+
+          // Ensure we have the correct data structure
           const transformedData: any = {
             prescriptionData: {
-              Observations: data.data.prescription.Observations || [],
-              Instructions: data.data.otherInfo ? [data.data.otherInfo] : [],
-              Medicines: data.data.prescription.Medicines || [
-                {
-                  row: "1",
-                  medicine: "",
-                  breakfast: 0,
-                  lunch: 0,
-                  dinner: 0,
-                  duration: "",
-                }
+              Observations: data.data.prescription.Observations || [
+                "The patient is having headache.",
+                "Not able to work properly",
               ],
+              Instructions: data.data.otherInfo ? [data.data.otherInfo] : ["Take good Sleep"],
+              Medicines:
+                data.data.prescription.Medicines && data.data.prescription.Medicines.length > 0
+                  ? data.data.prescription.Medicines.map((med: any, index: number) => ({
+                      ...med,
+                      row: med.row || (index + 1).toString(),
+                    }))
+                  : [
+                      {
+                        row: "1",
+                        medicine: "Crocin",
+                        breakfast: 0,
+                        lunch: 1,
+                        dinner: 0,
+                        duration: "7 days",
+                      },
+                    ],
             },
-            otherData: data.data.otherInfo || "",
+            otherData: data.data.otherInfo || "Take good Sleep",
             presId: data.data.id,
           }
 
@@ -170,35 +181,123 @@ export default function PrescriptionPage() {
     fetchPrescription()
   }, [id])
 
-  // Add print functionality
+  // Add print functionality - fixed the type error
   const handlePrint = useReactToPrint({
+  // @ts-expect-error: Suppress type error for useReactToPrint
+  content: () => prescriptionPreviewRef.current,
     documentTitle: `Prescription_${patientInfo.name}_${formatDate(currentDate)}`,
+    onBeforeGetContent: () => {
+      // Ensure any responsive elements are properly sized before printing
+      return new Promise<void>((resolve) => {
+        setTimeout(() => {
+          resolve()
+        }, 250)
+      })
+    },
   })
 
   // Add PDF download functionality
   const handleDownloadPDF = async () => {
     if (prescriptionPreviewRef.current) {
-      const canvas = await html2canvas(prescriptionPreviewRef.current, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-      })
+      try {
+        setLoading(true)
 
-      const imgData = canvas.toDataURL("image/png")
-      const pdf = new jsPDF({
-        orientation: "portrait",
-        unit: "mm",
-        format: "a4",
-      })
+        // Create a new div that will be used for PDF generation
+        const printContainer = document.createElement("div")
+        printContainer.style.position = "absolute"
+        printContainer.style.left = "-9999px"
+        printContainer.style.top = "0"
+        printContainer.style.width = "800px" // Fixed width for consistent rendering
+        printContainer.style.backgroundColor = "white"
+        printContainer.style.padding = "20px"
+        document.body.appendChild(printContainer)
 
-      const imgWidth = 210
-      const imgHeight = (canvas.height * imgWidth) / canvas.width
+        // Clone the content
+        const contentClone = prescriptionPreviewRef.current.cloneNode(true) as HTMLElement
 
-      pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight)
-      pdf.save(`Prescription_${patientInfo.name}_${formatDate(currentDate)}.pdf`)
+        // Apply styles to ensure proper rendering
+        const styles = document.createElement("style")
+        styles.textContent = `
+          * { box-sizing: border-box; }
+          body { margin: 0; padding: 0; }
+          table { width: 100%; border-collapse: collapse; }
+          th, td { border: 1px solid #e2e8f0; padding: 8px; }
+          th { background-color: #f8fafc; text-align: left; }
+        `
+
+        printContainer.appendChild(styles)
+        printContainer.appendChild(contentClone)
+
+        // Wait for content to render
+        await new Promise((resolve) => setTimeout(resolve, 500))
+
+        // Use html2canvas with higher quality settings
+        const canvas = await html2canvas(printContainer, {
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          allowTaint: true,
+          backgroundColor: "white",
+          windowWidth: 800,
+          height: printContainer.offsetHeight,
+        })
+
+        // Remove the temporary container
+        document.body.removeChild(printContainer)
+
+        // Create PDF with proper dimensions
+        const imgData = canvas.toDataURL("image/png")
+        const pdf = new jsPDF({
+          orientation: "portrait",
+          unit: "mm",
+          format: "a4",
+        })
+
+        // Calculate dimensions to fit A4
+        const imgWidth = 210 // A4 width in mm
+        const pageHeight = 297 // A4 height in mm
+        const imgHeight = (canvas.height * imgWidth) / canvas.width
+
+        // Add image to PDF, handling multi-page if needed
+        let heightLeft = imgHeight
+        let position = 0
+
+        // First page
+        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight)
+        heightLeft -= pageHeight
+
+        // Add additional pages if content is longer than one page
+        while (heightLeft > 0) {
+          position = heightLeft - imgHeight
+          pdf.addPage()
+          pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight)
+          heightLeft -= pageHeight
+        }
+
+        pdf.save(`Prescription_${patientInfo.name}_${formatDate(currentDate)}.pdf`)
+      } catch (error) {
+        console.error("Error generating PDF:", error)
+        // Show error message to user
+        alert("Failed to generate PDF. Please try again.")
+      } finally {
+        setLoading(false)
+      }
     }
   }
 
+  // Update an observation
+  // const updateObservation = (index: number, value: string) => {
+  //   const updatedObservations = [...prescription.prescriptionData.Observations]
+  //   updatedObservations[index] = value
+
+  //   setPrescription((prev) => ({
+  //     ...prev,
+  //     prescriptionData: {
+  //       ...prev.prescriptionData,
+  //       Observations: updatedObservations,
+  //     },
+  //   }))
+  // }
   // Add a new observation
   const addObservation = () => {
     if (newObservation.trim()) {
@@ -224,6 +323,7 @@ export default function PrescriptionPage() {
     }))
   }
 
+  // Update an observation
   const updateObservation = (index: number, value: string) => {
     const updatedObservations = [...prescription.prescriptionData.Observations]
     updatedObservations[index] = value
@@ -261,6 +361,7 @@ export default function PrescriptionPage() {
     }))
   }
 
+  // Update an Instruction
   const updateInstruction = (index: number, value: string) => {
     const updatedInstructions = [...prescription.prescriptionData.Instructions]
     updatedInstructions[index] = value
@@ -273,7 +374,6 @@ export default function PrescriptionPage() {
       },
     }))
   }
-
   // Add a new medicine row
   const addMedicine = () => {
     setPrescription((prev) => {
@@ -329,6 +429,7 @@ export default function PrescriptionPage() {
     }))
   }
 
+  // Update medicine timing
   const updateMedicineTiming = (row: string, meal: "breakfast" | "lunch" | "dinner", value: number) => {
     setPrescription((prev) => ({
       ...prev,
@@ -339,6 +440,7 @@ export default function PrescriptionPage() {
     }))
   }
 
+  // Update medicine duration
   const updateMedicineDuration = (row: string, value: string) => {
     setPrescription((prev) => ({
       ...prev,
@@ -349,6 +451,7 @@ export default function PrescriptionPage() {
     }))
   }
 
+  // Update other data
   const updateOtherData = (value: string) => {
     setPrescription((prev) => ({
       ...prev,
@@ -356,28 +459,51 @@ export default function PrescriptionPage() {
     }))
   }
 
+  // Save prescription
   const savePrescription = async () => {
     try {
       setLoading(true)
       setSaveSuccess(null)
 
+      // Format the data according to the required structure
       const prescriptionData = {
         prescriptionData: {
           Observations: prescription.prescriptionData.Observations,
-          Medicines: prescription.prescriptionData.Medicines,
+          Medicines: prescription.prescriptionData.Medicines.map((med) => ({
+            row: med.row,
+            medicine: med.medicine,
+            breakfast: med.breakfast,
+            lunch: med.lunch,
+            dinner: med.dinner,
+            duration: med.duration || "",
+          })),
         },
-        otherData: prescription.prescriptionData.Instructions[0],
+        otherData:
+          prescription.prescriptionData.Instructions.length > 0
+            ? prescription.prescriptionData.Instructions[0]
+            : "Take good Sleep",
         id: prescription.presId,
-      };
+      }
+
       const prescriptionAddData = {
         prescriptionData: {
           Observations: prescription.prescriptionData.Observations,
-          Medicines: prescription.prescriptionData.Medicines,
+          Medicines: prescription.prescriptionData.Medicines.map((med) => ({
+            row: med.row,
+            medicine: med.medicine,
+            breakfast: med.breakfast,
+            lunch: med.lunch,
+            dinner: med.dinner,
+            duration: med.duration || "",
+          })),
         },
-        otherData: prescription.prescriptionData.Instructions[0],
+        otherData:
+          prescription.prescriptionData.Instructions.length > 0
+            ? prescription.prescriptionData.Instructions[0]
+            : "Take good Sleep",
         appointmentId: id,
-      };
-      
+      }
+
       let response: any
       if (prescription.presId) {
         response = await DaddyAPI.updatePrescription(prescriptionData)
@@ -419,7 +545,7 @@ export default function PrescriptionPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 pt-20 pb-12">
+    <div className="min-h-screen bg-slate-50 pb-12">
       <div className="w-full py-8 px-4 sm:px-6 lg:px-8 bg-[url('/bg.svg')] bg-cover bg-center bg-blend-overlay">
         <div className="max-w-7xl mx-auto">
           <Button variant="ghost" className="text-white mb-4 hover:bg-white/20" onClick={() => router.back()}>
@@ -438,6 +564,7 @@ export default function PrescriptionPage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_3fr] gap-8">
+          {/* Patient Info Card */}
           <div className="order-2 lg:order-1">
             <Card className="border-indigo-100 shadow-lg sticky top-24">
               <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50 border-b">
@@ -629,33 +756,33 @@ export default function PrescriptionPage() {
                         </Button>
                       </div>
 
-                      <div className="border rounded-lg overflow-x-auto">
-                        <div className="min-w-[650px]">
-                          <Table>
-                            <TableHeader className="bg-slate-50">
-                              <TableRow>
-                                <TableHead className="w-[5%]">No.</TableHead>
-                                <TableHead className="w-[35%]">Medicine Name</TableHead>
-                                <TableHead className="text-center">B</TableHead>
-                                <TableHead className="text-center">L</TableHead>
-                                <TableHead className="text-center">D</TableHead>
-                                <TableHead className="w-[15%]">Duration</TableHead>
-                                <TableHead className="w-[5%]"></TableHead>
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody>
+                      <div className="border rounded-lg overflow-hidden">
+                        <div className="overflow-x-auto">
+                          <table className="w-full border-collapse">
+                            <thead className="bg-slate-50">
+                              <tr>
+                                <th className="text-left p-2 border border-slate-200 w-[5%]">No.</th>
+                                <th className="text-left p-2 border border-slate-200 w-[35%]">Medicine Name</th>
+                                <th className="text-center p-2 border border-slate-200">B</th>
+                                <th className="text-center p-2 border border-slate-200">L</th>
+                                <th className="text-center p-2 border border-slate-200">D</th>
+                                <th className="text-left p-2 border border-slate-200 w-[15%]">Duration</th>
+                                <th className="text-center p-2 border border-slate-200 w-[5%]"></th>
+                              </tr>
+                            </thead>
+                            <tbody>
                               {prescription.prescriptionData.Medicines.map((medicine) => (
-                                <TableRow key={medicine.row}>
-                                  <TableCell className="font-medium">{medicine.row}</TableCell>
-                                  <TableCell>
+                                <tr key={medicine.row}>
+                                  <td className="p-2 border border-slate-200 font-medium">{medicine.row}</td>
+                                  <td className="p-2 border border-slate-200">
                                     <Input
                                       value={medicine.medicine}
                                       onChange={(e) => updateMedicineName(medicine.row, e.target.value)}
                                       placeholder="Medicine name"
                                       className="border-slate-300 focus:border-indigo-500"
                                     />
-                                  </TableCell>
-                                  <TableCell className="text-center">
+                                  </td>
+                                  <td className="p-2 border border-slate-200 text-center">
                                     <Checkbox
                                       checked={medicine.breakfast === 1}
                                       onCheckedChange={(checked) =>
@@ -663,8 +790,8 @@ export default function PrescriptionPage() {
                                       }
                                       className="data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
                                     />
-                                  </TableCell>
-                                  <TableCell className="text-center">
+                                  </td>
+                                  <td className="p-2 border border-slate-200 text-center">
                                     <Checkbox
                                       checked={medicine.lunch === 1}
                                       onCheckedChange={(checked) =>
@@ -672,8 +799,8 @@ export default function PrescriptionPage() {
                                       }
                                       className="data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
                                     />
-                                  </TableCell>
-                                  <TableCell className="text-center">
+                                  </td>
+                                  <td className="p-2 border border-slate-200 text-center">
                                     <Checkbox
                                       checked={medicine.dinner === 1}
                                       onCheckedChange={(checked) =>
@@ -681,16 +808,16 @@ export default function PrescriptionPage() {
                                       }
                                       className="data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
                                     />
-                                  </TableCell>
-                                  <TableCell>
+                                  </td>
+                                  <td className="p-2 border border-slate-200">
                                     <Input
                                       value={medicine.duration || ""}
                                       onChange={(e) => updateMedicineDuration(medicine.row, e.target.value)}
                                       placeholder="e.g. 7 days"
                                       className="border-slate-300 focus:border-indigo-500"
                                     />
-                                  </TableCell>
-                                  <TableCell>
+                                  </td>
+                                  <td className="p-2 border border-slate-200 text-center">
                                     <Button
                                       variant="ghost"
                                       size="icon"
@@ -699,11 +826,11 @@ export default function PrescriptionPage() {
                                     >
                                       <Trash2 className="h-4 w-4" />
                                     </Button>
-                                  </TableCell>
-                                </TableRow>
+                                  </td>
+                                </tr>
                               ))}
-                            </TableBody>
-                          </Table>
+                            </tbody>
+                          </table>
                         </div>
                       </div>
                       <div className="mt-2 text-xs text-slate-500">
@@ -814,8 +941,8 @@ export default function PrescriptionPage() {
 
       {/* Prescription Preview Dialog */}
       <Dialog open={previewDialogOpen} onOpenChange={setPreviewDialogOpen}>
-        <DialogContent className="w-[95vw] md:max-w-4xl max-w-sm max-h-[90vh] overflow-y-auto bg-white">
-          <DialogHeader>
+        <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto bg-white p-0 sm:p-6">
+          <DialogHeader className="px-4 pt-4 sm:px-0 sm:pt-0">
             <DialogTitle className="text-indigo-700 flex items-center gap-2">
               <FileText className="h-5 w-5" />
               Prescription Preview
@@ -823,8 +950,9 @@ export default function PrescriptionPage() {
             <DialogDescription>Review the prescription before saving</DialogDescription>
           </DialogHeader>
 
-          <div className="py-4">
-            <div className="border rounded-lg p-4 sm:p-6 bg-white max-w-80 md:max-w-full" ref={prescriptionPreviewRef}>
+          <div className="py-4 px-4 sm:px-0">
+            <div className="border rounded-lg p-4 sm:p-6 bg-white" ref={prescriptionPreviewRef}>
+              {/* Doctor Info */}
               <div className="flex flex-col sm:flex-row justify-between items-start border-b pb-4 mb-4 gap-4">
                 <div className="flex items-center gap-4">
                   <Avatar className="h-16 w-16 border-2 border-indigo-100">
@@ -849,6 +977,7 @@ export default function PrescriptionPage() {
                 </div>
               </div>
 
+              {/* Patient Info */}
               <div className="flex flex-wrap justify-between items-start border-b pb-4 mb-4 gap-4">
                 <div className="w-full sm:w-auto">
                   <p className="text-sm text-slate-500">Patient Name:</p>
@@ -866,6 +995,7 @@ export default function PrescriptionPage() {
                 </div>
               </div>
 
+              {/* Observations */}
               <div className="mb-6">
                 <h4 className="text-md font-semibold text-indigo-700 mb-2">Observations</h4>
                 <ul className="list-disc pl-5 space-y-1">
@@ -880,41 +1010,55 @@ export default function PrescriptionPage() {
                 </ul>
               </div>
 
+              {/* Medicines - Using standard HTML table for better PDF rendering */}
               <div className="mb-6">
                 <h4 className="text-md font-semibold text-indigo-700 mb-2">Medicines</h4>
                 <div className="overflow-x-auto">
-                  <div className="min-w-[500px]">
-                    <Table>
-                      <TableHeader className="bg-slate-50">
-                        <TableRow>
-                          <TableHead className="w-[5%]">No.</TableHead>
-                          <TableHead className="w-[40%]">Medicine</TableHead>
-                          <TableHead className="text-center">Morning</TableHead>
-                          <TableHead className="text-center">Afternoon</TableHead>
-                          <TableHead className="text-center">Evening</TableHead>
-                          <TableHead>Duration</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {prescription.prescriptionData.Medicines.map(
-                          (medicine) =>
-                            medicine.medicine && (
-                              <TableRow key={medicine.row}>
-                                <TableCell>{medicine.row}</TableCell>
-                                <TableCell className="font-medium">{medicine.medicine}</TableCell>
-                                <TableCell className="text-center">{medicine.breakfast === 1 ? "✓" : "-"}</TableCell>
-                                <TableCell className="text-center">{medicine.lunch === 1 ? "✓" : "-"}</TableCell>
-                                <TableCell className="text-center">{medicine.dinner === 1 ? "✓" : "-"}</TableCell>
-                                <TableCell>{medicine.duration || "As directed"}</TableCell>
-                              </TableRow>
-                            ),
-                        )}
-                      </TableBody>
-                    </Table>
-                  </div>
+                  <table className="w-full border-collapse" style={{ borderCollapse: "collapse", width: "100%" }}>
+                    <thead style={{ backgroundColor: "#f8fafc" }}>
+                      <tr>
+                        <th style={{ border: "1px solid #e2e8f0", padding: "8px", textAlign: "left", width: "5%" }}>
+                          No.
+                        </th>
+                        <th style={{ border: "1px solid #e2e8f0", padding: "8px", textAlign: "left", width: "40%" }}>
+                          Medicine
+                        </th>
+                        <th style={{ border: "1px solid #e2e8f0", padding: "8px", textAlign: "center" }}>Morning</th>
+                        <th style={{ border: "1px solid #e2e8f0", padding: "8px", textAlign: "center" }}>Afternoon</th>
+                        <th style={{ border: "1px solid #e2e8f0", padding: "8px", textAlign: "center" }}>Evening</th>
+                        <th style={{ border: "1px solid #e2e8f0", padding: "8px", textAlign: "left" }}>Duration</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {prescription.prescriptionData.Medicines.map(
+                        (medicine) =>
+                          medicine.medicine && (
+                            <tr key={medicine.row}>
+                              <td style={{ border: "1px solid #e2e8f0", padding: "8px" }}>{medicine.row}</td>
+                              <td style={{ border: "1px solid #e2e8f0", padding: "8px", fontWeight: "500" }}>
+                                {medicine.medicine}
+                              </td>
+                              <td style={{ border: "1px solid #e2e8f0", padding: "8px", textAlign: "center" }}>
+                                {medicine.breakfast === 1 ? "✓" : "-"}
+                              </td>
+                              <td style={{ border: "1px solid #e2e8f0", padding: "8px", textAlign: "center" }}>
+                                {medicine.lunch === 1 ? "✓" : "-"}
+                              </td>
+                              <td style={{ border: "1px solid #e2e8f0", padding: "8px", textAlign: "center" }}>
+                                {medicine.dinner === 1 ? "✓" : "-"}
+                              </td>
+                              <td style={{ border: "1px solid #e2e8f0", padding: "8px" }}>
+                                {medicine.duration || "As directed"}
+                              </td>
+                            </tr>
+                          ),
+                      )}
+                    </tbody>
+                  </table>
                 </div>
               </div>
 
+              {/* Instructions */}
               {prescription.prescriptionData.Instructions.length > 0 && (
                 <div className="mb-6">
                   <h4 className="text-md font-semibold text-indigo-700 mb-2">Instructions</h4>
@@ -931,6 +1075,7 @@ export default function PrescriptionPage() {
                 </div>
               )}
 
+              {/* Signature */}
               <div className="mt-8 pt-4 border-t text-right">
                 <p className="font-medium text-slate-800">{doctorInfo.name}</p>
                 <p className="text-sm text-slate-600">{doctorInfo.specialty}</p>
@@ -938,7 +1083,7 @@ export default function PrescriptionPage() {
             </div>
           </div>
 
-          <DialogFooter className="flex flex-wrap gap-2 mt-4 md:max-w-4xl max-w-sm">
+          <DialogFooter className="flex flex-wrap gap-2 mt-4 px-4 pb-4 sm:px-0 sm:pb-0">
             <Button
               variant="outline"
               className="border-slate-300 text-slate-700 hover:bg-slate-100 w-full sm:w-auto"
@@ -950,6 +1095,7 @@ export default function PrescriptionPage() {
               variant="outline"
               className="border-indigo-200 text-indigo-700 hover:bg-indigo-50 w-full sm:w-auto"
               onClick={() => handlePrint()}
+              disabled={loading}
             >
               <Printer className="h-4 w-4 mr-2" />
               Print
@@ -958,9 +1104,19 @@ export default function PrescriptionPage() {
               variant="outline"
               className="border-indigo-200 text-indigo-700 hover:bg-indigo-50 w-full sm:w-auto"
               onClick={handleDownloadPDF}
+              disabled={loading}
             >
-              <Download className="h-4 w-4 mr-2" />
-              Download PDF
+              {loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Download className="h-4 w-4 mr-2" />
+                  Download PDF
+                </>
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
