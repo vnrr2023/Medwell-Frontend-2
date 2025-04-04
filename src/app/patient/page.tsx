@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import {  Calendar, FileText, DollarSign, Bell} from "lucide-react"
+import {  Calendar, FileText, DollarSign, Bell, Router} from "lucide-react"
 import { Line } from "react-chartjs-2"
 import {
   Chart as ChartJS,
@@ -16,20 +16,55 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 
-import { dashboardData } from "./data"
 import DaddyAPI from "@/services/api"
 import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend)
 
 export default function PatientDashboard() {
   const [dashboardData, setDashboardData] = useState<any>()
+  const [loading, setLoading] = useState<boolean>(true);
+  const router=useRouter()
+  
   useEffect(() => {
+ 
     const getPatientDashboardData = async () => {
-      const response = await DaddyAPI.getPatientDashboard()
-      setDashboardData(response.data)
+      try {
+        const response = await DaddyAPI.getPatientDashboard();
+        setDashboardData(response.data);
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    getPatientDashboardData();
+  }, []);
+ 
+  useEffect(() => {
+    const role=localStorage.getItem("Role")
+    const token=localStorage.getItem("Token")
+    if(!token || token==undefined){
+      alert("You are not signed in")
+      window.location.href="/auth"
     }
-    getPatientDashboardData()
-  }, [])
+    if(role!=="patient"){
+      alert("You cannot access logged in as doctor")
+      router.push("/doctor")
+      return
+    }
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="loader border-t-transparent border-solid rounded-full animate-spin border-4 border-blue-500 h-16 w-16"></div>
+      </div>
+    );
+  }
+
+
+
   return (
     <div className="space-y-4 pb-20 md:pb-0">
       <motion.h1

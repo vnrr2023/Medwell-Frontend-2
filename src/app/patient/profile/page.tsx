@@ -99,7 +99,7 @@ export default function ProfilePage() {
             <InfoItem label="Email" value={patientInfo.user_info.email} />
             <InfoItem label="Phone" value={patientInfo.phone_number || "Not set"} />
             <InfoItem label="Blood Group" value={patientInfo.blood_group || "Not set"} />
-            <InfoItem label="Aadhar Card" value={patientInfo.adhaar_card || "Not set"} />
+            <InfoItem label="Aadhar Card" value={"1234 1234 1234"} />
           </div>
         </motion.section>
 

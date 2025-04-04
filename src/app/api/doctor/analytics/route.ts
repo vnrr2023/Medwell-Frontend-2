@@ -33,9 +33,9 @@ const mockDashboardData = {
     },
     "revenue_per_address": {
         "address_id": [
-            19,
-            59,
-            36
+            "Colaba",
+            "Lal Baug",
+            "JJ Hospital"
         ],
         "revenue": [
             500,

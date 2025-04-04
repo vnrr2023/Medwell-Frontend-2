@@ -6,7 +6,7 @@ import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import Link from "next/link"
 import { useParams } from "next/navigation"
-import { EyeIcon, EyeOffIcon, Mail, Lock } from "lucide-react"
+import { EyeIcon, EyeOffIcon, Mail, Lock, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -20,9 +20,9 @@ declare global {
     google?: {
       accounts: {
         id: {
-          initialize: (config: GoogleConfig) => void;
-          renderButton: (element: HTMLElement | null, options: any) => void;
-          prompt: (callback: (notification: GoogleNotification) => void) => void;
+          initialize: (config: GoogleConfig) => void
+          renderButton: (element: HTMLElement | null, options: any) => void
+          prompt: (callback: (notification: GoogleNotification) => void) => void
         }
       }
     }
@@ -30,17 +30,17 @@ declare global {
 }
 
 interface GoogleConfig {
-  client_id: string;
-  callback: (response: GoogleResponse) => void;
+  client_id: string
+  callback: (response: GoogleResponse) => void
 }
 
 interface GoogleResponse {
-  credential: string;
+  credential: string
 }
 
 interface GoogleNotification {
-  isNotDisplayed: () => boolean;
-  isSkippedMoment: () => boolean;
+  isNotDisplayed: () => boolean
+  isSkippedMoment: () => boolean
 }
 
 const roleInfo = {
@@ -73,18 +73,19 @@ export default function LoginPage() {
   const { login, googleLogin } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
-  
+  const [error, setError] = useState<string | null>(null)
+
   // const currentRoleInfo = roleInfo[role as keyof typeof roleInfo] || roleInfo.patient
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768)
     }
-    
+
     handleResize()
-    
-    window.addEventListener('resize', handleResize)
-    
-    return () => window.removeEventListener('resize', handleResize)
+
+    window.addEventListener("resize", handleResize)
+
+    return () => window.removeEventListener("resize", handleResize)
   }, [])
 
   useEffect(() => {
@@ -92,21 +93,23 @@ export default function LoginPage() {
       if (window.google && window.google.accounts) {
         window.google.accounts.id.initialize({
           client_id: process.env.NEXT_PUBLIC_GOOGLE_URL!,
-          callback: handleCallbackResponse
+          callback: handleCallbackResponse,
         })
-        window.google.accounts.id.renderButton(
-          document.getElementById("signInDiv"),
-          { theme: "outline", size: "large", width: isMobile ? 300 : 400 }
-        )
+        window.google.accounts.id.renderButton(document.getElementById("signInDiv"), {
+          theme: "outline",
+          size: "large",
+          width: isMobile ? Math.min(280, window.innerWidth - 60) : 320,
+          text: "signin_with",
+        })
       } else {
         setTimeout(initializeGoogleSignIn, 100)
       }
     }
 
     const loadGoogleScript = () => {
-      if (typeof window !== 'undefined' && !window.google) {
-        const script = document.createElement('script')
-        script.src = 'https://accounts.google.com/gsi/client'
+      if (typeof window !== "undefined" && !window.google) {
+        const script = document.createElement("script")
+        script.src = "https://accounts.google.com/gsi/client"
         script.async = true
         script.defer = true
         document.head.appendChild(script)
@@ -121,22 +124,38 @@ export default function LoginPage() {
 
   const handleCallbackResponse = async (response: GoogleResponse) => {
     setIsLoading(true)
+    setError(null)
     try {
       await googleLogin(response.credential, role)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to sign in with Google. Please try again.")
     } finally {
       setIsLoading(false)
     }
   }
 
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    login(email, password, role)
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const val = await login(email, password, role)
+      if (val) {
+        window.location.href = `/${role}`
+      } else {
+        setError("Invalid email or password. Please try again.")
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred during login. Please try again.")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
-    <div className="pt-16 min-h-screen bg-gradient-to-b from-blue-50/50 to-white">
-    <div className="container relative flex-1 flex items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
+    <div className="flex flex-col min-h-screen bg-gradient-to-b from-blue-50/50 to-white">
+      <div className="container relative flex-1 flex items-center justify-center py-8 md:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -153,7 +172,7 @@ export default function LoginPage() {
               src={roleInfo[role as keyof typeof roleInfo]?.image || "/placeholder.svg"}
               alt="Authentication"
               fill
-              className="object-cover"
+              className="object-cover object-center"
               priority
             />
           </div>
@@ -183,6 +202,13 @@ export default function LoginPage() {
             <AuthCard className="bg-white/95 backdrop-blur-sm">
               <AuthTitle>{roleInfo[role as keyof typeof roleInfo]?.title}</AuthTitle>
               <AuthDescription>{roleInfo[role as keyof typeof roleInfo]?.description}</AuthDescription>
+
+              {error && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md flex items-start">
+                  <AlertCircle className="h-5 w-5 text-red-500 mr-2 mt-0.5 flex-shrink-0" />
+                  <p className="text-sm text-red-600">{error}</p>
+                </div>
+              )}
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
@@ -264,7 +290,7 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              <div id="signInDiv" className="flex justify-center" />
+              <div id="signInDiv" className="flex justify-center w-full px-2" />
 
               <AuthMessage>
                 Don&apos;t have an account?{" "}

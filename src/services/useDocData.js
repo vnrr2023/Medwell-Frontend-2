@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from "react"
 import axios from "axios"
-import { ngrok_url2 } from "./api"
+import { ngrok_url2, ngrok_url } from "./api"
 import { Token as token } from "./api"
 const API_URL = ngrok_url2+"/"
+const API_URL2 = ngrok_url+"/"
 
 const useDocData = () => {
 
@@ -29,14 +30,15 @@ const useDocData = () => {
 
       setDoctorInfo({
         name: data.name || "",
-        email: data.user?.name || "",
+        email: data.user?.email || "",
         phone: data.phoneNumber || "",
-        specialization: data.speciality || "",
+        speciality: data.speciality || "",
         profilePicture: data.profilePic ? API_URL + data.profilePic : "./doctorpfp(female).png",
         registrationNumber: data.registerationNumber || "",
         verified: data.verified || false,
         submittedAt: data.submittedAt || "",
         education: data.education || "",
+        profileQr:data.profileQr
       })
       console.log("Doctor info fetched successfully:", data)
     } catch (error) {
@@ -100,7 +102,7 @@ const useDocData = () => {
 
   const updateDoctorInfo = async (doctorInfo) => {
     try {
-      await axios.post(`${API_URL}doctor/data/profile`, doctorInfo, {
+      await axios.post(`${API_URL2}doctor/save_doctor_data`, doctorInfo, {
         headers: {
           Authorization: `Bearer ${token}`,
           "ngrok-skip-browser-warning": "69420",

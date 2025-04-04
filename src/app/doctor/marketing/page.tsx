@@ -23,7 +23,7 @@ export default function Page() {
   const [textColor, setTextColor] = useState("#000000")
   const [isGenerating, setIsGenerating] = useState(false)
   const [isSending, setIsSending] = useState(false)
-  const [recipients, setRecipients] = useState("")
+  const [recipients, setRecipients] = useState<any[]>([])
 
   const formattedBody = body.replace(/\n/g, "<br>")
 
@@ -63,14 +63,16 @@ export default function Page() {
   const handleSendEmail = async () => {
     setIsSending(true)
     try {
-      // Implement your email sending logic here
-      // For example, using an API call to send the email
       console.log("Sending email...")
       console.log("Recipients:", recipients)
       console.log("Subject:", subject)
       console.log("Body:", emailHTML)
-
-
+     const data={
+        "html":emailHTML,
+        subject,
+        "emails":recipients
+      }
+       await DaddyAPI.sendMarketingEmail(data)
       alert("Email sent successfully!")
     } catch (error) {
       console.error("Error sending email:", error)
@@ -212,13 +214,20 @@ export default function Page() {
                     Recipients
                   </Label>
                   <Textarea
-                    id="recipients"
-                    placeholder="Enter email addresses separated by commas..."
-                    value={recipients}
-                    onChange={(e) => setRecipients(e.target.value)}
-                    rows={3}
-                    className="resize-none border-blue-200 focus:border-blue-400"
-                  />
+                  id="recipients"
+                  placeholder="Enter email addresses separated by commas..."
+                  value={recipients.join(', ')} // Display as comma-separated
+                  onChange={(e) => {
+                    const input = e.target.value;
+                    const emailList = input
+                      .split(',')
+                      .map(email => email.trim())
+                      .filter(email => email.length > 0); // remove empty strings
+                    setRecipients(emailList);
+                  }}
+                  rows={3}
+                  className="resize-none border-blue-200 focus:border-blue-400"
+                />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">

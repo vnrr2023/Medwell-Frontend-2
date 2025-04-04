@@ -110,7 +110,10 @@ export default function SignupPage() {
     setIsLoading(true)
     try {
       if (typeof role === 'string') {
-        await signup(formData.email, formData.password, formData.confirmPassword, formData.fullName, role)
+        const val=await signup(formData.email, formData.password, formData.confirmPassword, formData.fullName, role)
+        if(val){
+          window.location.href = `/${role}`
+        }
       } else {
         setErrorMessage("Invalid role.")
       }

@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { redirect, useRouter } from "next/navigation"
 import { ngrok_url } from "./api"
 export const API_URL = ngrok_url 
 
@@ -24,15 +24,14 @@ export const useAuth = () => {
       })
       const data = await response.json()
 
-      if (data.mssg === "Incorrect Credentials" && data.status === 0) {
+      if (data.mssg === "Incorrct Credentials" && data.status === 0) {
         setErrorMessage("Incorrect email or password. Please try again.")
         return false
       } else {
         localStorage.setItem("Token", data.access_token)
         localStorage.setItem("Role", role)
         notifyAuthStateChange()
-        router.push("/patient")
-        router.refresh()
+        
         return true
       }
     } catch {
@@ -66,7 +65,7 @@ export const useAuth = () => {
         console.log(data.access_token)
         localStorage.setItem("Role", role)
         notifyAuthStateChange()
-        router.push("/patient")
+        
         return true
       }
     } catch {
@@ -103,9 +102,7 @@ export const useAuth = () => {
     localStorage.removeItem("Token")
     localStorage.removeItem("Role")
     notifyAuthStateChange()
-    router.push("/auth")
-    router.refresh()
-
+    window.location.href = "/auth"
   }
 
   const checkAuth = () => {

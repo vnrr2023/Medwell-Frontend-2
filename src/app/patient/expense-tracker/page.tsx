@@ -68,15 +68,28 @@ const AddExpenseView = ({
     onAddExpense(expenseToAdd)
   }, [newExpense, onAddExpense])
 
-  const handleNaturalLanguageSubmit = useCallback(() => {
+  const handleNaturalLanguageSubmit = useCallback(async() => {
     if (!naturalLanguageInput) return
 
-    const expenseToAdd = {
-      query_type: "natural_language",
-      query: naturalLanguageInput,
+    const response = await fetch('/api/expenseSep', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ query:naturalLanguageInput }),
+    });
+    if (response.ok) {
+      const data = await response.json();
+      const expenseToAdd={
+        query_type: 'normal',
+        expense_type: data.expense_type,
+        amount: data.amount,
+      };
+      onAddExpense(expenseToAdd)
+    } else {
+      console.error('Failed to add expense');
     }
 
-    onAddExpense(expenseToAdd)
   }, [naturalLanguageInput, onAddExpense])
 
   return (
@@ -403,7 +416,7 @@ export default function ExpenseTracker() {
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
           <div className="md:col-span-2 lg:col-span-3">
             <motion.div className="bg-white p-6 rounded-xl shadow-lg">
-              <h2 className="text-2xl font-semibold mb-4">Available Balance</h2>
+              <h2 className="text-2xl font-semibold mb-4">Total Expenditure</h2>
               <p className="text-4xl font-bold text-green-400">
                 ₹{Number(expenseData?.overall_expense)}
               </p>

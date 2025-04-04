@@ -228,10 +228,10 @@ const Reports: React.FC = () => {
               />
             </div>
             <Select value={localRangeFilter} onValueChange={handleLocalRangeFilterChange}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-[180px] bg-white">
                 <SelectValue placeholder="Filter results" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white">
                 <SelectItem value="all">All Results</SelectItem>
                 <SelectItem value="inRange">In Range</SelectItem>
                 <SelectItem value="outOfRange">Out of Range</SelectItem>

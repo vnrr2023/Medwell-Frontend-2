@@ -98,7 +98,11 @@ export default function HealthCheck() {
   }, [])
 
   if (!healthData) {
-    return <div className="flex justify-center items-center min-h-[400px]">Loading...</div>
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="loader border-t-transparent border-solid rounded-full animate-spin border-4 border-blue-500 h-16 w-16"></div>
+      </div>
+    );
   }
 
   const metrics = [

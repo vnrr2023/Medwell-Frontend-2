@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils"
 import DaddyAPI from "@/services/api"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ScrollArea } from "@/components/ui/scroll-area"
-
+import { useRouter } from "next/navigation"
 // Define types for our API response
 interface DashboardData {
   unique_users: string
@@ -51,7 +51,21 @@ export default function DoctorDashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isMobile, setIsMobile] = useState(false)
-
+  const router=useRouter()
+ 
+  useEffect(() => {
+    const role=localStorage.getItem("Role")
+    const token=localStorage.getItem("Token")
+    if(!token || token==undefined){
+      alert("You are not signed in")
+      window.location.href="/auth"
+    }
+    if(role!=="doctor"){
+      alert("You cannot access logged in as doctor")
+      router.push("/patient")
+      return
+    }
+  }, []);
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {

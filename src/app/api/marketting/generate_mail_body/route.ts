@@ -34,11 +34,11 @@ export async function POST(req: NextRequest) {
       
       Generate a compelling and engaging email body that is concise,
       professional, and encourages the recipient to take action.
-      The email should be informative and persuasive.
+      The email should be informative and persuasive. Do not include markdown.
     `;
 
     const geminiResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.NEXT_PUBLIC_GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${process.env.NEXT_PUBLIC_GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: {

@@ -17,6 +17,7 @@ import {
   X,
   Trash2,
   Plus,
+  QrCode
 } from "lucide-react"
 import  useDocData from "@/services/useDocData"
 import { Card, CardContent } from "@/components/ui/card"
@@ -45,7 +46,7 @@ interface Service {
 
 interface DoctorInfo {
   name: string
-  specialization: string
+  speciality: string
   addresses: Address[]
   email: string
   phone: string
@@ -57,6 +58,7 @@ interface DoctorInfo {
   registrationNumber: string
   verified: boolean
   submittedAt: string
+  profileQr:string
 }
 
 export function DoctorProfile() {
@@ -100,7 +102,7 @@ export function DoctorProfile() {
 
   const defaultDoctorInfo: DoctorInfo = {
     name: "",
-    specialization: "",
+    speciality: "",
     addresses: [],
     email: "",
     phone: "",
@@ -112,6 +114,7 @@ export function DoctorProfile() {
     registrationNumber: "",
     verified: false,
     submittedAt: "",
+    profileQr:""
   }
 
   const doctor: DoctorInfo = (doctorInfo as DoctorInfo) || defaultDoctorInfo
@@ -171,13 +174,13 @@ export function DoctorProfile() {
 
     try {
       if (activeTab === "personal") {
-        const updatedInfo = Object.fromEntries(formData.entries())
+        const updatedInfo:any = Object.fromEntries(formData.entries())
         console.log("Updating doctor info:", updatedInfo)
         await updateDoctorInfo({
           name: updatedInfo.name as string,
           email: updatedInfo.email as string,
           phone_number: updatedInfo.phone as string,
-          specialty: updatedInfo.specialization as string,
+          speciality: updatedInfo.speciality as string,
           registeration_number: updatedInfo.registrationNumber as string,
         })
       }
@@ -200,7 +203,8 @@ export function DoctorProfile() {
       case "services":
         return (
           <div className="space-y-6">
-            <form onSubmit={handleServiceSubmit} className="flex items-center space-x-2 mb-6">
+            {/* Removed the form element to avoid nesting forms */}
+            <div className="flex items-center space-x-2 mb-6">
               <Input
                 type="text"
                 value={newServiceName}
@@ -217,13 +221,15 @@ export function DoctorProfile() {
                 className="w-[120px]"
                 required
               />
-              <Button type="submit">{editingService ? "Update" : <Plus className="w-5 h-5" />}</Button>
+              <Button type="button" onClick={handleServiceSubmit}>
+                {editingService ? "Update" : <Plus className="w-5 h-5" />}
+              </Button>
               {editingService && (
                 <Button type="button" variant="outline" onClick={handleCancelEdit}>
                   <X className="w-5 h-5" />
                 </Button>
               )}
-            </form>
+            </div>
 
             {servicesLoading ? (
               <div className="text-center py-4">Loading services...</div>
@@ -270,7 +276,7 @@ export function DoctorProfile() {
                   <SelectItem value="home">Home</SelectItem>
                 </SelectContent>
               </Select>
-              <Button onClick={() => addNewAddress({newAddress,newAddressType})}>
+              <Button type="button" onClick={() => addNewAddress({newAddress,newAddressType})}>
                 <PlusCircle className="w-5 h-5" />
               </Button>
             </div>
@@ -315,8 +321,8 @@ export function DoctorProfile() {
             </div>
 
             <div>
-              <Label htmlFor="specialization">Specialization</Label>
-              <Input id="specialization" name="specialization" defaultValue={doctor.specialization} />
+              <Label htmlFor="speciality">Specialization</Label>
+              <Input id="speciality" name="speciality" defaultValue={doctor.speciality} />
             </div>
 
             <div>
@@ -447,7 +453,7 @@ export function DoctorProfile() {
                 </Avatar>
                 <div className="space-y-2">
                   <h1 className="text-xl sm:text-2xl font-semibold">Dr. {doctor.name}</h1>
-                  <p className="text-gray-500 text-sm">{doctor.specialization}</p>
+                  <p className="text-gray-500 text-sm">{doctor.speciality}</p>
                   {doctor.verified && <Badge variant="default">Verified</Badge>}
                   <p className="text-gray-500 text-sm">Registration Number: {doctor.registrationNumber}</p>
                   <p className="text-gray-500 text-sm">Submitted At: {new Date(doctor.submittedAt).toLocaleString()}</p>
@@ -474,6 +480,7 @@ export function DoctorProfile() {
                   <div className="flex gap-2">
                     {[
                       { Icon: Facebook, href: "#", color: "text-blue-600" },
+                      { Icon: QrCode, href: `${doctor.profileQr}`, color: "text-blue-600" },
                       { Icon: Instagram, href: "#", color: "text-pink-600" },
                       { Icon: Twitter, href: "#", color: "text-blue-400" },
                       { Icon: MessageCircle, href: "#", color: "text-blue-500" },
@@ -499,7 +506,7 @@ export function DoctorProfile() {
                 <div className="space-y-3 text-sm">
                   <p className="text-gray-600">
                     {doctor.shortBio ||
-                      `I am ${doctor.name}, a dedicated ${doctor.specialization.toLowerCase()} with multiple practice locations. My practice combines evidence-based medicine with a patient-centered approach to ensure the best possible outcomes for my patients.`}
+                      `I am ${doctor.name}, a dedicated ${doctor.speciality?.toLowerCase()} with multiple practice locations. My practice combines evidence-based medicine with a patient-centered approach to ensure the best possible outcomes for my patients.`}
                   </p>
                 </div>
 
@@ -575,15 +582,18 @@ export function DoctorProfile() {
                 <TabsTrigger value="services">Services</TabsTrigger>
               </TabsList>
 
-              <form onSubmit={handleSave} className="space-y-6">
-                <TabsContent value={activeTab}>{renderEditForm()}</TabsContent>
-
-                {activeTab !== "services" && (
+              {activeTab === "services" ? (
+                // Render services content without a form wrapper
+                <TabsContent value="services">{renderEditForm()}</TabsContent>
+              ) : (
+                // Wrap other tabs content in a form
+                <form onSubmit={handleSave} className="space-y-6">
+                  <TabsContent value={activeTab}>{renderEditForm()}</TabsContent>
                   <div className="flex justify-end">
                     <Button type="submit">Save Changes</Button>
                   </div>
-                )}
-              </form>
+                </form>
+              )}
             </Tabs>
           </CardContent>
         </Card>
@@ -591,4 +601,3 @@ export function DoctorProfile() {
     </div>
   )
 }
-

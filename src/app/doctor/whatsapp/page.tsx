@@ -170,13 +170,12 @@ export default function Page() {
       })
       return
     }
-
+    const formData=new FormData()
+    formData.append("phoneNumbers",phoneNumbers)
+    formData.append("message",message)
     setIsSending(true)
     try {
-      const response = await DaddyAPI.sendWhatsappMsg({
-        phone_number: phoneNumbers,
-        message,
-      })
+      const response = await DaddyAPI.sendWhatsappMsg(formData)
 
       toast.success("Success!", {
         description: "Messages sent successfully",
