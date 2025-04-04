@@ -129,6 +129,12 @@ export default function Hero() {
                 Learn More
               </Button>
             </motion.div>
+            <Link href="/app-download" className="flex items-center gap-2 px-6 py-3">
+    Download our App
+    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
+    {/* Subtle glowing effect */}
+    <span className="absolute inset-0 bg-white opacity-10 blur-lg group-hover:opacity-20 transition-opacity"></span>
+  </Link>
           </motion.div>
 
           <motion.div variants={itemVariants} className="mt-8 flex items-center gap-2">
