@@ -5,6 +5,10 @@ import {
   PieChart, Pie, Cell, LineChart, Line, AreaChart, Area
 } from 'recharts';
 import DaddyAPI from "@/services/api";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface AnalyticsData {
   amount_per_service: {
@@ -59,6 +63,7 @@ const DoctorAnalyticsPage = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedTimeRange, setSelectedTimeRange] = useState<string>("month");
+  const [viewMode, setViewMode] = useState<string>("desktop");
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
@@ -77,6 +82,19 @@ const DoctorAnalyticsPage = () => {
     };
 
     fetchAnalytics();
+
+    // Set view mode based on screen width
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setViewMode("mobile");
+      } else {
+        setViewMode("desktop");
+      }
+    };
+
+    handleResize(); // Initial check
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   // Transform data for charts
@@ -134,173 +152,236 @@ const DoctorAnalyticsPage = () => {
   const cancelRate = totalAppointments > 0 ? Math.round((totalCancelled / (totalAppointments + totalCancelled)) * 100) : 0;
 
   return (
-    <div className="p-4 bg-gray-100 min-h-screen">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Doctor Analytics Dashboard</h1>
-        
+    <div className="p-2 sm:p-4 bg-gray-100 min-h-screen">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+        <h1 className="text-xl sm:text-2xl font-bold">Doctor Analytics Dashboard</h1>
+        <Tabs value={selectedTimeRange} onValueChange={setSelectedTimeRange} className="w-full sm:w-auto">
+          <TabsList className="w-full sm:w-auto grid grid-cols-3 sm:flex">
+            <TabsTrigger value="week">Week</TabsTrigger>
+            <TabsTrigger value="month">Month</TabsTrigger>
+            <TabsTrigger value="year">Year</TabsTrigger>
+          </TabsList>
+        </Tabs>
       </div>
       
-      {/* Bento Grid Layout */}
-      <div className="grid grid-cols-4 gap-4 auto-rows-auto">
-        {/* Row 1: KPI cards in smaller squares */}
-        <div className="bg-white p-4 rounded-lg shadow col-span-1 h-40 flex flex-col justify-between">
-          <h2 className="text-sm font-medium text-gray-500">Total Revenue</h2>
-          <div className="mt-2">
-            <p className="text-2xl font-bold text-green-600">${analytics.total_amount_generated}</p>
-            <p className="text-xs text-gray-500 mt-1">+12% from last month</p>
-          </div>
-        </div>
+      {/* KPI cards - responsive grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 mb-4">
+        <Card className="h-auto">
+          <CardContent className="p-3 sm:p-4 flex flex-col justify-between">
+            <h2 className="text-xs sm:text-sm font-medium text-gray-500">Total Revenue</h2>
+            <div className="mt-2">
+              <p className="text-lg sm:text-2xl font-bold text-green-600">${analytics.total_amount_generated}</p>
+              <p className="text-xs text-gray-500 mt-1">+12% from last month</p>
+            </div>
+          </CardContent>
+        </Card>
         
-        <div className="bg-white p-4 rounded-lg shadow col-span-1 h-40 flex flex-col justify-between">
-          <h2 className="text-sm font-medium text-gray-500">Total Appointments</h2>
-          <div className="mt-2">
-            <p className="text-2xl font-bold text-blue-600">{totalAppointments}</p>
-            <p className="text-xs text-gray-500 mt-1">+5% from last month</p>
-          </div>
-        </div>
+        <Card className="h-auto">
+          <CardContent className="p-3 sm:p-4 flex flex-col justify-between">
+            <h2 className="text-xs sm:text-sm font-medium text-gray-500">Total Appointments</h2>
+            <div className="mt-2">
+              <p className="text-lg sm:text-2xl font-bold text-blue-600">{totalAppointments}</p>
+              <p className="text-xs text-gray-500 mt-1">+5% from last month</p>
+            </div>
+          </CardContent>
+        </Card>
         
-        <div className="bg-white p-4 rounded-lg shadow col-span-1 h-40 flex flex-col justify-between">
-          <h2 className="text-sm font-medium text-gray-500">Visit Rate</h2>
-          <div className="mt-2">
-            <p className="text-2xl font-bold text-purple-600">{visitRate}%</p>
-            <p className="text-xs text-gray-500 mt-1">{visitRate > 75 ? 'Good' : visitRate > 50 ? 'Average' : 'Needs improvement'}</p>
-          </div>
-        </div>
+        <Card className="h-auto">
+          <CardContent className="p-3 sm:p-4 flex flex-col justify-between">
+            <h2 className="text-xs sm:text-sm font-medium text-gray-500">Visit Rate</h2>
+            <div className="mt-2">
+              <p className="text-lg sm:text-2xl font-bold text-purple-600">{visitRate}%</p>
+              <p className="text-xs text-gray-500 mt-1">{visitRate > 75 ? 'Good' : visitRate > 50 ? 'Average' : 'Needs improvement'}</p>
+            </div>
+          </CardContent>
+        </Card>
         
-        <div className="bg-white p-4 rounded-lg shadow col-span-1 h-40 flex flex-col justify-between">
-          <h2 className="text-sm font-medium text-gray-500">Cancellation Rate</h2>
-          <div className="mt-2">
-            <p className="text-2xl font-bold text-red-500">{cancelRate}%</p>
-            <p className="text-xs text-gray-500 mt-1">{cancelRate < 10 ? 'Good' : cancelRate < 25 ? 'Average' : 'High'}</p>
-          </div>
-        </div>
+        <Card className="h-auto">
+          <CardContent className="p-3 sm:p-4 flex flex-col justify-between">
+            <h2 className="text-xs sm:text-sm font-medium text-gray-500">Cancellation Rate</h2>
+            <div className="mt-2">
+              <p className="text-lg sm:text-2xl font-bold text-red-500">{cancelRate}%</p>
+              <p className="text-xs text-gray-500 mt-1">{cancelRate < 10 ? 'Good' : cancelRate < 25 ? 'Average' : 'High'}</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
-        {/* Row 2: Wider charts */}
-        <div className="bg-white p-4 rounded-lg shadow col-span-2 row-span-2">
-          <h2 className="text-sm font-medium text-gray-500 mb-4">Monthly Revenue Trend</h2>
-          <ResponsiveContainer width="100%" height={250}>
-            <AreaChart data={monthlyRevenueData}>
-              <defs>
-                <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#82ca9d" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="#82ca9d" stopOpacity={0}/>
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip formatter={(value) => [`$${value}`, 'Revenue']} />
-              <Area type="monotone" dataKey="value" stroke="#82ca9d" fillOpacity={1} fill="url(#colorRevenue)" name="Revenue" />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
+      {/* Charts - Responsive layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+        <Card className="w-full">
+          <CardHeader className="p-3 sm:p-4">
+            <CardTitle className="text-sm sm:text-base font-medium text-gray-500">Monthly Revenue Trend</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0 sm:p-4">
+            <div className="h-[200px] sm:h-[250px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={monthlyRevenueData}>
+                  <defs>
+                    <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#82ca9d" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="#82ca9d" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="name" tick={{ fontSize: viewMode === "mobile" ? 10 : 12 }} />
+                  <YAxis tick={{ fontSize: viewMode === "mobile" ? 10 : 12 }} />
+                  <Tooltip formatter={(value) => [`$${value}`, 'Revenue']} />
+                  <Area type="monotone" dataKey="value" stroke="#82ca9d" fillOpacity={1} fill="url(#colorRevenue)" name="Revenue" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
         
-        <div className="bg-white p-4 rounded-lg shadow col-span-2 row-span-2">
-          <h2 className="text-sm font-medium text-gray-500 mb-4">Daily Appointment Status</h2>
-          <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={visitStatusData.slice(-7)}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="date" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="visited" fill="#00C49F" name="Visited" />
-              <Bar dataKey="notVisited" fill="#FF8042" name="Not Visited" />
-              <Bar dataKey="booked" fill="#0088FE" name="Booked" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+        <Card className="w-full">
+          <CardHeader className="p-3 sm:p-4">
+            <CardTitle className="text-sm sm:text-base font-medium text-gray-500">Daily Appointment Status</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0 sm:p-4">
+            <div className="h-[200px] sm:h-[250px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={visitStatusData.slice(-7)}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="date" tick={{ fontSize: viewMode === "mobile" ? 10 : 12 }} />
+                  <YAxis tick={{ fontSize: viewMode === "mobile" ? 10 : 12 }} />
+                  <Tooltip />
+                  <Legend wrapperStyle={{ fontSize: viewMode === "mobile" ? 10 : 12 }} />
+                  <Bar dataKey="visited" fill="#00C49F" name="Visited" />
+                  <Bar dataKey="notVisited" fill="#FF8042" name="Not Visited" />
+                  <Bar dataKey="booked" fill="#0088FE" name="Booked" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
-        {/* Row 3 & 4: Mixed sizes */}
-        <div className="bg-white p-4 rounded-lg shadow col-span-2 row-span-2">
-          <h2 className="text-sm font-medium text-gray-500 mb-4">Revenue by Service</h2>
-          <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={serviceData} layout="vertical">
-              <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
-              <XAxis type="number" />
-              <YAxis type="category" dataKey="name" width={100} />
-              <Tooltip formatter={(value) => [`$${value}`, 'Revenue']} />
-              <Bar dataKey="value" fill="#8884d8" name="Revenue" barSize={20} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+        <Card className="w-full">
+          <CardHeader className="p-3 sm:p-4">
+            <CardTitle className="text-sm sm:text-base font-medium text-gray-500">Revenue by Service</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0 sm:p-4">
+            <div className="h-[250px] sm:h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={serviceData} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
+                  <XAxis type="number" tick={{ fontSize: viewMode === "mobile" ? 10 : 12 }} />
+                  <YAxis 
+                    type="category" 
+                    dataKey="name" 
+                    width={viewMode === "mobile" ? 70 : 100} 
+                    tick={{ fontSize: viewMode === "mobile" ? 10 : 12 }}
+                  />
+                  <Tooltip formatter={(value) => [`$${value}`, 'Revenue']} />
+                  <Bar dataKey="value" fill="#8884d8" name="Revenue" barSize={20} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
         
-        <div className="bg-white p-4 rounded-lg shadow col-span-2 row-span-2">
-          <h2 className="text-sm font-medium text-gray-500 mb-4">Most Used Services</h2>
-          <div className="flex items-center justify-center h-full">
-            <ResponsiveContainer width="100%" height={250}>
-              <PieChart>
-                <Pie
-                  data={servicesUsageData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                  label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
-                >
-                  {servicesUsageData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value) => [`${value} appointments`, 'Count']} />
-                <Legend />
-              </PieChart>
+        <Card className="w-full">
+          <CardHeader className="p-3 sm:p-4">
+            <CardTitle className="text-sm sm:text-base font-medium text-gray-500">Most Used Services</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0 sm:p-4">
+            <div className="h-[250px] sm:h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={servicesUsageData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={viewMode === "mobile" ? 40 : 60}
+                    outerRadius={viewMode === "mobile" ? 60 : 80}
+                    fill="#8884d8"
+                    dataKey="value"
+                    label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
+                  >
+                    {servicesUsageData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value) => [`${value} appointments`, 'Count']} />
+                  <Legend wrapperStyle={{ fontSize: viewMode === "mobile" ? 10 : 12 }} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Location revenue - Full width on all screens */}
+      <Card className="w-full mb-4">
+        <CardHeader className="p-3 sm:p-4">
+          <CardTitle className="text-sm sm:text-base font-medium text-gray-500">Revenue by Location</CardTitle>
+        </CardHeader>
+        <CardContent className="p-0 sm:p-4">
+          <div className="h-[200px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart 
+                data={prepareChartData(
+                  analytics.revenue_per_address.address_id.map(id => `Location ${id}`),
+                  analytics.revenue_per_address.revenue
+                )}
+              >
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="name" tick={{ fontSize: viewMode === "mobile" ? 10 : 12 }} />
+                <YAxis tick={{ fontSize: viewMode === "mobile" ? 10 : 12 }} />
+                <Tooltip formatter={(value) => [`$${value}`, 'Revenue']} />
+                <Bar dataKey="value" fill="#FFBB28" name="Revenue" />
+              </BarChart>
             </ResponsiveContainer>
           </div>
-        </div>
-
-        {/* Row 5: Location revenue */}
-        <div className="bg-white p-4 rounded-lg shadow col-span-4">
-          <h2 className="text-sm font-medium text-gray-500 mb-4">Revenue by Location</h2>
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart 
-              data={prepareChartData(
-                analytics.revenue_per_address.address_id.map(id => `Location ${id}`),
-                analytics.revenue_per_address.revenue
-              )}
-            >
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip formatter={(value) => [`$${value}`, 'Revenue']} />
-              <Bar dataKey="value" fill="#FFBB28" name="Revenue" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+        </CardContent>
+      </Card>
+      
+      {/* Additional metrics - Responsive grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <Card className="w-full">
+          <CardHeader className="p-3 sm:p-4">
+            <CardTitle className="text-sm sm:text-base font-medium text-gray-500">Appointments Over Time</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0 sm:p-4">
+            <div className="h-[200px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={appointmentsMonthlyData}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="name" tick={{ fontSize: viewMode === "mobile" ? 10 : 12 }} />
+                  <YAxis tick={{ fontSize: viewMode === "mobile" ? 10 : 12 }} />
+                  <Tooltip />
+                  <Line type="monotone" dataKey="value" stroke="#0088FE" name="Appointments" />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
         
-        {/* Row 6: Additional metrics */}
-        <div className="bg-white p-4 rounded-lg shadow col-span-2">
-          <h2 className="text-sm font-medium text-gray-500 mb-4">Appointments Over Time</h2>
-          <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={appointmentsMonthlyData}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Line type="monotone" dataKey="value" stroke="#0088FE" name="Appointments" />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-        
-        <div className="bg-white p-4 rounded-lg shadow col-span-2">
-          <h2 className="text-sm font-medium text-gray-500 mb-4">Cancellations Over Time</h2>
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart 
-              data={prepareChartData(
-                analytics.slots_cancelled_per_month.month.map(formatMonth),
-                analytics.slots_cancelled_per_month.cancelled_slots
-              )}
-            >
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="value" fill="#FF8042" name="Cancellations" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+        <Card className="w-full">
+          <CardHeader className="p-3 sm:p-4">
+            <CardTitle className="text-sm sm:text-base font-medium text-gray-500">Cancellations Over Time</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0 sm:p-4">
+            <div className="h-[200px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart 
+                  data={prepareChartData(
+                    analytics.slots_cancelled_per_month.month.map(formatMonth),
+                    analytics.slots_cancelled_per_month.cancelled_slots
+                  )}
+                >
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="name" tick={{ fontSize: viewMode === "mobile" ? 10 : 12 }} />
+                  <YAxis tick={{ fontSize: viewMode === "mobile" ? 10 : 12 }} />
+                  <Tooltip />
+                  <Bar dataKey="value" fill="#FF8042" name="Cancellations" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
