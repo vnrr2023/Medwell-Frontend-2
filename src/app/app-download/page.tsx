@@ -49,8 +49,8 @@ const apps = [
     version: "2.4.0",
     description:
       "Your complete healthcare companion for managing medical records, scheduling appointments, and accessing healthcare services.",
-    image: "/placeholder.svg?height=300&width=300",
-    apkFile: "/medwell-app.apk",
+    image: "/assests/medwell.png",
+    apkFile: "/apk/medwell.apk",
     fileSize: "24.5 MB",
     features: [
       { icon: Smartphone, title: "User-friendly Interface", description: "Intuitive design for easy navigation" },
@@ -60,13 +60,21 @@ const apps = [
     ],
     ratings: 4.8,
     reviews: [
-      { name: "John D.", rating: 5, comment: "This app has completely transformed how I manage my health records!" },
       {
-        name: "Sarah M.",
+        name: "Rahul S.",
         rating: 5,
-        comment: "The interface is so intuitive and the features are exactly what I needed.",
+        comment: "This app has made it so easy to track my health reports. Totally impressed!",
       },
-      { name: "Robert K.", rating: 4, comment: "Great app overall, just wish it had more customization options." },
+      {
+        name: "Priya M.",
+        rating: 5,
+        comment: "The design is clean and user-friendly. Everything I need is right there.",
+      },
+      {
+        name: "Ankit R.",
+        rating: 4,
+        comment: "Very useful app! Just wish there were a few more options to personalize the dashboard.",
+      },
     ],
     whatsNew: [
       "Added dark mode support",
@@ -87,9 +95,9 @@ const apps = [
     version: "1.8.5",
     description:
       "Emergency medical services at your fingertips. Request ambulances, track their location, and share critical medical information.",
-    image: "/placeholder.svg?height=300&width=300",
-    apkFile: "/medwell-ambulance.apk",
-    fileSize: "18.2 MB",
+    image: "/assests/ambulance.png",
+    apkFile: "/apk/EMSapp.apk",
+    fileSize: "88.0 MB",
     features: [
       { icon: MapPin, title: "Real-time Tracking", description: "Track ambulance location in real-time" },
       { icon: Bell, title: "Emergency Alerts", description: "Quick SOS alerts with location sharing" },
@@ -98,10 +106,22 @@ const apps = [
     ],
     ratings: 4.9,
     reviews: [
-      { name: "Emily L.", rating: 5, comment: "This app saved my father's life with its quick response time!" },
-      { name: "Michael P.", rating: 5, comment: "The tracking feature gives peace of mind during emergencies." },
-      { name: "Jennifer S.", rating: 5, comment: "Incredibly reliable service when every second counts." },
-    ],
+      {
+        name: "Rohit",
+        rating: 5,
+        comment: "This app saved my father's life with its quick response time!",
+      },
+      {
+        name: "Rehan",
+        rating: 5,
+        comment: "The tracking feature gives peace of mind during emergencies.",
+      },
+      {
+        name: "Vivek",
+        rating: 5,
+        comment: "Incredibly reliable service when every second counts.",
+      },
+    ],    
     whatsNew: [
       "Improved location accuracy",
       "Added support for multiple emergency contacts",
