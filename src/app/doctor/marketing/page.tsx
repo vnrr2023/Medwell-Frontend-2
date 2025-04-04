@@ -6,12 +6,13 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
-import { Sparkles, Send, Mail, Loader2, MessageSquare } from "lucide-react"
+import { Sparkles, Send, Mail, Loader2, MessageSquare } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Separator } from "@/components/ui/separator"
 import DaddyAPI from "@/services/api"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Link from "next/link"
+
 export default function Page() {
   const [heading, setHeading] = useState("Special Offer from Our Clinic")
   const [subject, setSubject] = useState("Limited Time Health Check-up Package")
@@ -94,38 +95,42 @@ export default function Page() {
   }
 
   return (
-    <div className="container mx-auto max-w-7xl py-4 px-2">
+    <div className="container mx-auto max-w-7xl py-4 px-2 sm:px-4">
       <div className="flex flex-col gap-8">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <div className="mb-6">
-              <Tabs defaultValue="whatsapp" className="mb-4">
-                <TabsList>
-                  
-                    <TabsTrigger value="email" className="flex items-center gap-2" asChild>
-                      <div>
-                        <Mail className="h-4 w-4" />
-                        Email Marketing
-                      </div>
-                    </TabsTrigger>
-                    <Link href="/doctor/whatsapp">
-                  <TabsTrigger value="whatsapp" className="flex items-center gap-2">
-                    <MessageSquare className="h-4 w-4" />
-                    WhatsApp Marketing
+              <Tabs defaultValue="email" className="mb-4">
+                <TabsList className="w-full sm:w-auto">
+                  <TabsTrigger value="email" className="flex items-center gap-2">
+                    <Mail className="h-4 w-4" />
+                    <span className="hidden sm:inline">Email Marketing</span>
+                    <span className="sm:hidden">Email</span>
                   </TabsTrigger>
+                  <Link href="/doctor/whatsapp">
+                    <TabsTrigger value="whatsapp" className="flex items-center gap-2">
+                      <MessageSquare className="h-4 w-4" />
+                      <span className="hidden sm:inline">WhatsApp Marketing</span>
+                      <span className="sm:hidden">WhatsApp</span>
+                    </TabsTrigger>
                   </Link>
                 </TabsList>
               </Tabs>
             </div>
-            <p className="text-lg text-blue-600">Create and send engaging marketing emails to your patients.</p>
+            <p className="text-base sm:text-lg text-blue-600">Create and send engaging marketing emails to your patients.</p>
           </div>
-          <Button onClick={handleSendEmail} disabled={isSending} size="lg" className="bg-blue-500 hover:bg-blue-600">
+          <Button 
+            onClick={handleSendEmail} 
+            disabled={isSending} 
+            size="lg" 
+            className="bg-blue-500 hover:bg-blue-600 w-full sm:w-auto"
+          >
             {isSending ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Send className="mr-2 h-5 w-5" />}
             Send Email
           </Button>
         </div>
         <Separator className="bg-blue-200" />
-        <div className="grid lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <Card className="order-2 lg:order-1 border-blue-200 shadow-lg">
             <CardHeader className="bg-blue-50">
               <CardTitle className="flex items-center gap-2 text-blue-800">
@@ -215,7 +220,7 @@ export default function Page() {
                     className="resize-none border-blue-200 focus:border-blue-400"
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="bgColor" className="text-blue-700">
                       Background
@@ -275,7 +280,7 @@ export default function Page() {
                   className="w-full overflow-auto"
                   style={{
                     maxHeight: "calc(100vh - 400px)",
-                    minHeight: "500px",
+                    minHeight: "300px",
                     backgroundColor: bgColor,
                     color: textColor,
                   }}
@@ -288,4 +293,3 @@ export default function Page() {
     </div>
   )
 }
-
