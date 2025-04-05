@@ -1,9 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import Image from "next/image"
 import Link from "next/link"
+import QRCode from "react-qr-code"
 import {
   Download,
   Star,
@@ -82,12 +83,7 @@ const apps = [
       "Enhanced security features",
       "Bug fixes and performance improvements",
     ],
-    screenshots: [
-      "/placeholder.svg?height=600&width=300",
-      "/placeholder.svg?height=600&width=300",
-      "/placeholder.svg?height=600&width=300",
-      "/placeholder.svg?height=600&width=300",
-    ],
+    screenshots: ["/assests/ss1.png", "/assests/ss2.png", "/assests/ss3.png", "/assests/ss4.png"],
   },
   {
     id: "ambulance",
@@ -121,19 +117,14 @@ const apps = [
         rating: 5,
         comment: "Incredibly reliable service when every second counts.",
       },
-    ],    
+    ],
     whatsNew: [
       "Improved location accuracy",
       "Added support for multiple emergency contacts",
       "Enhanced UI for emergency situations",
       "Optimized battery usage during tracking",
     ],
-    screenshots: [
-      "/placeholder.svg?height=600&width=300",
-      "/placeholder.svg?height=600&width=300",
-      "/placeholder.svg?height=600&width=300",
-      "/placeholder.svg?height=600&width=300",
-    ],
+    screenshots: ["/assests/ss1.png", "/assests/ss2.png", "/assests/ss3.png", "/assests/ss4.png"],
   },
 ]
 
@@ -144,9 +135,26 @@ export default function AppDownloadPage() {
   const [isDownloading, setIsDownloading] = useState(false)
   const [currentScreenshotIndex, setCurrentScreenshotIndex] = useState(0)
 
+  // Auto-carousel functionality
+  useEffect(() => {
+    const interval = setInterval(() => {
+      nextScreenshot()
+    }, 3000)
+
+    return () => clearInterval(interval)
+  }, [currentScreenshotIndex, activeApp])
+
   const handleDownload = (appId: string) => {
     setIsDownloading(true)
     setDownloadProgress(0)
+
+    const app = apps.find((a) => a.id === appId)
+    if (!app) return
+
+    // Create a link element to trigger the download
+    const link = document.createElement("a")
+    link.href = app.apkFile
+    link.download = `${app.name.replace(/\s+/g, "-").toLowerCase()}.apk`
 
     // Simulate download progress
     const interval = setInterval(() => {
@@ -156,6 +164,10 @@ export default function AppDownloadPage() {
           setTimeout(() => {
             setIsDownloading(false)
             setDownloadProgress(0)
+            // Trigger the download after progress completes
+            document.body.appendChild(link)
+            link.click()
+            document.body.removeChild(link)
           }, 500)
           return 100
         }
@@ -173,15 +185,23 @@ export default function AppDownloadPage() {
   }
 
   return (
-    <main className="relative overflow-hidden pt-20">
+    <main className="relative overflow-hidden pt-4">
       <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-primary/5 to-transparent -z-10" />
+
+      {/* Back to Home Link - Moved to top */}
+      <div className="max-w-7xl mx-auto px-4 md:px-6 py-4">
+        <Link href="/" className="inline-flex items-center text-primary hover:text-primary/80 transition-colors">
+          <ChevronLeft className="mr-1 h-4 w-4" />
+          Back to Home
+        </Link>
+      </div>
 
       {/* Header Section */}
       <motion.section
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="py-16 px-4 md:px-6 max-w-7xl mx-auto text-center"
+        className="py-8 px-4 md:px-6 max-w-7xl mx-auto text-center"
       >
         <div className="inline-block px-3 py-1 bg-primary/10 rounded-full text-primary font-medium text-sm mb-4">
           Mobile Applications
@@ -197,7 +217,10 @@ export default function AppDownloadPage() {
         <Tabs
           defaultValue={apps[0].id}
           className="w-full"
-          onValueChange={(value) => setActiveApp(apps.find((app) => app.id === value) || apps[0])}
+          onValueChange={(value) => {
+            setActiveApp(apps.find((app) => app.id === value) || apps[0])
+            setCurrentScreenshotIndex(0) // Reset screenshot index when changing tabs
+          }}
         >
           <TabsList className="grid w-full grid-cols-2 mb-8">
             {apps.map((app) => (
@@ -213,13 +236,13 @@ export default function AppDownloadPage() {
                 variants={containerVariants}
                 initial="hidden"
                 animate="visible"
-                className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start"
+                className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start lg:items-stretch"
               >
                 {/* App Preview Section */}
                 <motion.div variants={itemVariants} className="relative">
                   <div className="absolute -z-10 inset-0 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-2xl blur-xl transform -translate-x-4 translate-y-4" />
 
-                  <div className="bg-white p-8 rounded-2xl shadow-xl relative z-10">
+                  <div className="bg-white p-8 rounded-2xl shadow-xl relative z-10 flex flex-col">
                     <div className="flex flex-col md:flex-row items-center gap-6 mb-8">
                       <motion.div
                         whileHover={{ scale: 1.05 }}
@@ -258,18 +281,12 @@ export default function AppDownloadPage() {
                     <div className="flex flex-col items-center mb-8">
                       <p className="text-sm text-gray-500 mb-3">Scan to download</p>
                       <div className="bg-white p-3 rounded-lg shadow-md">
-                        <Image
-                          src="/placeholder.svg?height=150&width=150"
-                          alt="QR Code"
-                          width={150}
-                          height={150}
-                          className="w-full h-auto"
-                        />
+                        <QRCode size={150} value={app.apkFile} viewBox={`0 0 150 150`} />
                       </div>
                     </div>
 
                     {/* Download Button */}
-                    <div className="space-y-4">
+                    <div className="space-y-4 mt-auto">
                       {isDownloading ? (
                         <div className="space-y-2">
                           <Progress value={downloadProgress} className="h-2" />
@@ -278,7 +295,7 @@ export default function AppDownloadPage() {
                       ) : (
                         <Button
                           onClick={() => handleDownload(app.id)}
-                          className="w-full bg-gradient-to-r from-primary to-secondary text-white py-6 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
+                          className="w-full bg-gradient-to-r from-primary to-secondary text-black py-6 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
                         >
                           <Download className="mr-2 h-5 w-5" />
                           Download APK ({app.fileSize})
@@ -396,7 +413,7 @@ export default function AppDownloadPage() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
-              What's New in {activeApp.name} v{activeApp.version}
+              What&apos;s New in {activeApp.name} v{activeApp.version}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 mt-4">
@@ -413,14 +430,6 @@ export default function AppDownloadPage() {
           </div>
         </DialogContent>
       </Dialog>
-
-      {/* Back to Home Link */}
-      <div className="max-w-7xl mx-auto px-4 md:px-6 py-8">
-        <Link href="/" className="inline-flex items-center text-primary hover:text-primary/80 transition-colors">
-          <ChevronLeft className="mr-1 h-4 w-4" />
-          Back to Home
-        </Link>
-      </div>
     </main>
   )
 }
