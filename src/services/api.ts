@@ -261,7 +261,7 @@ doctorSearchQuery: (data:any) =>
       //APPOINTMENTS
       //☑️
       getSlots: (date:any,address_id:any) =>
-        api.get(`slots/get-slots-for-date-and-address/${date}/${address_id}`, {
+        api2.get(`slots/get-slots-for-date-and-address/${date}/${address_id}`, {
           headers: {
             Authorization: `Bearer ${mToken}`,
             "Content-Type": "application/json",
@@ -297,7 +297,7 @@ doctorSearchQuery: (data:any) =>
         }),
         //☑️
       createAppointment: (data:any) =>
-        api.post("appointment/patient/create", data, {
+        api2.post("appointment/patient/create", data, {
           headers: {
             Authorization: `Bearer ${mToken}`,
             "Content-Type": "application/json",
