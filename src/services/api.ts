@@ -1,8 +1,8 @@
 import axios from "axios"
-export const ngrok_url_m = "http://localhost:3000/api"
-export const ngrok_url="https://a99d-103-220-42-152.ngrok-free.app"
+export const ngrok_url_m = "https://medwell2.vercel.app/api"
+export const ngrok_url="https://e181-106-222-205-99.ngrok-free.app"
 export const ngrok_url_analytics = process.env.NEXT_PUBLIC_ANALYTICS_URL
-export const ngrok_url2 = "https://ac49-103-220-42-152.ngrok-free.app" 
+export const ngrok_url2 = "https://5bfa-106-222-205-99.ngrok-free.app" 
 export const ngrok_url_doctorsearch = "https://doctor-search-medwell.vercel.app"
 // analytics
 
