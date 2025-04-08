@@ -19,6 +19,10 @@
   --text-dark: #f4f4f4;
 }
 
+* {
+  user-select: none;
+}
+
 body {
   font-family: "IBM Plex Sans", sans-serif;
   background-color: var(--background);
