@@ -3,15 +3,9 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { motion } from "framer-motion"
 import Link from "next/link"
 import { useParams } from "next/navigation"
-import { EyeIcon, EyeOffIcon, Mail, Lock, AlertCircle } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { AuthCard, AuthTitle, AuthDescription, AuthMessage } from "@/components/auth/auth-components"
-import { cn } from "@/lib/utils"
+import { EyeIcon, EyeOffIcon, Mail, Lock } from "lucide-react"
 import Image from "next/image"
 import { useAuth } from "@/services/useAuth"
 
@@ -43,48 +37,23 @@ interface GoogleNotification {
   isSkippedMoment: () => boolean
 }
 
-const roleInfo = {
-  patient: {
-    title: "Welcome back!",
-    description: "Enter your email to sign in to your account",
-    image: "/auth/p_login.jpg",
-    gradient: "from-blue-600 to-indigo-600",
-  },
-  doctor: {
-    title: "Doctor Login",
-    description: "Sign in to access your medical practice",
-    image: "/auth/d_login.jpg",
-    gradient: "from-indigo-600 to-purple-600",
-  },
-  hospital: {
-    title: "Hospital Portal",
-    description: "Access your hospital management system",
-    image: "/auth/h_login.jpg",
-    gradient: "from-purple-600 to-blue-600",
-  },
-}
-
 export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const params = useParams()
   const role = params.role as string
   const { login, googleLogin } = useAuth()
-  const [isLoading, setIsLoading] = useState(false)
-  const [isMobile, setIsMobile] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
-  // const currentRoleInfo = roleInfo[role as keyof typeof roleInfo] || roleInfo.patient
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768)
     }
-
     handleResize()
-
     window.addEventListener("resize", handleResize)
-
     return () => window.removeEventListener("resize", handleResize)
   }, [])
 
@@ -98,8 +67,7 @@ export default function LoginPage() {
         window.google.accounts.id.renderButton(document.getElementById("signInDiv"), {
           theme: "outline",
           size: "large",
-          width: isMobile ? Math.min(280, window.innerWidth - 60) : 320,
-          text: "signin_with",
+          width: isMobile ? 300 : 400,
         })
       } else {
         setTimeout(initializeGoogleSignIn, 100)
@@ -153,163 +121,202 @@ export default function LoginPage() {
     }
   }
 
-  return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-b from-blue-50/50 to-white">
-      <div className="container relative flex-1 flex items-center justify-center py-8 md:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5 }}
-          className={cn(
-            "relative hidden h-full flex-col p-10 text-white lg:flex",
-            "before:absolute before:inset-0 before:bg-gradient-to-b",
-            `before:${roleInfo[role as keyof typeof roleInfo]?.gradient || "from-blue-600 to-indigo-600"}`,
-            "before:opacity-90 before:mix-blend-multiply",
-          )}
-        >
-          <div className="absolute inset-0 bg-zinc-900/10">
+  if (isLoading) {
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>
+  }
+
+  if (isMobile) {
+    return (
+      <div className="min-h-screen bg-[#FFF5F5] flex flex-col">
+        <div className="relative w-full">
+          <div className="absolute inset-x-0 top-0 h-[245px] bg-[#B7A6F3] rounded-b-full" />
+
+          <div className="relative pt-8 px-6 flex flex-col items-center">
+            <h1 className="text-[#2D2D2D] text-3xl font-bold mb-3">Login</h1>
             <Image
-              src={roleInfo[role as keyof typeof roleInfo]?.image || "/placeholder.svg"}
-              alt="Authentication"
-              fill
-              className="object-cover object-center"
-              priority
+              src="/auth/login_mobile.png"
+              alt="Login illustration"
+              width={160}
+              height={160}
+              className="w-40 h-40 object-contain mb-0"
             />
-          </div>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-            className="relative z-20 mt-auto"
-          >
-            <blockquote className="space-y-2 text-black">
-              <p className="text-xl">
-                &quot;Revolutionizing healthcare with AI-powered solutions, making medical records more accessible and
-                secure.&quot;
-              </p>
-              <footer className="text-sm text-blue-700">Sofia Davis - Healthcare Technology Specialist</footer>
-            </blockquote>
-          </motion.div>
-        </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5 }}
-          className="lg:p-8"
-        >
-          <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px] lg:w-[400px]">
-            <AuthCard className="bg-white/95 backdrop-blur-sm">
-              <AuthTitle>{roleInfo[role as keyof typeof roleInfo]?.title}</AuthTitle>
-              <AuthDescription>{roleInfo[role as keyof typeof roleInfo]?.description}</AuthDescription>
-
-              {error && (
-                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md flex items-start">
-                  <AlertCircle className="h-5 w-5 text-red-500 mr-2 mt-0.5 flex-shrink-0" />
-                  <p className="text-sm text-red-600">{error}</p>
-                </div>
-              )}
-
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <div className="relative">
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="name@example.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className={cn(
-                        "pl-10",
-                        "border-input/50 bg-white/50 backdrop-blur-sm",
-                        "focus:bg-white focus:border-blue-500",
-                      )}
-                      required
-                    />
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="password">Password</Label>
-                    <Link
-                      href="/auth/forgot-password"
-                      className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                    >
-                      Forgot password?
-                    </Link>
-                  </div>
-                  <div className="relative">
-                    <Input
-                      id="password"
-                      type={showPassword ? "text" : "password"}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className={cn(
-                        "pl-10",
-                        "border-input/50 bg-white/50 backdrop-blur-sm",
-                        "focus:bg-white focus:border-blue-500",
-                      )}
-                      required
-                    />
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2"
-                    >
-                      {showPassword ? (
-                        <EyeOffIcon className="h-4 w-4 text-muted-foreground hover:text-primary transition-colors" />
-                      ) : (
-                        <EyeIcon className="h-4 w-4 text-muted-foreground hover:text-primary transition-colors" />
-                      )}
-                    </button>
-                  </div>
-                </div>
-                <Button
-                  type="submit"
-                  className={cn(
-                    "w-full text-white",
-                    "bg-gradient-to-r shadow-lg transition-all duration-300",
-                    roleInfo[role as keyof typeof roleInfo]?.gradient || "from-blue-600 to-indigo-600",
-                    "hover:shadow-blue-500/25 hover:translate-y-[-1px]",
-                  )}
-                  disabled={isLoading}
-                >
-                  {isLoading ? "Signing in..." : "Sign In"}
-                </Button>
-              </form>
-
-              <div className="relative my-6">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-muted" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-white px-2 text-muted-foreground">Or continue with</span>
+            <form onSubmit={handleSubmit} className="w-full max-w-md space-y-4 px-6">
+              {error && <div className="text-red-500 text-sm text-center">{error}</div>}
+              <div className="relative">
+                <label className="text-sm text-gray-600 mb-1 block">Email</label>
+                <div className="relative">
+                  <input
+                    type="email"
+                    required
+                    className="w-full px-12 py-3 bg-white rounded-full border border-gray-200"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="email@gmail.com"
+                  />
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                 </div>
               </div>
 
-              <div id="signInDiv" className="flex justify-center w-full px-2" />
+              <div className="relative">
+                <label className="text-sm text-gray-600 mb-1 block">Password</label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    required
+                    className="w-full px-12 py-3 bg-white rounded-full border border-gray-200"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Enter your password"
+                  />
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <button
+                    type="button"
+                    className="absolute right-4 top-1/2 -translate-y-1/2"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeOffIcon className="h-5 w-5 text-gray-400" />
+                    ) : (
+                      <EyeIcon className="h-5 w-5 text-gray-400" />
+                    )}
+                  </button>
+                </div>
+              </div>
 
-              <AuthMessage>
-                Don&apos;t have an account?{" "}
-                <Link
-                  href={`/auth/${role}/signup`}
-                  className={cn(
-                    "font-medium transition-colors",
-                    "bg-gradient-to-r bg-clip-text text-transparent",
-                    roleInfo[role as keyof typeof roleInfo]?.gradient || "from-blue-600 to-indigo-600",
-                  )}
-                >
+              <div className="text-right">
+                <Link href="/forgot-password" className="text-sm text-gray-600">
+                  Forgot Password?
+                </Link>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-3 bg-[#7C3AED] text-white rounded-full font-medium hover:bg-[#6D28D9] transition-colors"
+                disabled={isLoading}
+              >
+                {isLoading ? "Logging in..." : "Login"}
+              </button>
+
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-300"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-[#FFF5F5] text-gray-500">or</span>
+                </div>
+              </div>
+
+              <div id="signInDiv" className="flex justify-center"></div>
+
+              <p className="text-center text-sm text-gray-600 mt-6">
+                Don't have an account?{" "}
+                <Link href={`/auth/${role}/signup`} className="text-[#7C3AED] font-medium">
                   Sign up
                 </Link>
-              </AuthMessage>
-            </AuthCard>
+              </p>
+            </form>
           </div>
-        </motion.div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-[#FFF5F5] flex">
+      <div className="flex-1 flex items-center justify-center p-8">
+        <div className="w-full max-w-md">
+          <h1 className="text-[#2D2D2D] text-4xl font-bold mb-8">Welcome Back!!</h1>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {error && <div className="text-red-500 text-sm text-center">{error}</div>}
+            <div className="relative">
+              <label className="text-sm text-gray-600 mb-1 block">Email</label>
+              <div className="relative">
+                <input
+                  type="email"
+                  required
+                  className="w-full px-12 py-3 bg-white rounded-full border border-gray-200"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="email@gmail.com"
+                />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              </div>
+            </div>
+
+            <div className="relative">
+              <label className="text-sm text-gray-600 mb-1 block">Password</label>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  required
+                  className="w-full px-12 py-3 bg-white rounded-full border border-gray-200"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
+                />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <button
+                  type="button"
+                  className="absolute right-4 top-1/2 -translate-y-1/2"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <EyeOffIcon className="h-5 w-5 text-gray-400" />
+                  ) : (
+                    <EyeIcon className="h-5 w-5 text-gray-400" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            <div className="text-right">
+              <Link href="/forgot-password" className="text-sm text-gray-600">
+                Forgot Password?
+              </Link>
+            </div>
+
+            <button
+              type="submit"
+              className="w-full py-3 bg-[#7C3AED] text-white rounded-full font-medium hover:bg-[#6D28D9] transition-colors"
+              disabled={isLoading}
+            >
+              {isLoading ? "Logging in..." : "Login"}
+            </button>
+
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-[#FFF5F5] text-gray-500">or</span>
+              </div>
+            </div>
+
+            <div id="signInDiv" className="flex justify-center"></div>
+
+            <p className="text-center text-sm text-gray-600 mt-6">
+              Don't have an account?{" "}
+              <Link href={`/auth/${role}/signup`} className="text-[#7C3AED] font-medium">
+                Sign up
+              </Link>
+            </p>
+          </form>
+        </div>
+      </div>
+      <div className="hidden lg:flex flex-1 bg-[#F5F0FF] items-center justify-center relative overflow-hidden">
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 w-[70%] bg-[#B7A6F3] rounded-t-full -translate-x-[-120px] translate-y-20" />
+        </div>
+        <Image
+          src="/auth/login.png"
+          alt="Doctor"
+          width={400}
+          height={600}
+          className="relative w-[30%] h-auto object-contain"
+        />
       </div>
     </div>
   )
 }
-
