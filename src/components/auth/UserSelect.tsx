@@ -1,145 +1,153 @@
 "use client"
 
-import type React from "react"
-
+import { useState } from "react"
 import { motion } from "framer-motion"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Building2, UserRound, Users } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
+import { User, Building2, Stethoscope, ArrowRight } from "lucide-react"
 
-const roles = [
+const userTypes = [
   {
+    id: "patient",
     title: "Patient",
-    icon: Users,
-    description: "Access your medical records, book appointments, and manage your healthcare journey",
+    description: "Access your medical records and appointments",
+    icon: User,
     image: "/auth/patient.jpg",
-    link: "/auth/patient/login",
-    color: "#4361ee",
+    color: "#7C3AED",
+    gradient: "from-[#7C3AED] to-[#9F7AEA]",
   },
   {
+    id: "doctor",
     title: "Doctor",
-    icon: UserRound,
-    description: "Manage your practice, access patient records, and provide remote consultations",
+    description: "Manage your practice and patient care",
+    icon: Stethoscope,
     image: "/auth/doctor.jpg",
-    link: "/auth/doctor/login",
-    color: "#3f37c9",
+    color: "#10B981",
+    gradient: "from-[#10B981] to-[#34D399]",
   },
   {
+    id: "hospital",
     title: "Hospital",
+    description: "Administer your healthcare facility",
     icon: Building2,
-    description: "Streamline hospital operations and enhance patient care with our comprehensive system",
     image: "/auth/hospital.jpg",
-    link: "/auth/hospital/login",
-    color: "#3a0ca3",
+    color: "#F59E0B",
+    gradient: "from-[#F59E0B] to-[#FBBF24]",
   },
 ]
 
 export default function UserSelect() {
+  const [hoveredCard, setHoveredCard] = useState<string | null>(null)
+  const [selectedCard, setSelectedCard] = useState<string | null>(null)
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.15,
+      },
+    },
+  }
+
+  const cardVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+  }
+
   return (
-    <div className="min-h-screen isolate pt-24 pb-12 px-4 bg-gradient-to-b from-blue-50 via-indigo-50/50 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-[#FFF5F5] to-white flex flex-col items-center justify-center p-4 md:p-8">
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="max-w-7xl mx-auto"
+        transition={{ duration: 0.6 }}
+        className="text-center mb-12"
       >
-        <div className="text-center mb-12">
-          <motion.h1
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 mb-4"
-          >
-            Welcome to Medwell
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="text-xl text-muted-foreground"
-          >
-            Choose your role to continue
-          </motion.p>
-        </div>
+        <h1 className="pt-16 text-3xl md:text-4xl font-bold text-gray-800 mb-3">Welcome to MedWell</h1>
+        <p className="text-gray-600 max-w-md mx-auto">
+          Please select your user type to continue with the appropriate experience
+        </p>
+      </motion.div>
 
-        <div className="flex flex-wrap justify-center gap-8">
-          {roles.map((role, index) => (
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl"
+      >
+        {userTypes.map((type) => (
+          <motion.div
+            key={type.id}
+            variants={cardVariants}
+            className="relative"
+            onMouseEnter={() => setHoveredCard(type.id)}
+            onMouseLeave={() => setHoveredCard(null)}
+            onClick={() => setSelectedCard(type.id)}
+          >
             <motion.div
-              key={role.title}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 + 0.4 }}
-              className="w-full sm:w-auto"
+              className={`
+                h-full w-full rounded-2xl overflow-hidden cursor-pointer
+                border-2 transition-all duration-300 shadow-lg
+                ${selectedCard === type.id ? `border-${type.color}` : "border-transparent"}
+                ${hoveredCard === type.id ? "shadow-xl transform -translate-y-1" : ""}
+              `}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
             >
-              <Card
-                className="relative group overflow-hidden hover:shadow-xl transition-all duration-300 w-full sm:w-80 border-t-4"
-                style={{ borderTopColor: role.color }}
-              >
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <CardHeader className="text-center pb-4 relative">
-                  <div
-                    className="mx-auto mb-4 p-3 rounded-full transition-colors duration-300"
-                    style={{ backgroundColor: `${role.color}10` }}
-                  >
-                    <role.icon className="w-8 h-8" style={{ color: role.color }} />
+              <div className="h-full flex flex-col bg-white rounded-2xl overflow-hidden">
+                {/* Image Section */}
+                <div className="relative h-40 overflow-hidden">
+                  <div className={`absolute inset-0 bg-gradient-to-r ${type.gradient} opacity-90`}></div>
+                  <Image
+                    src={type.image || "/placeholder.svg"}
+                    alt={type.title}
+                    fill
+                    className="object-cover mix-blend-overlay"
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <type.icon className="h-16 w-16 text-white" />
                   </div>
-                  <CardTitle className="text-2xl font-bold" style={{ color: role.color }}>
-                    {role.title}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="text-center relative">
-                  <div className="mb-6">
-                    <div className="relative w-full h-48 mb-4 overflow-hidden rounded-lg">
-                      <Image
-                        src={role.image || "/placeholder.svg"}
-                        alt={role.title}
-                        fill
-                        className="object-cover transition-transform duration-300 group-hover:scale-105"
-                      />
-                    </div>
-                    <CardDescription className="text-muted-foreground mb-6">{role.description}</CardDescription>
-                  </div>
-                  <Button
-                    className="w-full text-white transition-all duration-300 shadow-lg hover:shadow-xl"
-                    style={
-                      {
-                        backgroundColor: role.color,
-                        "--hover-color": `${role.color}90`,
-                      } as React.CSSProperties
-                    }
-                    asChild
-                  >
-                    <Link href={role.link}>Login as {role.title}</Link>
-                  </Button>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
+                </div>
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.7 }}
-          className="mt-12 text-center"
-        >
-          <p className="text-muted-foreground mb-4">Don&apos;t have an account?</p>
-          <div className="flex flex-wrap justify-center gap-4">
-            {roles.map((role, index) => (
-              <Link
-                key={role.title}
-                href={role.link.replace("login", "signup")}
-                className="text-blue-600 hover:text-blue-800 transition-colors duration-200 hover:underline"
-              >
-                Sign up as {role.title}
-              </Link>
-            ))}
-          </div>
-        </motion.div>
+                {/* Content Section */}
+                <div className="p-6 flex flex-col flex-grow">
+                  <h3 className="text-xl font-bold mb-2 text-gray-800">{type.title}</h3>
+                  <p className="text-gray-600 mb-6 flex-grow">{type.description}</p>
+
+                  <Link href={`/auth/${type.id}/login`} className="w-full">
+                    <motion.button
+                      className={`
+                        w-full py-3 px-4 rounded-full flex items-center justify-center
+                        text-white font-medium transition-all duration-300
+                        bg-gradient-to-r ${type.gradient}
+                      `}
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
+                    >
+                      <span>Continue</span>
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </motion.button>
+                  </Link>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        ))}
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.8, duration: 0.5 }}
+        className="mt-12 text-center text-gray-500 text-sm"
+      >
+        <p>
+          Need help?{" "}
+          <a href="#" className="text-[#7C3AED] hover:underline">
+            Contact support
+          </a>
+        </p>
       </motion.div>
     </div>
   )
 }
-
