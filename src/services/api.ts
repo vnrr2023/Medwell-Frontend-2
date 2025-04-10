@@ -1,9 +1,11 @@
 import axios from "axios"
-export const ngrok_url_m = "https://medwell2.vercel.app/api"
-export const ngrok_url="https://e181-106-222-205-99.ngrok-free.app"
+export const ngrok_url_m = "http://localhost:3000/api"
+export const ngrok_url_chatbot=process.env.NEXT_PUBLIC_CHATBOT_URL
+export const ngrok_url_main=process.env.NEXT_PUBLIC_MAIN_URL
 export const ngrok_url_analytics = process.env.NEXT_PUBLIC_ANALYTICS_URL
-export const ngrok_url2 = "https://5bfa-106-222-205-99.ngrok-free.app" 
+export const ngrok_url2 = "https://ac49-103-220-42-152.ngrok-free.app" 
 export const ngrok_url_doctorsearch = "https://doctor-search-medwell.vercel.app"
+
 // analytics
 
 // ek kam kar analytics madhey jithe chart ahe na tithe dummy data tak
@@ -15,7 +17,7 @@ export const ngrok_url_doctorsearch = "https://doctor-search-medwell.vercel.app"
 // main
 //https://doctor-search-medwell.vercel.app/
 const api = axios.create({
-  baseURL: `${ngrok_url}/`,
+  baseURL: `${ngrok_url_main}/`,
 })
 const api2 = axios.create({
   baseURL: `${ngrok_url2}/`,
@@ -25,6 +27,9 @@ const api3 = axios.create({
 })
 const api4 = axios.create({
   baseURL: `${ngrok_url_doctorsearch}/`,
+})
+const api5 = axios.create({
+  baseURL: `${ngrok_url_chatbot}/`,
 })
 
 const apim = axios.create({
@@ -180,7 +185,7 @@ provideAccess: (data:any) =>
       // Chat Report APIs
       //☑️
   createChatAgent: () =>
-    api2.get("/create_agent/147", {
+    api5.get("/create_agent/147", {
       headers: {
         "ngrok-skip-browser-warning": "69420",
         Authorization: `Bearer ${mToken}`,
@@ -188,14 +193,14 @@ provideAccess: (data:any) =>
     }),
 //☑️
   sendChatMessage: (messageData:any) =>
-    api2.post("/chat", messageData, {
+    api5.post("/chat", messageData, {
       headers: {
         Authorization: `Bearer ${mToken}`,
         "Content-Type": "application/json",
       },
     }),
   sendChatMessage2: (messageData:any) =>
-    api2.post("/query", messageData, {
+    api5.post("/query", messageData, {
       headers: {
         Authorization: `Bearer ${mToken}`,
         "Content-Type": "application/json",
