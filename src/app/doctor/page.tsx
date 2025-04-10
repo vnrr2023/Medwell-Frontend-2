@@ -59,6 +59,7 @@ export default function DoctorDashboard() {
     if(!token || token==undefined){
       alert("You are not signed in")
       window.location.href="/auth"
+      return
     }
     if(role!=="doctor"){
       alert("You cannot access logged in as doctor")

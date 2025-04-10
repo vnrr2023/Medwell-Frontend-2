@@ -47,6 +47,7 @@ export default function PatientDashboard() {
     if(!token || token==undefined){
       alert("You are not signed in")
       window.location.href="/auth"
+      return
     }
     if(role!=="patient"){
       alert("You cannot access logged in as doctor")
