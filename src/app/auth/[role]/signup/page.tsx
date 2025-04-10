@@ -3,46 +3,21 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { motion } from "framer-motion"
 import Link from "next/link"
 import { useParams } from "next/navigation"
-import { EyeIcon, EyeOffIcon, Mail, Lock, User, AlertCircle } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { AuthCard, AuthTitle, AuthDescription, AuthMessage } from "@/components/auth/auth-components"
-import { useAuth } from "@/services/useAuth"
-import { cn } from "@/lib/utils"
+import { EyeIcon, EyeOffIcon, Mail, Lock, User } from "lucide-react"
 import Image from "next/image"
+import { useAuth } from "@/services/useAuth"
+
 interface GoogleResponse {
-  credential: string;
+  credential: string
 }
+
 interface FormData {
   fullName: string
   email: string
   password: string
   confirmPassword: string
-}
-
-const roleInfo = {
-  patient: {
-    title: "Create Patient Account",
-    description: "Join our healthcare platform to manage your medical journey",
-    image: "/auth/p_signup.jpg",
-    gradient: "from-blue-600 to-indigo-600",
-  },
-  doctor: {
-    title: "Doctor Registration",
-    description: "Create your professional medical practice account",
-    image: "/auth/d_signup.jpg",
-    gradient: "from-indigo-600 to-purple-600",
-  },
-  hospital: {
-    title: "Hospital Registration",
-    description: "Set up your hospital's digital presence",
-    image: "/auth/h_signup.jpg",
-    gradient: "from-purple-600 to-blue-600",
-  },
 }
 
 export default function SignupPage() {
@@ -55,29 +30,40 @@ export default function SignupPage() {
   })
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const { signup, googleLogin, errorMessage, setErrorMessage, checkAuth } = useAuth()
+  const { signup, googleLogin, errorMessage, setErrorMessage } = useAuth()
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    handleResize()
+    window.addEventListener("resize", handleResize)
+    return () => window.removeEventListener("resize", handleResize)
+  }, [])
 
   useEffect(() => {
     const initializeGoogleSignIn = () => {
       if (window.google && window.google.accounts) {
         window.google.accounts.id.initialize({
           client_id: process.env.NEXT_PUBLIC_GOOGLE_URL!,
-          callback: handleCallbackResponse
+          callback: handleCallbackResponse,
         })
-        window.google.accounts.id.renderButton(
-          document.getElementById("signInDiv"),
-          { theme: "outline", size: "large", width: window.innerWidth < 768 ? 300 : 400 }
-        )
+        window.google.accounts.id.renderButton(document.getElementById("signInDiv"), {
+          theme: "outline",
+          size: "large",
+          width: isMobile ? 300 : 400,
+        })
       } else {
         setTimeout(initializeGoogleSignIn, 100)
       }
     }
-  
+
     const loadGoogleScript = () => {
-      if (typeof window !== 'undefined' && !window.google) {
-        const script = document.createElement('script')
-        script.src = 'https://accounts.google.com/gsi/client'
+      if (typeof window !== "undefined" && !window.google) {
+        const script = document.createElement("script")
+        script.src = "https://accounts.google.com/gsi/client"
         script.async = true
         script.defer = true
         document.head.appendChild(script)
@@ -86,15 +72,14 @@ export default function SignupPage() {
         initializeGoogleSignIn()
       }
     }
-  
+
     loadGoogleScript()
-  }, [])
-  
+  }, [isMobile])
 
   const handleCallbackResponse = async (response: GoogleResponse) => {
     setIsLoading(true)
     try {
-      if (typeof role === 'string') {
+      if (typeof role === "string") {
         await googleLogin(response.credential, role)
       } else {
         setErrorMessage("Invalid role.")
@@ -109,9 +94,9 @@ export default function SignupPage() {
     if (!validateForm()) return
     setIsLoading(true)
     try {
-      if (typeof role === 'string') {
-        const val=await signup(formData.email, formData.password, formData.confirmPassword, formData.fullName, role)
-        if(val){
+      if (typeof role === "string") {
+        const val = await signup(formData.email, formData.password, formData.confirmPassword, formData.fullName, role)
+        if (val) {
           window.location.href = `/${role}`
         }
       } else {
@@ -141,209 +126,283 @@ export default function SignupPage() {
     return true
   }
 
-  return (
-    <div className="pt-16 min-h-screen bg-gradient-to-b from-blue-50/50 to-white">
-      <div className="container relative flex-1 flex items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5 }}
-          className={cn(
-            "relative hidden h-full flex-col p-10 text-white lg:flex",
-            "before:absolute before:inset-0 before:bg-gradient-to-b",
-            `before:${roleInfo[role as keyof typeof roleInfo]?.gradient || "from-blue-600 to-indigo-600"}`,
-            "before:opacity-90 before:mix-blend-multiply",
-          )}
-        >
-          <div className="absolute inset-0 bg-zinc-900/10">
+  if (isLoading) {
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>
+  }
+
+  if (isMobile) {
+    return (
+      <div className="min-h-screen bg-[#FFF5F5] flex flex-col">
+        <div className="relative w-full">
+          <div className="absolute inset-x-0 top-0 h-[225px] bg-[#B7A6F3] rounded-b-full" />
+
+          <div className="relative pt-8 px-6 flex flex-col items-center">
+            <h1 className="text-[#2D2D2D] text-3xl font-bold mb-0">Sign-Up</h1>
             <Image
-              src={roleInfo[role as keyof typeof roleInfo]?.image || "/placeholder.svg"}
-              alt="Authentication"
-              fill
-              className="object-cover"
-              priority
+              src="/auth/signup_mobile.png"
+              alt="Sign Up"
+              width={160}
+              height={160}
+              className="w-40 h-40 object-contain mb-0"
             />
-          </div>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-            className="relative z-20 mt-auto"
-          >
-            <blockquote className="space-y-2">
-              <p className="text-xl text-black">
-                &quot;Join our network of healthcare providers and patients to experience the future of medical
-                care.&quot;
-              </p>
-              <footer className="text-sm text-blue-700">Dr. James Wilson - Chief Medical Officer</footer>
-            </blockquote>
-          </motion.div>
-        </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5 }}
-          className="lg:p-8"
-        >
-          <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px] lg:w-[400px]">
-            <AuthCard className="bg-white/95 backdrop-blur-sm">
-              <AuthTitle>{roleInfo[role as keyof typeof roleInfo]?.title}</AuthTitle>
-              <AuthDescription>{roleInfo[role as keyof typeof roleInfo]?.description}</AuthDescription>
-
-              {errorMessage && (
-                <div className="flex items-center gap-2 p-3 text-sm text-red-600 bg-red-50 rounded-lg">
-                  <AlertCircle className="h-4 w-4" />
-                  <p>{errorMessage}</p>
-                </div>
-              )}
-
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="fullName">{role === "hospital" ? "Hospital Name" : "Full Name"}</Label>
-                  <div className="relative">
-                    <Input
-                      id="fullName"
-                      name="fullName"
-                      type="text"
-                      value={formData.fullName}
-                      onChange={handleChange}
-                      className={cn(
-                        "pl-10",
-                        "border-input/50 bg-white/50 backdrop-blur-sm",
-                        "focus:bg-white focus:border-blue-500",
-                      )}
-                      required
-                    />
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <div className="relative">
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      className={cn(
-                        "pl-10",
-                        "border-input/50 bg-white/50 backdrop-blur-sm",
-                        "focus:bg-white focus:border-blue-500",
-                      )}
-                      required
-                    />
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
-                  <div className="relative">
-                    <Input
-                      id="password"
-                      name="password"
-                      type={showPassword ? "text" : "password"}
-                      value={formData.password}
-                      onChange={handleChange}
-                      className={cn(
-                        "pl-10",
-                        "border-input/50 bg-white/50 backdrop-blur-sm",
-                        "focus:bg-white focus:border-blue-500",
-                      )}
-                      required
-                    />
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <button
-                      type="button"
-                      className="absolute right-3 top-1/2 -translate-y-1/2"
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? (
-                        <EyeOffIcon className="h-4 w-4 text-muted-foreground hover:text-primary transition-colors" />
-                      ) : (
-                        <EyeIcon className="h-4 w-4 text-muted-foreground hover:text-primary transition-colors" />
-                      )}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirm Password</Label>
-                  <div className="relative">
-                    <Input
-                      id="confirmPassword"
-                      name="confirmPassword"
-                      type={showConfirmPassword ? "text" : "password"}
-                      value={formData.confirmPassword}
-                      onChange={handleChange}
-                      className={cn(
-                        "pl-10",
-                        "border-input/50 bg-white/50 backdrop-blur-sm",
-                        "focus:bg-white focus:border-blue-500",
-                      )}
-                      required
-                    />
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <button
-                      type="button"
-                      className="absolute right-3 top-1/2 -translate-y-1/2"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    >
-                      {showConfirmPassword ? (
-                        <EyeOffIcon className="h-4 w-4 text-muted-foreground hover:text-primary transition-colors" />
-                      ) : (
-                        <EyeIcon className="h-4 w-4 text-muted-foreground hover:text-primary transition-colors" />
-                      )}
-                    </button>
-                  </div>
-                </div>
-
-                <Button
-                  type="submit"
-                  className={cn(
-                    "w-full text-white",
-                    "bg-gradient-to-r shadow-lg transition-all duration-300",
-                    roleInfo[role as keyof typeof roleInfo]?.gradient || "from-blue-600 to-indigo-600",
-                    "hover:shadow-blue-500/25 hover:translate-y-[-1px]",
-                  )}
-                  disabled={isLoading}
-                >
-                  {isLoading ? "Creating Account..." : "Create Account"}
-                </Button>
-              </form>
-
-              <div className="relative my-6">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-muted" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-white px-2 text-muted-foreground">Or continue with</span>
+            <form onSubmit={handleSubmit} className="w-full max-w-md space-y-4">
+              {errorMessage && <div className="text-red-500 text-sm text-center">{errorMessage}</div>}
+              <div className="relative">
+                <label className="text-sm text-gray-600 mb-1 block">Full Name</label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    name="fullName"
+                    required
+                    className="w-full px-12 py-3 bg-white rounded-full border border-gray-200"
+                    value={formData.fullName}
+                    onChange={handleChange}
+                    placeholder="Enter your full name"
+                  />
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                 </div>
               </div>
 
-              <div id="signInDiv" className="flex justify-center" />
+              <div className="relative">
+                <label className="text-sm text-gray-600 mb-1 block">Email</label>
+                <div className="relative">
+                  <input
+                    type="email"
+                    name="email"
+                    required
+                    className="w-full px-12 py-3 bg-white rounded-full border border-gray-200"
+                    value={formData.email}
+                    onChange={handleChange}
+                    placeholder="email@gmail.com"
+                  />
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                </div>
+              </div>
 
-              <AuthMessage>
+              <div className="relative">
+                <label className="text-sm text-gray-600 mb-1 block">Password</label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    required
+                    className="w-full px-12 py-3 bg-white rounded-full border border-gray-200"
+                    value={formData.password}
+                    onChange={handleChange}
+                    placeholder="Enter your password"
+                  />
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <button
+                    type="button"
+                    className="absolute right-4 top-1/2 -translate-y-1/2"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeOffIcon className="h-5 w-5 text-gray-400" />
+                    ) : (
+                      <EyeIcon className="h-5 w-5 text-gray-400" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <div className="relative">
+                <label className="text-sm text-gray-600 mb-1 block">Confirm Password</label>
+                <div className="relative">
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    name="confirmPassword"
+                    required
+                    className="w-full px-12 py-3 bg-white rounded-full border border-gray-200"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    placeholder="Confirm your password"
+                  />
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <button
+                    type="button"
+                    className="absolute right-4 top-1/2 -translate-y-1/2"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOffIcon className="h-5 w-5 text-gray-400" />
+                    ) : (
+                      <EyeIcon className="h-5 w-5 text-gray-400" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-3 bg-[#7C3AED] text-white rounded-full font-medium hover:bg-[#6D28D9] transition-colors"
+                disabled={isLoading}
+              >
+                {isLoading ? "Creating Account..." : "Create Account"}
+              </button>
+
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-300"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-[#FFF5F5] text-gray-500">or</span>
+                </div>
+              </div>
+
+              <div id="signInDiv" className="flex justify-center"></div>
+
+              <p className="text-center text-sm text-gray-600 mt-6">
                 Already have an account?{" "}
-                <Link
-                  href={`/auth/${role}/login`}
-                  className={cn(
-                    "font-medium transition-colors",
-                    "bg-gradient-to-r bg-clip-text text-transparent",
-                    roleInfo[role as keyof typeof roleInfo]?.gradient || "from-blue-600 to-indigo-600",
-                  )}
-                >
+                <Link href={`/auth/${role}/login`} className="text-[#7C3AED] font-medium">
                   Sign in
                 </Link>
-              </AuthMessage>
-            </AuthCard>
+              </p>
+            </form>
           </div>
-        </motion.div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-[#FFF5F5] flex">
+      <div className="hidden lg:flex flex-1 bg-[#F5F0FF] items-center justify-center relative overflow-hidden">
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 w-[70%] bg-[#B7A6F3] rounded-t-full translate-x-[120px] translate-y-20" />
+        </div>
+        <Image
+          src="/auth/signup.png"
+          alt="Sign Up"
+          width={400}
+          height={600}
+          className="relative w-[30%] h-auto object-contain"
+        />
+      </div>
+
+      <div className="flex-1 flex items-center justify-center p-8 pt-20">
+        <div className="w-full max-w-md">
+          <h1 className="text-[#2D2D2D] text-4xl font-bold mb-6">Create Account</h1>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {errorMessage && <div className="text-red-500 text-sm text-center">{errorMessage}</div>}
+            <div className="relative">
+              <label className="text-sm text-gray-600 mb-1 block">
+                {role === "hospital" ? "Hospital Name" : "Full Name"}
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  name="fullName"
+                  required
+                  className="w-full px-12 py-3 bg-white rounded-full border border-gray-200"
+                  value={formData.fullName}
+                  onChange={handleChange}
+                  placeholder="Enter your full name"
+                />
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              </div>
+            </div>
+
+            <div className="relative">
+              <label className="text-sm text-gray-600 mb-1 block">Email</label>
+              <div className="relative">
+                <input
+                  type="email"
+                  name="email"
+                  required
+                  className="w-full px-12 py-3 bg-white rounded-full border border-gray-200"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="email@gmail.com"
+                />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              </div>
+            </div>
+
+            <div className="relative">
+              <label className="text-sm text-gray-600 mb-1 block">Password</label>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  required
+                  className="w-full px-12 py-3 bg-white rounded-full border border-gray-200"
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="Enter your password"
+                />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <button
+                  type="button"
+                  className="absolute right-4 top-1/2 -translate-y-1/2"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <EyeOffIcon className="h-5 w-5 text-gray-400" />
+                  ) : (
+                    <EyeIcon className="h-5 w-5 text-gray-400" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            <div className="relative">
+              <label className="text-sm text-gray-600 mb-1 block">Confirm Password</label>
+              <div className="relative">
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  name="confirmPassword"
+                  required
+                  className="w-full px-12 py-3 bg-white rounded-full border border-gray-200"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  placeholder="Confirm your password"
+                />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <button
+                  type="button"
+                  className="absolute right-4 top-1/2 -translate-y-1/2"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  {showConfirmPassword ? (
+                    <EyeOffIcon className="h-5 w-5 text-gray-400" />
+                  ) : (
+                    <EyeIcon className="h-5 w-5 text-gray-400" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              className="w-full py-3 bg-[#7C3AED] text-white rounded-full font-medium hover:bg-[#6D28D9] transition-colors"
+              disabled={isLoading}
+            >
+              {isLoading ? "Creating Account..." : "Create Account"}
+            </button>
+
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-[#FFF5F5] text-gray-500">or</span>
+              </div>
+            </div>
+
+            <div id="signInDiv" className="flex justify-center"></div>
+
+            <p className="text-center text-sm text-gray-600 mt-6">
+              Already have an account?{" "}
+              <Link href={`/auth/${role}/login`} className="text-[#7C3AED] font-medium">
+                Sign in
+              </Link>
+            </p>
+          </form>
+        </div>
       </div>
     </div>
   )
 }
-
