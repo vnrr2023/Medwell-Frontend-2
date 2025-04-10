@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { redirect, useRouter } from "next/navigation"
-import { ngrok_url } from "./api"
-export const API_URL = ngrok_url 
+import { ngrok_url_main } from "./api"
+export const API_URL = ngrok_url_main
 
 export const useAuth = () => {
   const [errorMessage, setErrorMessage] = useState("")
