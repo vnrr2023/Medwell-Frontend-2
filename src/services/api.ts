@@ -1,9 +1,10 @@
 import axios from "axios"
-export const ngrok_url_m = "http://localhost:3000/api"
+export const ngrok_url_m = "https://medwell2.vercel.app/api"
 export const ngrok_url_chatbot=process.env.NEXT_PUBLIC_CHATBOT_URL
 export const ngrok_url_main=process.env.NEXT_PUBLIC_MAIN_URL
 export const ngrok_url_analytics = process.env.NEXT_PUBLIC_ANALYTICS_URL
-export const ngrok_url2 = "https://ac49-103-220-42-152.ngrok-free.app" 
+export const ngrok_url_appointment = process.env.NEXT_PUBLIC_APPOINTMENT_URL
+// export const ngrok_url2 = "https://ac49-103-220-42-152.ngrok-free.app" 
 export const ngrok_url_doctorsearch = "https://doctor-search-medwell.vercel.app"
 
 // analytics
@@ -20,7 +21,7 @@ const api = axios.create({
   baseURL: `${ngrok_url_main}/`,
 })
 const api2 = axios.create({
-  baseURL: `${ngrok_url2}/`,
+  baseURL: `${ngrok_url_appointment}/`,
 })
 const api3 = axios.create({
   baseURL: `${ngrok_url_analytics}/`,
@@ -116,8 +117,6 @@ const DaddyAPI = {
     api3.get("/patient/expense", {
       headers: {
         Authorization: `Bearer ${mToken}`,
-        "ngrok-skip-browser-warning": "69420",
-        "Content-Type": "application/json",
       },
     }),
 // Adding expenses you can add in natural language and normal query
@@ -160,9 +159,9 @@ const DaddyAPI = {
   // This api gives entire info about the patient in short
   //☑️
   getPatientDashboard: () =>
-    apim.get("/patient/dashboard",{
+    api3.get("/patient/dashboard",{
       headers: {
-        Authorization: `Bearer ${mockToken}`,
+        Authorization: `Bearer ${mToken}`,
         "ngrok-skip-browser-warning": "69420",
         "Content-Type": "application/json",
       },
@@ -256,9 +255,9 @@ doctorSearchQuery: (data:any) =>
       }),
       //☑️
     genEmailBody: (data:any) =>
-      apim.post("/marketting/generate_mail_body",data,{
+      api3.post("/marketting/generate_mail_body",data,{
         headers: {
-          Authorization: `Bearer ${mockToken}`,
+          Authorization: `Bearer ${mToken}`,
           "Content-Type": "application/json",
         },
       }),
@@ -442,7 +441,7 @@ doctorSearchQuery: (data:any) =>
 
               //prescriptions with id
             getPrescriptions: (id:any) =>
-              api.get(`prescription/${id}`, {
+              api2.get(`prescription/${id}`, {
                 headers: {
                   Authorization: `Bearer ${mToken}`,
                   "ngrok-skip-browser-warning": "69420",
@@ -450,14 +449,14 @@ doctorSearchQuery: (data:any) =>
               }),
               
               addPrescription: (data:any) =>
-                api.post("prescription/add",data,{
+                api2.post("prescription/add",data,{
                   headers: {
                     Authorization: `Bearer ${mToken}`,
                     "Content-Type": "application/json",
                   },
                 }),
               updatePrescription: (data:any) =>
-                api.put("prescription/update",data,{
+                api2.put("prescription/update",data,{
                   headers: {
                     Authorization: `Bearer ${mToken}`,
                     "Content-Type": "application/json",
@@ -466,16 +465,16 @@ doctorSearchQuery: (data:any) =>
 
                 //analytics and dashboard for the doctor
                 getAnalytics: () =>
-                  apim.get(`doctor/analytics`, {
+                  api3.get(`doctor/analytics`, {
                     headers: {
-                      Authorization: `Bearer ${mockToken}`,
+                      Authorization: `Bearer ${mToken}`,
                       "ngrok-skip-browser-warning": "69420",
                     },
                   }),
                   getDoctorDashboard: () =>
-                    apim.get(`doctor/dashboard`, {
+                    api3.get(`doctor/dashboard`, {
                       headers: {
-                        Authorization: `Bearer ${mockToken}`,
+                        Authorization: `Bearer ${mToken}`,
                         "ngrok-skip-browser-warning": "69420",
                       },
                     }),

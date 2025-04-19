@@ -11,14 +11,6 @@ interface Message {
   sender: "user" | "bot"
 }
 
-interface AgentResponse {
-  key: string
-}
-
-interface ChatResponse {
-  data: string
-}
-
 declare global {
   interface Window {
     SpeechRecognition: any
@@ -142,7 +134,7 @@ export default function ChatReport() {
         key: agentKey,
         question: message,
       })
-      return response.data.data
+      return response.data.resp
     } catch (error) {
       const axiosError = error as AxiosError
       if (axiosError.response?.status === 401) {
@@ -284,8 +276,8 @@ export default function ChatReport() {
 
   return (
     <>
-      {isOpen && <div className="fixed inset-0 bg-black bg-opacity-50 z-60" onClick={toggleChat} />}
-      <div className="fixed bottom-20 right-4 z-60">
+      {isOpen && <div className="fixed inset-0 bg-black bg-opacity-50 z-50" onClick={toggleChat} />}
+      <div className="fixed bottom-20 right-4 z-50">
         {isOpen ? (
           <div
             ref={chatRef}

@@ -241,8 +241,8 @@ export default function ChatArogya() {
 
   return (
     <>
-      {isOpen && <div className="fixed inset-0 bg-black bg-opacity-50 " onClick={toggleChat} />}
-      <div className="fixed bottom-36 right-4 ">
+      {isOpen && <div className="fixed inset-0 bg-black bg-opacity-40 " onClick={toggleChat} />}
+      <div className="fixed bottom-36 right-4 z-40">
         {isOpen ? (
           <div
             ref={chatRef}
