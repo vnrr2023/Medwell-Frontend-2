@@ -5,7 +5,7 @@ import axios from "axios"
 import { ngrok_url2, ngrok_url, ngrok_url_appointment } from "./api"
 import { Token as token } from "./api"
 const API_URL = ngrok_url_appointment+"/"
-const API_URL2 = ngrok_url+"/"
+const API_URL2 = ngrok_url_main+"/"
 
 const useDocData = () => {
 
