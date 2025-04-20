@@ -57,7 +57,7 @@ export default function Hero() {
             <span>Trusted by thousands of patients & providers</span>
           </motion.div>
 
-          <motion.h1 variants={itemVariants} className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
+          <motion.h1 variants={itemVariants} className="text-4xl md:text-5xl lg:text-6xl mb-6 leading-tight">
             Your Medical History
             <br />
             Simplified with
@@ -81,7 +81,7 @@ export default function Hero() {
       repeat: Infinity,
       repeatType: "reverse",
     }}
-    className="bg-gradient-to-r from-red-500 to-blue-500 text-transparent bg-clip-text font-extrabold"
+    className="bg-gradient-to-r from-red-500 to-blue-500 text-transparent bg-clip-text"
   >
     MEDWELL...
   </motion.div>
@@ -205,29 +205,6 @@ export default function Hero() {
             animate={{ opacity: 1 }}
             transition={{ delay: 1, duration: 1 }}
           />
-
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 1 }}
-            className="absolute -left-4 top-1/2 space-y-2"
-          >
-            <motion.div
-              className="w-8 h-8 rounded-full bg-primary"
-              animate={{ y: [0, -10, 0] }}
-              transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY, repeatType: "reverse" }}
-            />
-            <motion.div
-              className="w-8 h-8 rounded-full bg-primary/60"
-              animate={{ y: [0, -10, 0] }}
-              transition={{ duration: 2, delay: 0.3, repeat: Number.POSITIVE_INFINITY, repeatType: "reverse" }}
-            />
-            <motion.div
-              className="w-8 h-8 rounded-full bg-primary/30"
-              animate={{ y: [0, -10, 0] }}
-              transition={{ duration: 2, delay: 0.6, repeat: Number.POSITIVE_INFINITY, repeatType: "reverse" }}
-            />
-          </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
