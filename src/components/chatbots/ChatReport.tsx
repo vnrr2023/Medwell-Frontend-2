@@ -281,7 +281,7 @@ export default function ChatReport() {
         {isOpen ? (
           <div
             ref={chatRef}
-            className="bg-white shadow-xl flex flex-col sm:w-[450px] h-[60vh] max-h-[760px] rounded-lg overflow-hidden"
+            className="bg-white shadow-xl flex flex-col md:w-[450px] w-[350px] sm:w-[450px] h-[60vh] max-h-[760px] rounded-lg overflow-hidden"
           >
             <div className="bg-green-500 text-white p-4 flex justify-between items-center">
               <h2 className="text-lg font-semibold">MedBuddy</h2>
