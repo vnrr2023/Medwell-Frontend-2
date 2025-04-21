@@ -410,7 +410,7 @@ export default function ExpenseTracker() {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.3 }}
-        className="space-y-8"
+        className="space-y-8 md:pb-0 pb-20"
       >
         <h1 className="text-3xl font-bold text-black mb-8">Expense Tracker</h1>
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
