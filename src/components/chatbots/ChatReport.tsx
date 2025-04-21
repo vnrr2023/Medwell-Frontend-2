@@ -277,11 +277,11 @@ export default function ChatReport() {
   return (
     <>
       {isOpen && <div className="fixed inset-0 bg-black bg-opacity-50 z-50" onClick={toggleChat} />}
-      <div className="fixed bottom-36 right-4 z-50">
+      <div className="fixed bottom-36 md:bottom-20 right-4 z-50">
         {isOpen ? (
           <div
             ref={chatRef}
-            className="bg-white shadow-xl flex flex-col w-full sm:w-[450px] h-[80vh] max-h-[800px] rounded-lg overflow-hidden z-60"
+            className="bg-white shadow-xl flex flex-col sm:w-[450px] h-[60vh] max-h-[760px] rounded-lg overflow-hidden"
           >
             <div className="bg-green-500 text-white p-4 flex justify-between items-center">
               <h2 className="text-lg font-semibold">MedBuddy</h2>

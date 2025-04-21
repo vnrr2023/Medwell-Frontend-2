@@ -242,11 +242,11 @@ export default function ChatArogya() {
   return (
     <>
       {isOpen && <div className="fixed inset-0 bg-black bg-opacity-40 " onClick={toggleChat} />}
-      <div className="fixed bottom-52 right-4 z-40">
+      <div className="fixed bottom-52 md:bottom-36 right-4 z-40">
         {isOpen ? (
           <div
             ref={chatRef}
-            className="bg-white shadow-xl flex flex-col w-full sm:w-[450px] h-[70vh] max-h-[760px] rounded-lg overflow-hidden"
+            className="bg-white shadow-xl flex flex-col md:w-[450px] w-[350px] sm:w-[450px] h-[60vh] max-h-[760px] rounded-lg overflow-hidden"
           >
             <div className="bg-teal-400 text-white p-4 flex justify-between items-center">
               <h2 className="text-lg font-semibold">ArogyaBot</h2>
