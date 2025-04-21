@@ -49,7 +49,7 @@ export default function ProfilePage() {
   if (!patientInfo) return null
 
   return (
-    <div className="max-w-4xl mx-auto p-4">
+    <div className="max-w-4xl mx-auto p-4 pb-20">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -205,6 +205,7 @@ export default function ProfilePage() {
           </div>
         </div>
       )}
+      {/* <div className="pb-20"></div> */}
     </div>
   )
 }
