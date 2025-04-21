@@ -71,7 +71,7 @@ export default function Chat({}: ChatProps) {
   }, [isOpen])
 
   return (
-    <div className="fixed bottom-4 right-4 z-50" ref={chatRef}>
+    <div className="fixed bottom-20 right-4 z-50" ref={chatRef}>
       {isOpen ? (
         <div className="bg-blue-400 rounded-lg shadow-xl w-[350px] h-[430px] flex flex-col overflow-hidden">
           <div className="bg-blue-500 text-white p-2 flex justify-end items-center">
