@@ -110,7 +110,7 @@ const Reports: React.FC = () => {
         report.report_type?.toLowerCase().includes(searchTerm) ||
         report.doctor_name?.toLowerCase().includes(searchTerm) ||
         report.summary?.toLowerCase()?.includes(searchTerm) ||
-        Object?.entries(report.reportdetail?.report_data||{}).some(
+        Object?.entries(report.reportdetail?.report_data || {}).some(
           ([key, value]) =>
             key?.toLowerCase().includes(searchTerm) ||
             (value.value !== -1 && value.value.toString().includes(searchTerm)),
@@ -129,12 +129,12 @@ const Reports: React.FC = () => {
         whileTap={{ scale: 0.95 }}
         onClick={() => onClick(report)}
       >
-        <Card className="cursor-pointer">
-          <CardHeader>
-            <CardTitle className="capitalize">{report.report_type.replace(/_/g, " ")}</CardTitle>
+        <Card className="cursor-pointer h-full">
+          <CardHeader className="p-3 sm:p-6">
+            <CardTitle className="capitalize text-base sm:text-lg">{report.report_type.replace(/_/g, " ")}</CardTitle>
             <CardDescription>{report.submitted_at}</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-3 sm:p-6 pt-0">
             <p className="text-sm text-muted-foreground">Dr. {report.doctor_name}</p>
           </CardContent>
         </Card>
@@ -191,7 +191,7 @@ const Reports: React.FC = () => {
     }, [filteredElements])
 
     return (
-      <Card>
+      <Card className="mb-12 md:mb-0">
         <CardHeader>
           <CardTitle className="capitalize">{report?.report_type.replace(/_/g, " ")}</CardTitle>
           <CardDescription>{report?.submitted_at}</CardDescription>
@@ -216,7 +216,7 @@ const Reports: React.FC = () => {
             <p>{report?.summary}</p>
           </div>
           <h3 className="text-lg font-semibold mb-4">Detailed Results</h3>
-          <div className="mb-4 flex flex-col sm:flex-row gap-4">
+          <div className="mb-4 flex flex-col space-y-3 sm:space-y-0 sm:flex-row sm:gap-4">
             <div className="relative flex-grow">
               <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
               <Input
@@ -228,7 +228,7 @@ const Reports: React.FC = () => {
               />
             </div>
             <Select value={localRangeFilter} onValueChange={handleLocalRangeFilterChange}>
-              <SelectTrigger className="w-[180px] bg-white">
+              <SelectTrigger className="w-full sm:w-[180px] bg-white">
                 <SelectValue placeholder="Filter results" />
               </SelectTrigger>
               <SelectContent className="bg-white">
@@ -240,7 +240,7 @@ const Reports: React.FC = () => {
             </Select>
           </div>
           <ScrollArea className="h-[400px] rounded-md border p-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {sortedElements?.map(([name, data]) => {
                 const isValuePresent = data.value !== -1
                 const isInRange = isValuePresent && data.value >= data.min && data.value <= data.max
@@ -249,18 +249,16 @@ const Reports: React.FC = () => {
                     key={name}
                     className={isValuePresent ? (isInRange ? "bg-green-50" : "bg-red-50") : "bg-gray-50"}
                   >
-                    <CardHeader>
-                      <CardTitle className="text-base capitalize">
-                        {name.replace(/_/g, " ")}
-                      </CardTitle>
+                    <CardHeader className="p-3 sm:p-4">
+                      <CardTitle className="text-sm sm:text-base capitalize">{name.replace(/_/g, " ")}</CardTitle>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="p-3 sm:p-4 pt-0">
                       {isValuePresent ? (
                         <>
-                          <p className="text-2xl font-bold">
+                          <p className="text-xl sm:text-2xl font-bold">
                             {data.value} {data.unit}
                           </p>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-xs sm:text-sm text-muted-foreground">
                             Range: {data.min} - {data.max} {data.unit}
                           </p>
                           {!isInRange && (
@@ -283,13 +281,13 @@ const Reports: React.FC = () => {
             </div>
           </ScrollArea>
         </CardContent>
-        <CardFooter className="flex justify-between">
-          <Button variant="outline" onClick={() => handleDownloadPDF(report)}>
+        <CardFooter className="flex flex-col sm:flex-row gap-3 sm:gap-0 sm:justify-between">
+          <Button variant="outline" onClick={() => handleDownloadPDF(report)} className="w-full sm:w-auto">
             <Download className="mr-2 h-4 w-4" />
             Download PDF
           </Button>
           {report.report_file && (
-            <Button onClick={handleViewReport}>
+            <Button onClick={handleViewReport} className="w-full sm:w-auto">
               <ExternalLink className="mr-2 h-4 w-4" />
               View Full Report
             </Button>
@@ -302,7 +300,7 @@ const Reports: React.FC = () => {
   DetailedReport.displayName = "DetailedReport"
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
       <AnimatePresence mode="wait">
         {selectedReport ? (
           <motion.div
@@ -336,7 +334,7 @@ const Reports: React.FC = () => {
                 className="pl-10"
               />
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
               {filteredReports.map((report, index) => (
                 <ReportCard key={report.id} report={report} onClick={handleReportClick} index={index} />
               ))}
@@ -347,7 +345,7 @@ const Reports: React.FC = () => {
           </motion.div>
         )}
       </AnimatePresence>
-      <CombinedChat/>
+      <CombinedChat />
     </div>
   )
 }
