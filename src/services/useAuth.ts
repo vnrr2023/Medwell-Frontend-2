@@ -18,7 +18,7 @@ export const useAuth = () => {
     formData.append("password", password)
 
     try {
-      const response = await fetch(`${API_URL}/auth/login_user`, {
+      const response = await fetch(`${API_URL}/auth/login-user`, {
         method: "POST",
         body: formData,
       })
@@ -51,7 +51,7 @@ export const useAuth = () => {
     formData.append("name", fullName)
 
     try {
-      const response = await fetch(`${API_URL}/auth/register_user`, {
+      const response = await fetch(`${API_URL}/auth/register-user`, {
         method: "POST",
         body: formData,
       })
@@ -81,7 +81,7 @@ export const useAuth = () => {
     formData.append("role", role)
 
     try {
-      const response = await fetch(`${API_URL}/auth/google_login`, {
+      const response = await fetch(`${API_URL}/auth/google-login`, {
         method: "POST",
         body: formData,
       })

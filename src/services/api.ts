@@ -159,9 +159,9 @@ const DaddyAPI = {
   // This api gives entire info about the patient in short
   //☑️
   getPatientDashboard: () =>
-    api3.get("/patient/dashboard",{
+    apim.get("/patient/dashboard",{
       headers: {
-        Authorization: `Bearer ${mToken}`,
+        Authorization: `Bearer ${mockToken}`,
         "ngrok-skip-browser-warning": "69420",
         "Content-Type": "application/json",
       },
