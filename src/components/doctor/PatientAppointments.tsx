@@ -183,7 +183,9 @@ export default function PatientAppointments() {
       const response = await DaddyAPI.getDoctorUpcomingAppointments(formattedDate)
       const data = response.data
 
-      const convertedAppointments = data?.appointments?.map(convertApiAppointment)
+      // Check if data is an array (direct appointments) or has an appointments property
+      const appointmentsArray = Array.isArray(data) ? data : data?.appointments || []
+      const convertedAppointments = appointmentsArray.map(convertApiAppointment)
       setUpcomingAppointments(convertedAppointments)
     } catch (error) {
       console.error("Error fetching upcoming appointments:", error)
@@ -200,8 +202,9 @@ export default function PatientAppointments() {
       const month = currentDate.month() + 1
 
       const response = await DaddyAPI.getDocCalendar(year, month)
-      // Store raw API appointments instead of trying to parse them into calendar days
-      setCalendarData(response.data)
+      // Check if data is an array or has a specific structure
+      const calendarAppointments = Array.isArray(response.data) ? response.data : response.data?.appointments || []
+      setCalendarData(calendarAppointments)
     } catch (error) {
       console.error("Error fetching calendar data:", error)
     } finally {
