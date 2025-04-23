@@ -17,9 +17,9 @@ import {
   X,
   Trash2,
   Plus,
-  QrCode
+  QrCode,
 } from "lucide-react"
-import  useDocData from "@/services/useDocData"
+import useDocData from "@/services/useDocData"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -30,6 +30,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
+import { ngrok_url_main } from "@/services/api"
 
 interface Address {
   address: string
@@ -58,7 +59,7 @@ interface DoctorInfo {
   registrationNumber: string
   verified: boolean
   submittedAt: string
-  profileQr:string
+  profileQr: string
 }
 
 export function DoctorProfile() {
@@ -114,7 +115,7 @@ export function DoctorProfile() {
     registrationNumber: "",
     verified: false,
     submittedAt: "",
-    profileQr:""
+    profileQr: "",
   }
 
   const doctor: DoctorInfo = (doctorInfo as DoctorInfo) || defaultDoctorInfo
@@ -174,7 +175,7 @@ export function DoctorProfile() {
 
     try {
       if (activeTab === "personal") {
-        const updatedInfo:any = Object.fromEntries(formData.entries())
+        const updatedInfo: any = Object.fromEntries(formData.entries())
         console.log("Updating doctor info:", updatedInfo)
         await updateDoctorInfo({
           name: updatedInfo.name as string,
@@ -276,7 +277,7 @@ export function DoctorProfile() {
                   <SelectItem value="home">Home</SelectItem>
                 </SelectContent>
               </Select>
-              <Button type="button" onClick={() => addNewAddress({newAddress,newAddressType})}>
+              <Button type="button" onClick={() => addNewAddress({ newAddress, newAddressType })}>
                 <PlusCircle className="w-5 h-5" />
               </Button>
             </div>
@@ -448,7 +449,7 @@ export function DoctorProfile() {
             <div className="flex flex-col sm:flex-row justify-between items-start mb-8 gap-4">
               <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 w-full sm:w-auto">
                 <Avatar className="w-24 h-24">
-                  <AvatarImage src={doctor.profilePicture} alt={`Dr. ${doctor.name}`} />
+                  <AvatarImage src={doctor.profilePicture || "/placeholder.svg"} alt={`Dr. ${doctor.name}`} />
                   <AvatarFallback>DR</AvatarFallback>
                 </Avatar>
                 <div className="space-y-2">
@@ -480,16 +481,28 @@ export function DoctorProfile() {
                   <div className="flex gap-2">
                     {[
                       { Icon: Facebook, href: "#", color: "text-blue-600" },
-                      { Icon: QrCode, href: `${doctor.profileQr}`, color: "text-blue-600" },
+                      {
+                        Icon: QrCode,
+                        href: "#",
+                        color: "text-blue-600",
+                        onClick: () => {
+                          if (doctor.profileQr) {
+                            window.open(`${ngrok_url_main}${doctor.profileQr}`, "_blank")
+                          } else {
+                            alert("QR code not available")
+                          }
+                        },
+                      },
                       { Icon: Instagram, href: "#", color: "text-pink-600" },
                       { Icon: Twitter, href: "#", color: "text-blue-400" },
                       { Icon: MessageCircle, href: "#", color: "text-blue-500" },
                       { Icon: PhoneCall, href: "#", color: "text-green-500" },
                       { Icon: Linkedin, href: "#", color: "text-blue-700" },
-                    ].map(({ Icon, href, color }, index) => (
+                    ].map(({ Icon, href, color, onClick }, index) => (
                       <a
                         key={index}
                         href={href}
+                        onClick={onClick}
                         className={cn("w-6 h-6 flex items-center justify-center rounded-full hover:opacity-80", color)}
                       >
                         <Icon className="w-4 h-4" />
@@ -509,6 +522,31 @@ export function DoctorProfile() {
                       `I am ${doctor.name}, a dedicated ${doctor.speciality?.toLowerCase()} with multiple practice locations. My practice combines evidence-based medicine with a patient-centered approach to ensure the best possible outcomes for my patients.`}
                   </p>
                 </div>
+
+                {doctor.profileQr && (
+                  <div className="mt-6">
+                    <h2 className="text-lg font-semibold mb-3">Profile QR Code</h2>
+                    <div className="flex flex-col items-center">
+                      <img
+                        src={`${ngrok_url_main}${doctor.profileQr}` || "/placeholder.svg"}
+                        alt="Profile QR Code"
+                        className="w-32 h-32 border rounded-md"
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none"
+                          console.log("Failed to load QR code image")
+                        }}
+                      />
+                      <a
+                        href={`${ngrok_url_main}${doctor.profileQr}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-2 text-sm text-blue-600 hover:underline"
+                      >
+                        Open QR Code
+                      </a>
+                    </div>
+                  </div>
+                )}
 
                 <div className="mt-6">
                   <div className="flex items-center gap-2 mb-3">

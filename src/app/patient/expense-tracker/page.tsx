@@ -1,5 +1,7 @@
 "use client"
 
+import type React from "react"
+
 import { useState, useCallback, useMemo, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { ArrowLeft, PlusCircle, MessageSquare, ChevronRight, X, Trash2 } from "lucide-react"
@@ -68,28 +70,27 @@ const AddExpenseView = ({
     onAddExpense(expenseToAdd)
   }, [newExpense, onAddExpense])
 
-  const handleNaturalLanguageSubmit = useCallback(async() => {
+  const handleNaturalLanguageSubmit = useCallback(async () => {
     if (!naturalLanguageInput) return
 
-    const response = await fetch('/api/expenseSep', {
-      method: 'POST',
+    const response = await fetch("/api/expenseSep", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify({ query:naturalLanguageInput }),
-    });
+      body: JSON.stringify({ query: naturalLanguageInput }),
+    })
     if (response.ok) {
-      const data = await response.json();
-      const expenseToAdd={
-        query_type: 'normal',
+      const data = await response.json()
+      const expenseToAdd = {
+        query_type: "normal",
         expense_type: data.expense_type,
         amount: data.amount,
-      };
+      }
       onAddExpense(expenseToAdd)
     } else {
-      console.error('Failed to add expense');
+      console.error("Failed to add expense")
     }
-
   }, [naturalLanguageInput, onAddExpense])
 
   return (
@@ -226,10 +227,12 @@ export default function ExpenseTracker() {
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null)
   const [currentPage, setCurrentPage] = useState(0)
   const [showMobileModal, setShowMobileModal] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
 
   useEffect(() => {
     const fetchExpenseData = async () => {
+      setIsLoading(true)
       try {
         const dashboardResponse = await DaddyAPI.getExpensesDashboard()
         const expensesResponse = await DaddyAPI.showExpenses()
@@ -240,6 +243,8 @@ export default function ExpenseTracker() {
         })
       } catch (error) {
         console.error("Error fetching expense data:", error)
+      } finally {
+        setIsLoading(false)
       }
     }
 
@@ -255,35 +260,43 @@ export default function ExpenseTracker() {
 
   const handleAddExpense = useCallback(
     async (newExpense: { query_type: string; expense_type?: string; amount?: string; query?: string }) => {
+      setIsLoading(true)
       try {
         await DaddyAPI.addExpenses(newExpense)
         const dashboardResponse = await DaddyAPI.getExpensesDashboard()
         const expensesResponse = await DaddyAPI.showExpenses()
         setExpenseData({
           ...dashboardResponse?.data,
+          overall_expense: expensesResponse?.data?.overall_expense,
           expenses: expensesResponse?.data?.expenses,
         })
         setShowAddExpense(null)
       } catch (error) {
         console.error("Error adding expense:", error)
+      } finally {
+        setIsLoading(false)
       }
     },
     [],
   )
 
   const handleDeleteExpense = useCallback(async (expenseId: number) => {
+    setIsLoading(true)
     try {
       await DaddyAPI.deleteExpenses(expenseId)
       const dashboardResponse = await DaddyAPI.getExpensesDashboard()
       const expensesResponse = await DaddyAPI.showExpenses()
       setExpenseData({
         ...dashboardResponse?.data,
+        overall_expense: expensesResponse?.data?.overall_expense,
         expenses: expensesResponse?.data?.expenses,
       })
       setSelectedExpense(null)
       setShowMobileModal(false)
     } catch (error) {
       console.error("Error deleting expense:", error)
+    } finally {
+      setIsLoading(false)
     }
   }, [])
 
@@ -418,7 +431,7 @@ export default function ExpenseTracker() {
             <motion.div className="bg-white p-6 rounded-xl shadow-lg">
               <h2 className="text-2xl font-semibold mb-4">Total Expenditure</h2>
               <p className="text-4xl font-bold text-green-400">
-                ₹{Number(expenseData?.overall_expense)}
+                ₹{Number(expenseData?.overall_expense || 0).toFixed(2)}
               </p>
               <div className="mt-4 h-[200px]">
                 <Line
@@ -580,6 +593,14 @@ export default function ExpenseTracker() {
 
   return (
     <div className="max-w-[1600px] w-full mx-auto p-2 sm:p-4 md:p-6 lg:p-8 bg-gray-50 text-black min-h-screen">
+      {isLoading && (
+        <div className="fixed inset-0 bg-white/80 flex items-center justify-center z-50">
+          <div className="flex flex-col items-center">
+            <div className="w-16 h-16 border-4 border-t-blue-500 border-b-blue-500 border-l-transparent border-r-transparent rounded-full animate-spin"></div>
+            <p className="mt-4 text-lg font-medium text-gray-700">Loading...</p>
+          </div>
+        </div>
+      )}
       <AnimatePresence mode="wait">
         {showAddExpense ? (
           <AddExpenseView
@@ -599,9 +620,7 @@ export default function ExpenseTracker() {
           onDelete={() => handleDeleteExpense(selectedExpense.id)}
         />
       )}
-      <Chat/>
-      
+      <Chat />
     </div>
   )
 }
-
