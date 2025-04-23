@@ -24,9 +24,16 @@ interface AppointmentSlot {
   date: string
 }
 
+interface Doctor {
+  id: string
+  name: string
+  email: string
+}
+
 interface Patient {
   id: string
   name: string
+  email: string
 }
 
 interface DoctorService {
@@ -41,6 +48,7 @@ interface ApiAppointment {
   status: string | null
   appointmentSlot: AppointmentSlot
   patient: Patient
+  doctor: Doctor
   doctorServices: DoctorService
 }
 
@@ -52,14 +60,10 @@ interface ApiResponse {
   currentPage: number
 }
 
+// Updated to match the API response structure
 interface CalendarDay {
-  date: string
-  appointments: {
-    id: string
-    timing: string
-    patientName: string
-    serviceName: string
-  }[]
+  date?: string
+  appointments?: ApiAppointment[]
 }
 
 interface Appointment {
@@ -77,6 +81,7 @@ const serviceColors: Record<string, string> = {
   "Follow Up": "#22c55e",
   Consultation: "#ef4444",
   Checkup: "#6366f1",
+  "Regular Checkup": "#3b82f6", // Added color for Regular Checkup
   Surgery: "#fb923c",
   default: "#eab308",
 }
@@ -103,7 +108,7 @@ const convertApiAppointment = (apiAppointment: ApiAppointment): Appointment => {
 export default function PatientAppointments() {
   const [previousAppointments, setPreviousAppointments] = useState<Appointment[]>([])
   const [upcomingAppointments, setUpcomingAppointments] = useState<Appointment[]>([])
-  const [calendarData, setCalendarData] = useState<CalendarDay[]>([])
+  const [calendarData, setCalendarData] = useState<ApiAppointment[]>([])
   const [currentDate, setCurrentDate] = useState(moment())
   const [view, setView] = useState("list")
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
@@ -183,9 +188,8 @@ export default function PatientAppointments() {
       const month = currentDate.month() + 1
 
       const response = await DaddyAPI.getDocCalendar(year, month)
-      const data = response.data as CalendarDay[]
-
-      setCalendarData(data)
+      // Store raw API appointments instead of trying to parse them into calendar days
+      setCalendarData(response.data)
     } catch (error) {
       console.error("Error fetching calendar data:", error)
     } finally {
@@ -246,6 +250,41 @@ export default function PatientAppointments() {
     return `${startOfWeek.format("MMM D")} - ${endOfWeek.format("MMM D, YYYY")}`
   }
 
+  // Convert API appointments to the format expected by WeeklyCalendar
+  const getWeeklyAppointments = (): Appointment[] => {
+    if (!calendarData || !Array.isArray(calendarData)) return []
+
+    const weekStart = moment(currentDate).startOf("week")
+    const weekEnd = moment(currentDate).endOf("week")
+
+    // Filter appointments that fall within the current week
+    const weeklyAppointments = calendarData.filter((appointment) => {
+      if (!appointment?.appointmentSlot?.date) return false
+      const appointmentDate = moment(appointment.appointmentSlot.date)
+      return (
+        appointmentDate.isSameOrAfter(weekStart, "day") && appointmentDate.isSameOrBefore(weekEnd, "day")
+      )
+    })
+
+    // Convert to the Appointment format
+    return weeklyAppointments.map((appointment) => {
+      const startTime = `${appointment.appointmentSlot.date}T${appointment.appointmentSlot.timing}`
+      const startMoment = moment(startTime)
+      const endMoment = startMoment.clone().add(30, "minutes")
+
+      return {
+        id: appointment.id,
+        title: appointment.doctorServices.serviceName,
+        start: startMoment.format(),
+        end: endMoment.format(),
+        patient: appointment.patient.name,
+        notes: `${appointment.doctorServices.serviceName} - $${appointment.doctorServices.serviceAmount}`,
+        color: serviceColors[appointment.doctorServices.serviceName] || serviceColors.default,
+        serviceAmount: appointment.doctorServices.serviceAmount,
+      }
+    })
+  }
+
   // Update the AppointmentCard component to make it more visually appealing
   const AppointmentCard: React.FC<{ appointment: Appointment }> = ({ appointment }) => (
     <Link href={`/doctor/prescription/${appointment.id}`} passHref>
@@ -259,7 +298,7 @@ export default function PatientAppointments() {
             <div className="p-4 flex-1">
               <div className="flex items-start space-x-4">
                 <Avatar
-                  className={`w-12 h-12 border-2 border-white shadow-sm ring-2 ring-[${appointment.color}] ring-opacity-10`}
+                  className="w-12 h-12 border-2 border-white shadow-sm"
                 >
                   <AvatarImage
                     src={`https://api.dicebear.com/6.x/initials/svg?seed=${appointment.patient}`}
@@ -344,28 +383,6 @@ export default function PatientAppointments() {
       </div>
     </div>
   )
-
-  const getWeeklyAppointments = (): Appointment[] => {
-    const weekStart = moment(currentDate).startOf("week")
-    const weekEnd = moment(currentDate).endOf("week")
-
-    const weekDays = calendarData.filter((day) => {
-      const dayDate = moment(day.date)
-      return dayDate.isSameOrAfter(weekStart, "day") && dayDate.isSameOrBefore(weekEnd, "day")
-    })
-
-    return weekDays.flatMap((day) =>
-      day.appointments?.map((apt) => ({
-        id: apt.id,
-        title: apt.serviceName,
-        start: `${day.date}T${apt.timing}`,
-        end: moment(`${day.date}T${apt.timing}`).add(30, "minutes").format(),
-        patient: apt.patientName,
-        notes: apt.serviceName,
-        color: serviceColors[apt.serviceName] || serviceColors.default,
-      })),
-    )
-  }
 
   const WeeklyCalendar: React.FC = () => {
     const weekStart = moment(currentDate).startOf("week")
@@ -458,7 +475,7 @@ export default function PatientAppointments() {
 
           <TabsContent value="list" className="mt-6">
             <div className="grid grid-cols-1 gap-6">
-              <div className="w-full w-max-[700px] flex justify-end mb-4">
+              <div className="w-full max-w-[700px] flex justify-end mb-4">
                 <Button variant="outline" className="flex items-center gap-2" onClick={() => setIsPrevModalOpen(true)}>
                   <Clock className="w-4 h-4 text-blue-500" />
                   Previous Appointments
@@ -613,8 +630,6 @@ export default function PatientAppointments() {
               ) : previousAppointments.length === 0 ? (
                 <div className="text-center py-10 text-gray-500">No previous appointments found</div>
               ) : (
-                // Update the previous appointments card in the dialog
-                // Replace the previous appointments section in the Dialog with this improved version
                 <div className="space-y-4">
                   {previousAppointments.map((appointment) => (
                     <Link key={appointment.id} href={`/doctor/prescription/${appointment.id}`} passHref>
@@ -631,7 +646,7 @@ export default function PatientAppointments() {
                             <div className="p-4 flex-1">
                               <div className="flex items-start space-x-4">
                                 <Avatar
-                                  className={`w-12 h-12 border-2 border-white shadow-sm ring-2 ring-[${appointment.color}] ring-opacity-10`}
+                                  className="w-12 h-12 border-2 border-white shadow-sm"
                                 >
                                   <AvatarImage
                                     src={`https://api.dicebear.com/6.x/initials/svg?seed=${appointment.patient}`}
