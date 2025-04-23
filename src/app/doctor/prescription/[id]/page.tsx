@@ -513,7 +513,7 @@ export default function PrescriptionPage() {
 
       console.log("Prescription saved:", response)
       setSaveSuccess(true)
-
+      router.push("/doctor/appointments")
       if (id === "new" && response.id) {
         setTimeout(() => {
           router.push(`/prescription/${response.id}`)

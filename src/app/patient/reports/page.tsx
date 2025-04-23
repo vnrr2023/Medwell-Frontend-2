@@ -247,7 +247,7 @@ const Reports: React.FC = () => {
                 return (
                   <Card
                     key={name}
-                    className={isValuePresent ? (isInRange ? "bg-green-50" : "bg-red-50") : "bg-gray-50"}
+                    className={isValuePresent ? (isInRange ? "bg-green-200" : "bg-red-200") : "bg-gray-100"}
                   >
                     <CardHeader className="p-3 sm:p-4">
                       <CardTitle className="text-sm sm:text-base capitalize">{name.replace(/_/g, " ")}</CardTitle>

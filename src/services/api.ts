@@ -255,9 +255,9 @@ doctorSearchQuery: (data:any) =>
       }),
       //☑️
     genEmailBody: (data:any) =>
-      api3.post("/marketting/generate_mail_body",data,{
+      apim.post("/marketting/generate_mail_body",data,{
         headers: {
-          Authorization: `Bearer ${mToken}`,
+          Authorization: `Bearer ${mockToken}`,
           "Content-Type": "application/json",
         },
       }),
@@ -465,16 +465,16 @@ doctorSearchQuery: (data:any) =>
 
                 //analytics and dashboard for the doctor
                 getAnalytics: () =>
-                  api3.get(`doctor/analytics`, {
+                  apim.get(`doctor/analytics`, {
                     headers: {
-                      Authorization: `Bearer ${mToken}`,
+                      Authorization: `Bearer ${mockToken}`,
                       "ngrok-skip-browser-warning": "69420",
                     },
                   }),
                   getDoctorDashboard: () =>
-                    api3.get(`doctor/dashboard`, {
+                    apim.get(`doctor/dashboard`, {
                       headers: {
-                        Authorization: `Bearer ${mToken}`,
+                        Authorization: `Bearer ${mockToken}`,
                         "ngrok-skip-browser-warning": "69420",
                       },
                     }),
