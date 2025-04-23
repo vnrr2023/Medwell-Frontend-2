@@ -17,6 +17,11 @@ import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
 import DaddyAPI from "@/services/api"
 
+// Import the date picker components at the top of the file
+import { Calendar } from "@/components/ui/calendar"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { format } from "date-fns"
+
 interface AppointmentSlot {
   id: string
   timing: string
@@ -124,6 +129,10 @@ export default function PatientAppointments() {
   })
   const [isPrevModalOpen, setIsPrevModalOpen] = useState(false)
 
+  // Add this after the existing state declarations in the PatientAppointments component
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false)
+
   const prevAppointmentsRef = useRef<HTMLDivElement>(null)
 
   const fetchPreviousAppointments = async (page = 0, append = false) => {
@@ -162,11 +171,14 @@ export default function PatientAppointments() {
     }
   }
 
+  // Update the fetchUpcomingAppointments function to use the selected date
   const fetchUpcomingAppointments = async () => {
     setLoading((prev) => ({ ...prev, upcoming: true }))
 
     try {
-      const formattedDate = currentDate.format("YYYY-MM-DD")
+      // Use the selected date if available, otherwise use currentDate
+      const dateToUse = selectedDate ? new Date(selectedDate) : currentDate.toDate()
+      const formattedDate = moment(dateToUse).format("YYYY-MM-DD")
 
       const response = await DaddyAPI.getDoctorUpcomingAppointments(formattedDate)
       const data = response.data
@@ -207,6 +219,11 @@ export default function PatientAppointments() {
     fetchUpcomingAppointments()
     fetchCalendarData()
   }, [currentDate])
+
+  // Add this effect to refetch appointments when the selected date changes
+  useEffect(() => {
+    fetchUpcomingAppointments()
+  }, [selectedDate])
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -261,9 +278,7 @@ export default function PatientAppointments() {
     const weeklyAppointments = calendarData.filter((appointment) => {
       if (!appointment?.appointmentSlot?.date) return false
       const appointmentDate = moment(appointment.appointmentSlot.date)
-      return (
-        appointmentDate.isSameOrAfter(weekStart, "day") && appointmentDate.isSameOrBefore(weekEnd, "day")
-      )
+      return appointmentDate.isSameOrAfter(weekStart, "day") && appointmentDate.isSameOrBefore(weekEnd, "day")
     })
 
     // Convert to the Appointment format
@@ -289,7 +304,7 @@ export default function PatientAppointments() {
   const AppointmentCard: React.FC<{ appointment: Appointment }> = ({ appointment }) => (
     <Link href={`/doctor/prescription/${appointment.id}`} passHref>
       <Card
-        className="mb-4 hover:shadow-lg transition-all duration-200 border-l-4 cursor-pointer overflow-hidden group"
+        className="hover:shadow-lg transition-all duration-200 border-l-4 cursor-pointer overflow-hidden group"
         style={{ borderLeftColor: appointment.color }}
       >
         <CardContent className="p-0">
@@ -297,9 +312,7 @@ export default function PatientAppointments() {
             <div className="w-full md:w-2 h-2 md:h-auto" style={{ backgroundColor: appointment.color }}></div>
             <div className="p-4 flex-1">
               <div className="flex items-start space-x-4">
-                <Avatar
-                  className="w-12 h-12 border-2 border-white shadow-sm"
-                >
+                <Avatar className="w-12 h-12 border-2 border-white shadow-sm">
                   <AvatarImage
                     src={`https://api.dicebear.com/6.x/initials/svg?seed=${appointment.patient}`}
                     alt={appointment.patient}
@@ -482,32 +495,68 @@ export default function PatientAppointments() {
                 </Button>
               </div>
               <Card className="border-t-4 border-t-green-500 overflow-hidden max-w-[700px]">
-                <CardHeader className="bg-green-50 dark:bg-green-900/10">
-                  <CardTitle className="flex items-center gap-2">
-                    <CalendarDays className="w-5 h-5 text-green-500" />
-                    Upcoming Appointments
-                  </CardTitle>
+                {/* Update the CardHeader in the upcoming appointments section to include the date picker */}
+                {/* Replace the existing CardHeader with this: */}
+                <CardHeader className="bg-green-50 dark:bg-green-900/10 pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-2">
+                      <CalendarDays className="w-5 h-5 text-green-500" />
+                      Upcoming Appointments
+                    </CardTitle>
+                    <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" size="sm" className="flex items-center gap-2 h-8 px-2 border-dashed">
+                          <CalendarIcon className="h-4 w-4" />
+                          {selectedDate ? (
+                            <span className="text-xs font-normal">{format(selectedDate, "PPP")}</span>
+                          ) : (
+                            <span className="text-xs font-normal">Pick a date</span>
+                          )}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="end">
+                        <Calendar
+                          mode="single"
+                          selected={selectedDate}
+                          onSelect={(date) => {
+                            setSelectedDate(date)
+                            setIsCalendarOpen(false)
+                          }}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
                   <CardDescription>
                     {loading.upcoming
                       ? "Loading appointments..."
-                      : `${upcomingAppointments?.length} upcoming appointments scheduled`}
+                      : `${upcomingAppointments?.length} upcoming appointments ${selectedDate ? `for ${format(selectedDate, "MMMM d, yyyy")}` : "scheduled"}`}
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="p-0 pt-4">
-                  <ScrollArea className="h-[400px] px-4">
-                    {loading.upcoming ? (
-                      Array.from({ length: 3 })?.map((_, i) => <AppointmentSkeleton key={i} />)
-                    ) : upcomingAppointments?.length === 0 ? (
-                      <div className="flex flex-col items-center justify-center h-32 text-center">
-                        <CalendarIcon className="w-8 h-8 text-muted-foreground/50 mb-2" />
-                        <p className="text-muted-foreground">No upcoming appointments scheduled</p>
-                      </div>
-                    ) : (
-                      upcomingAppointments?.map((appointment) => (
-                        <AppointmentCard key={appointment.id} appointment={appointment} />
-                      ))
-                    )}
-                  </ScrollArea>
+                <CardContent className="p-0">
+                  {loading.upcoming ? (
+                    <div className="px-4 pt-4">
+                      {Array.from({ length: 3 })?.map((_, i) => (
+                        <AppointmentSkeleton key={i} />
+                      ))}
+                    </div>
+                  ) : upcomingAppointments?.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-32 text-center p-4">
+                      <CalendarIcon className="w-8 h-8 text-muted-foreground/50 mb-2" />
+                      <p className="text-muted-foreground">No upcoming appointments scheduled</p>
+                      <p className="text-sm text-muted-foreground/70 mt-1">
+                        Your upcoming appointments will appear here
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="divide-y">
+                      {upcomingAppointments?.map((appointment, index) => (
+                        <div key={appointment.id} className={`px-4 py-3 ${index % 2 === 0 ? "bg-muted/5" : ""}`}>
+                          <AppointmentCard appointment={appointment} />
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -645,9 +694,7 @@ export default function PatientAppointments() {
                             ></div>
                             <div className="p-4 flex-1">
                               <div className="flex items-start space-x-4">
-                                <Avatar
-                                  className="w-12 h-12 border-2 border-white shadow-sm"
-                                >
+                                <Avatar className="w-12 h-12 border-2 border-white shadow-sm">
                                   <AvatarImage
                                     src={`https://api.dicebear.com/6.x/initials/svg?seed=${appointment.patient}`}
                                     alt={appointment.patient}
@@ -724,4 +771,3 @@ export default function PatientAppointments() {
     </div>
   )
 }
-
