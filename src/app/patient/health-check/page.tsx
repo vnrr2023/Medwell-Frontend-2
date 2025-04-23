@@ -20,6 +20,7 @@ import { useEffect, useState } from "react"
 import { Activity, Heart, Droplet, ThermometerSun, PlusCircle } from "lucide-react"
 import { LucideIcon } from "lucide-react"
 import Chat from "@/components/chatbots/Chat"
+import ChatArogya from "@/components/chatbots/ChatArogya"
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler)
 
@@ -241,7 +242,7 @@ export default function HealthCheck() {
           </motion.div>
         ))}
       </div>
-      <Chat/>
+      <ChatArogya/>
     </div>
   )
 }

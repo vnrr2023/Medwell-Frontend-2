@@ -333,7 +333,7 @@ export default function ChatArogya() {
   />
 )}
 
-<div className="fixed bottom-52 md:bottom-36 right-4 z-40">
+<div className="fixed bottom-20 md:bottom-4 right-4 z-40">
   {isOpen ? (
     <div
       ref={chatRef}

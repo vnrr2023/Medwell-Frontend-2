@@ -20,6 +20,7 @@ import {
 import { useRouter } from "next/navigation"
 import DaddyAPI from "@/services/api"
 import Chat from "@/components/chatbots/Chat"
+import ChatArogya from "@/components/chatbots/ChatArogya"
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, PointElement, LineElement, BarElement)
 
@@ -620,7 +621,7 @@ export default function ExpenseTracker() {
           onDelete={() => handleDeleteExpense(selectedExpense.id)}
         />
       )}
-      <Chat />
+      <ChatArogya/>
     </div>
   )
 }

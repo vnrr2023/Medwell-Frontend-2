@@ -90,7 +90,7 @@ export const useAuth = () => {
       localStorage.setItem("Token", data.access)
       localStorage.setItem("Role", role)
       notifyAuthStateChange()
-      router.push("/patient")
+      
       return true
     } catch {
       setErrorMessage("An error occurred during Google login. Please try again.")

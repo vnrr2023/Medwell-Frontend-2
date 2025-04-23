@@ -5,7 +5,6 @@ import ChatReport from './ChatReport'
 export default function CombinedChat() {
 return(
   <div>
-    <Chat/>
     <ChatReport/>
     <ChatArogya/>
   </div>

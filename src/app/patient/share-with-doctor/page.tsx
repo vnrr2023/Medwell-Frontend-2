@@ -9,6 +9,7 @@ import DaddyAPI from '@/services/api';
 import Chat from '@/components/chatbots/Chat';
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import ChatArogya from '@/components/chatbots/ChatArogya';
 
 interface StatusState {
   type: 'success' | 'error' | null;
@@ -211,7 +212,7 @@ export default function ShareWithDoctor() {
         </motion.div>
       </div>
       <div className="mt-8">
-        <Chat />
+        <ChatArogya/>
       </div>
     </div>
   );

@@ -80,7 +80,10 @@ export default function SignupPage() {
     setIsLoading(true)
     try {
       if (typeof role === "string") {
-        await googleLogin(response.credential, role)
+        const value= await googleLogin(response.credential, role)
+        if (value) {
+          window.location.href = `/${role}`
+        }
       } else {
         setErrorMessage("Invalid role.")
       }

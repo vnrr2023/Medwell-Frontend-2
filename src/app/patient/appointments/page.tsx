@@ -17,6 +17,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import DaddyAPI from "@/services/api"
+import ChatArogya from "@/components/chatbots/ChatArogya"
 
 // Define interfaces for API responses
 interface AppointmentSlot {
@@ -833,6 +834,7 @@ export default function PatientAppointments() {
             </ScrollArea>
           </DialogContent>
         </Dialog>
+        <ChatArogya/>
       </AnimatePresence>
     </div>
   )

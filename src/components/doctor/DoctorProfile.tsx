@@ -487,7 +487,7 @@ export function DoctorProfile() {
                         color: "text-blue-600",
                         onClick: () => {
                           if (doctor.profileQr) {
-                            window.open(`${ngrok_url_main}${doctor.profileQr}`, "_blank")
+                            window.open(`${doctor.profileQr}`, "_blank")
                           } else {
                             alert("QR code not available")
                           }
@@ -528,7 +528,7 @@ export function DoctorProfile() {
                     <h2 className="text-lg font-semibold mb-3">Profile QR Code</h2>
                     <div className="flex flex-col items-center">
                       <img
-                        src={`${ngrok_url_main}${doctor.profileQr}` || "/placeholder.svg"}
+                        src={`${doctor.profileQr}` || "/placeholder.svg"}
                         alt="Profile QR Code"
                         className="w-32 h-32 border rounded-md"
                         onError={(e) => {
@@ -537,7 +537,7 @@ export function DoctorProfile() {
                         }}
                       />
                       <a
-                        href={`${ngrok_url_main}${doctor.profileQr}`}
+                        href={`${doctor.profileQr}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="mt-2 text-sm text-blue-600 hover:underline"

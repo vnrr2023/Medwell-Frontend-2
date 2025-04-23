@@ -94,7 +94,10 @@ export default function LoginPage() {
     setIsLoading(true)
     setError(null)
     try {
-      await googleLogin(response.credential, role)
+      const val=await googleLogin(response.credential, role)
+       if (val) {
+        window.location.href = `/${role}`
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to sign in with Google. Please try again.")
     } finally {
