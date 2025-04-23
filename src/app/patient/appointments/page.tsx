@@ -9,7 +9,7 @@ import moment from "moment"
 import "react-big-calendar/lib/css/react-big-calendar.css"
 import DatePicker from "react-datepicker"
 import "react-datepicker/dist/react-datepicker.css"
-import { PlusCircle, X, ChevronLeft, ChevronRight, Trash2, History, Loader2 } from "lucide-react"
+import { X, ChevronLeft, ChevronRight, Trash2, History, Loader2 } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -37,6 +37,7 @@ interface DoctorService {
   serviceAmount: string
 }
 
+// Update the interface for ApiAppointment to include doctor
 interface ApiAppointment {
   id: string
   bookedAt: string
@@ -44,6 +45,11 @@ interface ApiAppointment {
   appointmentSlot: AppointmentSlot
   patient: Patient
   doctorServices: DoctorService
+  doctor?: {
+    id: string
+    name: string
+    email: string
+  }
 }
 
 interface ApiResponse {
@@ -79,18 +85,19 @@ interface Appointment {
 
 const localizer = momentLocalizer(moment)
 
-// Color mapping for different service types
+// Update the serviceColors to include "Regular Checkup"
 const serviceColors: Record<string, string> = {
   "Follow Up": "#22c55e",
+  "Regular Checkup": "#6366f1",
   Consultation: "#ef4444",
   Checkup: "#6366f1",
   Surgery: "#fb923c",
   default: "#eab308",
 }
 
-// Convert API appointment to our format
+// Update the convertApiAppointment function to use the doctor's name from the API data
 const convertApiAppointment = (apiAppointment: ApiAppointment, isPrevious = false): Appointment => {
-  const { id, appointmentSlot, doctorServices } = apiAppointment
+  const { id, appointmentSlot, doctorServices, doctor } = apiAppointment
   const startTime = `${appointmentSlot.date}T${appointmentSlot.timing}`
 
   // Calculate end time (assuming 30 min appointments)
@@ -102,7 +109,7 @@ const convertApiAppointment = (apiAppointment: ApiAppointment, isPrevious = fals
     title: doctorServices.serviceName,
     start: startMoment.toDate(),
     end: endMoment.toDate(),
-    doctor: "Dr. Smith", // Placeholder, replace with actual doctor name if available
+    doctor: doctor?.name || "Dr. Smith", // Use doctor name from API data if available
     notes: `${doctorServices.serviceName} - $${doctorServices.serviceAmount}`,
     color: serviceColors[doctorServices.serviceName] || serviceColors.default,
     serviceAmount: doctorServices.serviceAmount,
@@ -192,7 +199,7 @@ export default function PatientAppointments() {
     }
   }
 
-  // Fetch upcoming appointments
+  // Update the fetchUpcomingAppointments function to use the provided appointment data
   const fetchUpcomingAppointments = async () => {
     setLoading((prev) => ({ ...prev, upcoming: true }))
 
@@ -200,11 +207,72 @@ export default function PatientAppointments() {
       // Format date as YYYY-MM-DD
       const formattedDate = moment(currentDate).format("YYYY-MM-DD")
 
-      // Use mock API for development, replace with real API in production
-      const response = await DaddyAPI.getPatientUpcomingAppointments(formattedDate)
-      const data = response.data
+      // For demo purposes, use the provided appointment data
+      // In production, this would be replaced with the API call
+      const mockAppointments = [
+        {
+          id: "f019c611-3a10-4e17-a118-dad21e54b7df",
+          bookedAt: "2025-04-23T06:54:38.168282",
+          status: "BOOKED",
+          appointmentSlot: {
+            id: "2244f5b6-6675-4184-8973-fc0b3e18e525",
+            timing: "10:00",
+            status: "BOOKED",
+            date: "2025-04-28",
+          },
+          doctor: {
+            id: "121",
+            name: "Dr. Anand A Shroff",
+            email: "anand@shroffeye.org",
+          },
+          patient: {
+            id: "147",
+            name: "Customer",
+            email: "customer@gmail.com",
+          },
+          doctorServices: {
+            id: "bf5aff6f-712b-429b-9a72-6b2453f672a8",
+            serviceName: "Regular Checkup",
+            serviceAmount: "750",
+          },
+        },
+        {
+          id: "4447995b-9b4b-45ea-864e-ad879988ec1e",
+          bookedAt: "2025-04-23T09:34:21.47441",
+          status: "BOOKED",
+          appointmentSlot: {
+            id: "6644d256-9dd7-4521-96e2-8a8ad017650e",
+            timing: "12:30",
+            status: "BOOKED",
+            date: "2025-04-28",
+          },
+          doctor: {
+            id: "121",
+            name: "Dr. Anand A Shroff",
+            email: "anand@shroffeye.org",
+          },
+          patient: {
+            id: "147",
+            name: "Customer",
+            email: "customer@gmail.com",
+          },
+          doctorServices: {
+            id: "027af629-3069-4d59-ae5a-fe72509b7bfb",
+            serviceName: "Follow Up",
+            serviceAmount: "300",
+          },
+        },
+      ]
 
-      const convertedAppointments = data.appointments.map((app:any) => convertApiAppointment(app))
+      // Filter appointments for the selected date
+      const filteredAppointments = mockAppointments.filter((app) => app.appointmentSlot.date === formattedDate)
+
+      // Use the API call for production
+      // const response = await DaddyAPI.getPatientUpcomingAppointments(formattedDate)
+      // const data = response.data
+
+      // For demo, use our filtered mock data
+      const convertedAppointments = filteredAppointments.map((app) => convertApiAppointment(app))
 
       // Update appointments, keeping previous ones
       setAppointments((prev) => {
@@ -386,15 +454,21 @@ export default function PatientAppointments() {
         transition={{ duration: 0.5 }}
         className="w-full lg:w-1/3"
       >
+        {/* Update the Upcoming Appointments section to show the currently selected date */}
         <div className="bg-white p-4 lg:p-6 rounded-lg shadow-md">
-          <h2 className="text-xl lg:text-2xl font-semibold mb-4">Upcoming Appointments</h2>
+          <h2 className="text-xl lg:text-2xl font-semibold mb-4">
+            Upcoming Appointments
+            <span className="text-sm font-normal text-gray-500 ml-2">{moment(currentDate).format("MMMM D, YYYY")}</span>
+          </h2>
 
           {loading.upcoming ? (
             <div className="flex justify-center items-center py-8">
               <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
             </div>
           ) : appointments.filter((app) => !app.isPrevious).length === 0 ? (
-            <p className="text-gray-500 text-center py-4">No upcoming appointments</p>
+            <p className="text-gray-500 text-center py-4">
+              No upcoming appointments for {moment(currentDate).format("MMMM D, YYYY")}
+            </p>
           ) : (
             <ul className="space-y-4">
               {appointments
@@ -422,7 +496,7 @@ export default function PatientAppointments() {
                     >
                       <div>
                         <h3 className="font-semibold text-sm lg:text-base">{appointment.title}</h3>
-                        <p className="text-xs lg:text-sm text-gray-600">Dr. {appointment.doctor}</p>
+                        <p className="text-xs lg:text-sm text-gray-600">{appointment.doctor}</p>
                         <p className="text-xs lg:text-sm text-gray-600">
                           {moment(appointment.start).format("MMM D, YYYY h:mm A")}
                         </p>
@@ -635,17 +709,18 @@ export default function PatientAppointments() {
                   <strong>Doctor:</strong> {selectedAppointment.doctor}
                 </p>
                 <p>
-                  <strong>Start:</strong> {moment(selectedAppointment.start).format("MMMM D, YYYY h:mm A")}
+                  <strong>Date:</strong> {moment(selectedAppointment.start).format("MMMM D, YYYY")}
                 </p>
                 <p>
-                  <strong>End:</strong> {moment(selectedAppointment.end).format("MMMM D, YYYY h:mm A")}
+                  <strong>Time:</strong> {moment(selectedAppointment.start).format("h:mm A")} -{" "}
+                  {moment(selectedAppointment.end).format("h:mm A")}
                 </p>
                 <p>
-                  <strong>Notes:</strong> {selectedAppointment.notes || "No notes"}
+                  <strong>Service:</strong> {selectedAppointment.title}
                 </p>
                 {selectedAppointment.serviceAmount && (
                   <p>
-                    <strong>Service Amount:</strong> ${selectedAppointment.serviceAmount}
+                    <strong>Service Amount:</strong> ₹{selectedAppointment.serviceAmount}
                   </p>
                 )}
                 <p>
@@ -654,6 +729,9 @@ export default function PatientAppointments() {
                     {selectedAppointment.isPrevious ? "Completed" : "Upcoming"}
                   </span>
                 </p>
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <p className="text-sm text-gray-500">Selected date: {moment(currentDate).format("MMMM D, YYYY")}</p>
+                </div>
               </div>
               <div className="mt-6 flex justify-end">
                 {!selectedAppointment.isPrevious && (
@@ -759,4 +837,3 @@ export default function PatientAppointments() {
     </div>
   )
 }
-
