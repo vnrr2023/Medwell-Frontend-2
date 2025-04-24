@@ -277,7 +277,7 @@ export default function ChatReport() {
   return (
     <>
       {isOpen && <div className="fixed inset-0 bg-black bg-opacity-50 z-50" onClick={toggleChat} />}
-      <div className="fixed bottom-24 md:bottom-20 right-4 z-50">
+      <div className="fixed bottom-36 md:bottom-20 right-4 z-50">
         {isOpen ? (
           <div
             ref={chatRef}
