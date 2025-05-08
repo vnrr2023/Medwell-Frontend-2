@@ -1,3 +1,4 @@
+"use client"
 import CombinedChat from "@/components/chatbots/ChatCombined";
 import Patients from "@/components/doctor/Patients";
 import { useRouter } from "next/navigation";
@@ -14,7 +15,7 @@ export default function DoctorReportsPage() {
       return
     }
     if(role!=="doctor"){
-      alert("You cannot access logged in as doctor")
+      alert("You cannot access logged in as patient")
       router.push("/patient")
       return
     }

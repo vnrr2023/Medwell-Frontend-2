@@ -16,7 +16,7 @@ export default function DoctorProfilePage() {
       return
     }
     if(role!=="doctor"){
-      alert("You cannot access logged in as doctor")
+      alert("You cannot access logged in as patient")
       router.push("/patient")
       return
     }

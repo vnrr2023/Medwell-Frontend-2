@@ -40,7 +40,7 @@ const apim = axios.create({
 export const Token = typeof window !== 'undefined' ? localStorage.getItem("Token") : null
 export const mToken=Token
 export const mockToken="1234"
-console.log(Token)
+
 
 const DaddyAPI = {
   // All Patient APIs
