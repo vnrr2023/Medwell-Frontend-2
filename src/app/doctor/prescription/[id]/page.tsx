@@ -139,9 +139,9 @@ export default function PrescriptionPage() {
       window.location.href="/auth"
       return
     }
-    if(role!=="patient"){
+    if(role!=="doctor"){
       alert("You cannot access logged in as doctor")
-      router.push("/doctor")
+      router.push("/patient")
       return
     }
   }, []);
