@@ -21,6 +21,7 @@ import { Activity, Heart, Droplet, ThermometerSun, PlusCircle } from "lucide-rea
 import { LucideIcon } from "lucide-react"
 import Chat from "@/components/chatbots/Chat"
 import ChatArogya from "@/components/chatbots/ChatArogya"
+import { useRouter } from "next/navigation"
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler)
 
@@ -85,7 +86,21 @@ const createMetricConfig = (
 
 export default function HealthCheck() {
   const [healthData, setHealthData] = useState<HealthData | null>(null)
-  
+  const router=useRouter();
+  useEffect(() => {
+    const role=localStorage.getItem("Role")
+    const token=localStorage.getItem("Token")
+    if(!token || token==undefined){
+      alert("You are not signed in")
+      window.location.href="/auth"
+      return
+    }
+    if(role!=="patient"){
+      alert("You cannot access logged in as doctor")
+      router.push("/doctor")
+      return
+    }
+  }, []);
   useEffect(() => {
     const getHealthCheckData = async () => {
       try {

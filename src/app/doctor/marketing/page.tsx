@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -13,6 +13,7 @@ import DaddyAPI from "@/services/api"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Link from "next/link"
 import ChatArogya from "@/components/chatbots/ChatArogya"
+import { useRouter } from "next/navigation"
 
 export default function Page() {
   const [heading, setHeading] = useState("Special Offer from Our Clinic")
@@ -60,7 +61,21 @@ export default function Page() {
       </tr>
     </table>
   `
-
+  const router = useRouter();
+  useEffect(() => {
+    const role=localStorage.getItem("Role")
+    const token=localStorage.getItem("Token")
+    if(!token || token==undefined){
+      alert("You are not signed in")
+      window.location.href="/auth"
+      return
+    }
+    if(role!=="patient"){
+      alert("You cannot access logged in as doctor")
+      router.push("/doctor")
+      return
+    }
+  }, []);
   const handleSendEmail = async () => {
     setIsSending(true)
     try {

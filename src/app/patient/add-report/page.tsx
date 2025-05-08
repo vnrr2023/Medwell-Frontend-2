@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import DaddyAPI from "@/services/api"
 import CombinedChat from "@/components/chatbots/ChatCombined"
 import { Loader } from "@/components/box-loader"
+import { useRouter } from "next/navigation"
 
 
 
@@ -76,7 +77,21 @@ export default function AddReport() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [buttonText, setButtonText] = useState("Upload")
   const fileInputRef = useRef<HTMLInputElement>(null)
-
+  const router=useRouter();
+  useEffect(() => {
+    const role=localStorage.getItem("Role")
+    const token=localStorage.getItem("Token")
+    if(!token || token==undefined){
+      alert("You are not signed in")
+      window.location.href="/auth"
+      return
+    }
+    if(role!=="patient"){
+      alert("You cannot access logged in as doctor")
+      router.push("/doctor")
+      return
+    }
+  }, []);
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {

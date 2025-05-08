@@ -38,7 +38,20 @@ export default function ProfilePage() {
   const router = useRouter()
   const [showQR, setShowQR] = useState(false)
   const [patientInfo, setPatientInfo] = useState<PatientInfo | null>(null)
-
+  useEffect(() => {
+    const role=localStorage.getItem("Role")
+    const token=localStorage.getItem("Token")
+    if(!token || token==undefined){
+      alert("You are not signed in")
+      window.location.href="/auth"
+      return
+    }
+    if(role!=="patient"){
+      alert("You cannot access logged in as doctor")
+      router.push("/doctor")
+      return
+    }
+  }, []);
   useEffect(() => {
     const getProfileData = async () => {
       const response = await DaddyAPI.getPatientInfo()

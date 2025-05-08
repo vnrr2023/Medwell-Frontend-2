@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import DaddyAPI from "@/services/api"
 import ChatArogya from "@/components/chatbots/ChatArogya"
+import { useRouter } from "next/navigation"
 
 // Define interfaces for API responses
 interface AppointmentSlot {
@@ -126,6 +127,7 @@ export default function PatientAppointments() {
   const [isPrevModalOpen, setIsPrevModalOpen] = useState(false)
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
   const [currentDate, setCurrentDate] = useState(new Date())
+  const router=useRouter();
   const [loading, setLoading] = useState({
     previous: false,
     upcoming: false,
@@ -148,7 +150,20 @@ export default function PatientAppointments() {
     notes: "",
     color: "#3b82f6",
   })
-
+  useEffect(() => {
+    const role=localStorage.getItem("Role")
+    const token=localStorage.getItem("Token")
+    if(!token || token==undefined){
+      alert("You are not signed in")
+      window.location.href="/auth"
+      return
+    }
+    if(role!=="patient"){
+      alert("You cannot access logged in as doctor")
+      router.push("/doctor")
+      return
+    }
+  }, []);
   // Ref for infinite scroll
   const prevAppointmentsRef = useRef<HTMLDivElement>(null)
 

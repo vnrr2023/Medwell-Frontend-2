@@ -230,7 +230,20 @@ export default function ExpenseTracker() {
   const [showMobileModal, setShowMobileModal] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
-
+  useEffect(() => {
+    const role=localStorage.getItem("Role")
+    const token=localStorage.getItem("Token")
+    if(!token || token==undefined){
+      alert("You are not signed in")
+      window.location.href="/auth"
+      return
+    }
+    if(role!=="patient"){
+      alert("You cannot access logged in as doctor")
+      router.push("/doctor")
+      return
+    }
+  }, []);
   useEffect(() => {
     const fetchExpenseData = async () => {
       setIsLoading(true)

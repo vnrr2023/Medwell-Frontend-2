@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Bold, Italic, Strikethrough, Code, Smile, Type, Send, Loader2, CheckCheck, Search, Sparkles, Mail, MessageSquare } from 'lucide-react'
 
 import { Button } from "@/components/ui/button"
@@ -21,6 +21,7 @@ import { toast, Toaster } from "sonner"
 import DaddyAPI from "@/services/api"
 import Link from "next/link"
 import ChatArogya from "@/components/chatbots/ChatArogya"
+import { useRouter } from "next/navigation"
 
 export default function Page() {
   const [message, setMessage] = useState<any>(
@@ -35,7 +36,21 @@ export default function Page() {
   const [generatePrompt, setGeneratePrompt] = useState("")
   const [dialogOpen, setDialogOpen] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
-
+  const router=useRouter();
+  useEffect(() => {
+    const role=localStorage.getItem("Role")
+    const token=localStorage.getItem("Token")
+    if(!token || token==undefined){
+      alert("You are not signed in")
+      window.location.href="/auth"
+      return
+    }
+    if(role!=="patient"){
+      alert("You cannot access logged in as doctor")
+      router.push("/doctor")
+      return
+    }
+  }, []);
   const emojiCategories = {
     smileys: [
       "😀", "😃", "😄", "😁", "😆", "😅", "🤣", "😂", "🙂", "🙃", "😉", "😊",

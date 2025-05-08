@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import ChatArogya from '@/components/chatbots/ChatArogya';
+import { useRouter } from 'next/navigation';
 
 interface AnalyticsData {
   amount_per_service: {
@@ -67,7 +68,21 @@ const DoctorAnalyticsPage = () => {
   const [viewMode, setViewMode] = useState<string>("desktop");
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
-
+  const router = useRouter();
+  useEffect(() => {
+    const role=localStorage.getItem("Role")
+    const token=localStorage.getItem("Token")
+    if(!token || token==undefined){
+      alert("You are not signed in")
+      window.location.href="/auth"
+      return
+    }
+    if(role!=="patient"){
+      alert("You cannot access logged in as doctor")
+      router.push("/doctor")
+      return
+    }
+  }, []);
   useEffect(() => {
     const fetchAnalytics = async () => {
       try {

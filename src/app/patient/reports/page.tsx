@@ -37,12 +37,27 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import type { Report as MedReport } from "./types"
 import DaddyAPI from "@/services/api"
 import CombinedChat from "@/components/chatbots/ChatCombined"
+import { useRouter } from "next/navigation"
 
 const Reports: React.FC = () => {
   const [selectedReport, setSelectedReport] = useState<MedReport | null>(null)
   const [reports, setReports] = useState<MedReport[]>([])
   const [globalSearch, setGlobalSearch] = useState("")
-
+  const router=useRouter();
+  useEffect(() => {
+    const role=localStorage.getItem("Role")
+    const token=localStorage.getItem("Token")
+    if(!token || token==undefined){
+      alert("You are not signed in")
+      window.location.href="/auth"
+      return
+    }
+    if(role!=="patient"){
+      alert("You cannot access logged in as doctor")
+      router.push("/doctor")
+      return
+    }
+  }, []);
   useEffect(() => {
     const getReports = async () => {
       const response = await DaddyAPI.getReports()

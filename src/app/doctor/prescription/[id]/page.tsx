@@ -131,7 +131,20 @@ export default function PrescriptionPage() {
   const [newInstruction, setNewInstruction] = useState<string>("")
   // Add a ref for printing
   const prescriptionPreviewRef = useRef<HTMLDivElement>(null)
-
+  useEffect(() => {
+    const role=localStorage.getItem("Role")
+    const token=localStorage.getItem("Token")
+    if(!token || token==undefined){
+      alert("You are not signed in")
+      window.location.href="/auth"
+      return
+    }
+    if(role!=="patient"){
+      alert("You cannot access logged in as doctor")
+      router.push("/doctor")
+      return
+    }
+  }, []);
   // Update the useEffect to properly handle the data structure when fetching
   useEffect(() => {
     const fetchPrescription = async () => {

@@ -19,13 +19,27 @@ import { Badge } from "@/components/ui/badge"
 import DaddyAPI from "@/services/api"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import ChatArogya from "@/components/chatbots/ChatArogya"
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend)
 
 export default function PatientDashboard() {
   const [dashboardData, setDashboardData] = useState<any>()
   const [loading, setLoading] = useState<boolean>(true);
   const router=useRouter()
-  
+  useEffect(() => {
+    const role=localStorage.getItem("Role")
+    const token=localStorage.getItem("Token")
+    if(!token || token==undefined){
+      alert("You are not signed in")
+      window.location.href="/auth"
+      return
+    }
+    if(role!=="patient"){
+      alert("You cannot access logged in as doctor")
+      router.push("/doctor")
+      return
+    }
+  }, []);
   useEffect(() => {
  
     const getPatientDashboardData = async () => {
@@ -215,6 +229,7 @@ export default function PatientDashboard() {
           </CardContent>
         </Card>
       </div>
+      <ChatArogya/>
     </div>
   )
 }
