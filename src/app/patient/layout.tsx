@@ -76,7 +76,7 @@ export default function PatientLayout({ children }: { children: React.ReactNode 
               <AvatarFallback className="bg-blue-100 text-blue-700">DR</AvatarFallback>
             </Avatar>
             <div className="ml-3">
-              <p className="text-sm font-medium text-slate-800">Dr. John Doe</p>
+              <p className="text-sm font-medium text-slate-800">Dr. Anand Shroff</p>
               <p className="text-xs text-slate-500">ID: D12345</p>
             </div>
           </div>

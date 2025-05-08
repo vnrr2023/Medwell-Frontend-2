@@ -41,6 +41,7 @@ import {
 } from "@/components/ui/dialog"
 
 import DaddyAPI from "@/services/api"
+import ChatArogya from "@/components/chatbots/ChatArogya"
 
 // Types
 interface Medicine {
@@ -1121,6 +1122,7 @@ export default function PrescriptionPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <ChatArogya/>
     </div>
   )
 }

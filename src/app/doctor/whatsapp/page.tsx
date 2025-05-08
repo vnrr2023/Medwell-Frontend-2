@@ -20,6 +20,7 @@ import {
 import { toast, Toaster } from "sonner"
 import DaddyAPI from "@/services/api"
 import Link from "next/link"
+import ChatArogya from "@/components/chatbots/ChatArogya"
 
 export default function Page() {
   const [message, setMessage] = useState<any>(
@@ -498,6 +499,7 @@ export default function Page() {
         </div>
       </div>
       <Toaster />
+      <ChatArogya/>
     </main>
   )
 }

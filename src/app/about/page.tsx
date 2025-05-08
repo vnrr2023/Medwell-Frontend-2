@@ -8,6 +8,7 @@ import { Github, Linkedin, Heart, Shield, Brain, Activity } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { WobbleCard } from "@/components/ui/wobble-card"
 import Loader from "@/components/Loader"
+import ChatArogya from "@/components/chatbots/ChatArogya"
 
 const teamMembers = [
   {
@@ -282,6 +283,7 @@ export default function AboutPage() {
           </motion.div>
         </div>
       </div>
+      <ChatArogya/>
     </div>
   )
 }

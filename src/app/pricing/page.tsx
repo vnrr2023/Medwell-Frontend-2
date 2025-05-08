@@ -15,6 +15,7 @@ import {
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Loader from "@/components/Loader"
+import ChatArogya from "@/components/chatbots/ChatArogya"
 
 const pricingPlans = [
   {
@@ -284,6 +285,7 @@ export default function PricingPage() {
             </div>
           </motion.div>
         </div>
+        <ChatArogya/>
       </div>
     </>
   )

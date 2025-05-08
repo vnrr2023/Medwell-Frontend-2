@@ -6,6 +6,7 @@ import Features from "@/components/home/Features"
 import Loader from "@/components/Loader"
 import { motion, AnimatePresence } from "framer-motion"
 import Chat from "@/components/chatbots/Chat"
+import ChatArogya from "@/components/chatbots/ChatArogya"
 
 const Consultation = lazy(() => import("@/components/home/Consultation"))
 const Specialties = lazy(() => import("@/components/home/Specialties"))
@@ -120,7 +121,7 @@ export default function Home() {
           <Footer />
         </Suspense>
       </motion.main>
-      <Chat/>
+      <ChatArogya/>
     </AnimatePresence>
   )
 }

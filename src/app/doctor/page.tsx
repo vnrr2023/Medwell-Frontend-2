@@ -12,6 +12,7 @@ import DaddyAPI from "@/services/api"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useRouter } from "next/navigation"
+import ChatArogya from "@/components/chatbots/ChatArogya"
 // Define types for our API response
 interface DashboardData {
   unique_users: string
@@ -401,6 +402,7 @@ function DashboardSkeleton() {
           </CardContent>
         </Card>
       </div>
+      <ChatArogya/>
     </div>
   )
 }

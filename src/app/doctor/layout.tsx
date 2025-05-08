@@ -65,14 +65,14 @@ export default function DoctorLayout({ children }: { children: React.ReactNode }
           </div>
         </nav>
         <div className="p-4 mx-4 mb-6 bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl border border-blue-100">
-          <p className="text-xs font-medium text-blue-700 mb-2">YOUR ID</p>
+          <p className="text-xs font-medium text-blue-700 mb-2">DOC</p>
           <div className="flex items-center">
             <Avatar className="border-2 border-white shadow-sm">
               <AvatarImage src="/doctor/pfp.jpg" alt="Doctor" />
               <AvatarFallback className="bg-blue-100 text-blue-700">DR</AvatarFallback>
             </Avatar>
             <div className="ml-3">
-              <p className="text-sm font-medium text-slate-800">Dr. John Doe</p>
+              <p className="text-sm font-medium text-slate-800">Dr. Anand Shroff</p>
               <p className="text-xs text-slate-500">ID: D12345</p>
             </div>
           </div>

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
+import ChatArogya from '@/components/chatbots/ChatArogya';
 
 interface AnalyticsData {
   amount_per_service: {
@@ -383,6 +384,7 @@ const DoctorAnalyticsPage = () => {
           </CardContent>
         </Card>
       </div>
+      <ChatArogya/>
     </div>
   );
 };

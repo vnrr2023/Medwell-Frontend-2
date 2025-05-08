@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import DaddyAPI from "@/services/api"
 import DynamicMap from "@/components/DynamicMap"
+import ChatArogya from "@/components/chatbots/ChatArogya"
 
 // Types
 interface Location {
@@ -411,6 +412,7 @@ export default function DoctorSearch() {
           </CardContent>
         </Card>
       </div>
+      <ChatArogya/>
     </div>
   )
 }

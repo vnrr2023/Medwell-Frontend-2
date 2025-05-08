@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator"
 import DaddyAPI from "@/services/api"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Link from "next/link"
+import ChatArogya from "@/components/chatbots/ChatArogya"
 
 export default function Page() {
   const [heading, setHeading] = useState("Special Offer from Our Clinic")
@@ -299,6 +300,7 @@ export default function Page() {
           </Card>
         </div>
       </div>
+      <ChatArogya/>
     </div>
   )
 }

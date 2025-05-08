@@ -36,6 +36,7 @@ import { Label } from "@/components/ui/label"
 
 // Replace the import for DoctorAPI with the actual API service
 import DaddyAPI from "@/services/api"
+import ChatArogya from "@/components/chatbots/ChatArogya"
 
 // Types
 interface TimeSlot {
@@ -800,6 +801,8 @@ export default function AppointmentPage() {
           </div>
         )}
       </div>
+      <ChatArogya/>
+      
     </div>
   )
 }
